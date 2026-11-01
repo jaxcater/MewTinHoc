@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession } from './botpressService.js';
+import { applySecurityHeaders } from './securityHeaders.js';
 
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_MESSAGE_CHARS = 4000;
@@ -62,6 +63,7 @@ function sendJson(res, statusCode, data) {
 }
 
 export async function botpressMiddleware(req, res, next) {
+  applySecurityHeaders(res, req);
   const url = req.url?.split('?')[0] || '';
   const method = req.method?.toUpperCase();
   const allowedOrigin = process.env.BOTPRESS_ALLOWED_ORIGIN || '';

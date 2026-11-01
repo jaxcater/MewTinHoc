@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { botpressMiddleware } from './botpressMiddleware.js';
+import { applySecurityHeaders } from './securityHeaders.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,8 @@ function safeDistPath(requestUrl) {
 }
 
 const server = http.createServer(async (req, res) => {
+  applySecurityHeaders(res, req);
+
   if (req.url?.startsWith('/api/botpress')) {
     const originalUrl = req.url;
     req.url = originalUrl.replace(/^\/api\/botpress/, '') || '/';
@@ -61,9 +64,7 @@ const server = http.createServer(async (req, res) => {
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, {
-      'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
-      'X-Content-Type-Options': 'nosniff',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://cdn.botpress.cloud; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+      'Content-Type': MIME_TYPES[ext] || 'application/octet-stream'
     });
     fs.createReadStream(filePath).pipe(res);
     return;

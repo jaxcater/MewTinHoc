@@ -201,6 +201,20 @@ export default function BotpressChatBubble({ user }) {
     }
   }, [messages, isOpen, activeTab]);
 
+  // Chỉ khóa cuộn nền khi chat thực sự chiếm toàn màn hình trên mobile.
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return undefined;
+
+    const mobileQuery = window.matchMedia('(max-width: 640px)');
+    if (!mobileQuery.matches) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   // Lệnh curl tham khảo để kiểm tra trên terminal server
   const curlExample = `# Kiểm tra Botpress Cloud Files API từ Terminal Backend:
 curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" https://api.botpress.cloud/v1/files`;

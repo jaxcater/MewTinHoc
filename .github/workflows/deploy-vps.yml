@@ -23,9 +23,10 @@ jobs:
             git config --global --add safe.directory /www/wwwroot/mewtinhoc
             git pull --ff-only origin main
             export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
-            npm install
+            export NODE_ENV=production
+            npm ci
             npm run build
-            pm2 restart mewtinhoc
+            pm2 restart mewtinhoc --update-env
             git log -1 --oneline
             test -f dist/index.html
             echo "Deploy completed at $(date)" >> /tmp/deploy.log
