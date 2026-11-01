@@ -15,11 +15,17 @@ jobs:
           host: 31.97.188.238
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          command_timeout: 20m
           script: |
+            set -e
             cd /www/wwwroot/mewtinhoc
-            git pull origin main
+            git config --global --add safe.directory /www/wwwroot/mewtinhoc
+            git pull --ff-only origin main
             export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
             npm install
             npm run build
             pm2 restart mewtinhoc
+            git log -1 --oneline
+            test -f dist/index.html
             echo "Deploy completed at $(date)" >> /tmp/deploy.log
