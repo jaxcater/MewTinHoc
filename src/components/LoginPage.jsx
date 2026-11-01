@@ -505,8 +505,11 @@ export default function LoginPage({ onLogin }) {
                 )}
               </button>
 
+              {/* Chỉ cho phép tài khoản demo khi chạy local development. */}
+              {(
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '0.1rem 0' }}>
               {/* Hoặc Trải nghiệm nhanh */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.1rem 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
                 <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600 }}>HOẶC</span>
                 <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
@@ -516,6 +519,7 @@ export default function LoginPage({ onLogin }) {
                 type="button"
                 onClick={() => onLogin({
                   id: 'demo-student-id',
+                  isDemo: true,
                   name: 'Nguyễn Văn An',
                   email: 'an.nguyen@hocvien.edu.vn',
                   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
@@ -562,6 +566,8 @@ export default function LoginPage({ onLogin }) {
                 <ShieldCheck size={14} color="#16A34A" />
                 <span>Không lưu mật khẩu · Dữ liệu được mã hóa an toàn</span>
               </div>
+              </div>
+              )}
             </div>
           </div>
 

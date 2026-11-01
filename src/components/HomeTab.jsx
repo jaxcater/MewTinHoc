@@ -214,11 +214,20 @@ export default function HomeTab({
             <MascotHeroCat />
 
             <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem' }}>
+              <div className="hero-tag-row">
                 <motion.div variants={bannerItemVariants} className="hero-tag" style={{ margin: 0 }}>
                   <Sparkles size={14} />
                   <span>Chương trình ôn luyện bám sát ma trận 2025</span>
                 </motion.div>
+                <span className="hero-mobile-glasses" aria-hidden="true">
+                  <span className="hero-mobile-glass-lens">
+                    <span className="hero-mobile-glass-shine" />
+                  </span>
+                  <span className="hero-mobile-glass-bridge" />
+                  <span className="hero-mobile-glass-lens">
+                    <span className="hero-mobile-glass-shine hero-mobile-glass-shine--late" />
+                  </span>
+                </span>
               </div>
 
               <motion.h1 variants={bannerItemVariants} className="hero-title">

@@ -46,7 +46,7 @@ const FOLDER = EXAM_DOCS_CONFIG.folder;
 const MAX_MB = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
 
 // Loại file có thể xem trực tiếp trên trình duyệt
-const PREVIEWABLE = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
+const PREVIEWABLE = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
 const MOBILE_DOC_INITIAL_LIMIT = 6;
 const MOBILE_DOC_PAGE_SIZE = 4;
 
@@ -113,6 +113,7 @@ export default function ExamRepoTab({ user }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [notice, setNotice] = useState(null); // { type: 'success' | 'error', msg }
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   const fileInputRef = useRef(null);
   const renameInputRef = useRef(null);
@@ -128,6 +129,15 @@ export default function ExamRepoTab({ user }) {
   useEffect(() => () => {
     if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    if (!previewDoc) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setPreviewDoc(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [previewDoc]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 640px)');
@@ -360,7 +370,23 @@ export default function ExamRepoTab({ user }) {
   /* Tiện ích                                                          */
   /* ---------------------------------------------------------------- */
   const handleDownload = (doc) => {
-    if (doc.download_url) window.open(doc.download_url, '_blank');
+    if (doc.download_url) window.open(doc.download_url, '_blank', 'noopener,noreferrer');
+  };
+
+  const openPreview = (doc) => {
+    if (doc?.view_url && PREVIEWABLE.includes((doc.loai_file || '').toLowerCase())) {
+      setPreviewDoc(doc);
+    }
+  };
+
+  const closePreview = () => setPreviewDoc(null);
+
+  const getPreviewUrl = (doc) => {
+    const ext = (doc?.loai_file || '').toLowerCase();
+    if (ext === 'doc' || ext === 'docx') {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(doc.view_url)}`;
+    }
+    return doc?.view_url || '';
   };
 
   const filtered = docs.filter((d) =>
@@ -585,9 +611,16 @@ export default function ExamRepoTab({ user }) {
             return (
               <article key={doc.id} className={`doc-row doc-library-card${isEditing ? ' editing' : ''}`}>
                 {/* File type icon */}
-                <div className="doc-icon-wrap" style={{ background: fi.bg }}>
+                <button
+                  type="button"
+                  className={`doc-icon-wrap${canPreview && doc.view_url ? ' doc-preview-trigger' : ''}`}
+                  style={{ background: fi.bg }}
+                  onClick={() => openPreview(doc)}
+                  disabled={!canPreview || !doc.view_url}
+                  title={canPreview && doc.view_url ? 'Xem trước tài liệu' : 'Không hỗ trợ xem trước'}
+                >
                   <IconComp size={22} color={fi.color} />
-                </div>
+                </button>
 
                 {/* Info */}
                 <div className="doc-info">
@@ -607,15 +640,14 @@ export default function ExamRepoTab({ user }) {
                     </div>
                   ) : (
                     canPreview && doc.view_url ? (
-                      <a
-                        href={doc.view_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
                         className="doc-filename doc-filename-link"
-                        title="Nhấn để xem tài liệu"
+                        onClick={() => openPreview(doc)}
+                        title="Nhấn để xem trước tài liệu"
                       >
                         {doc.ten_file}
-                      </a>
+                      </button>
                     ) : (
                       <div className="doc-filename">{doc.ten_file}</div>
                     )
@@ -691,15 +723,14 @@ export default function ExamRepoTab({ user }) {
                           {doc.download_url ? (
                             <>
                               {canPreview && doc.view_url && (
-                                <a
-                                  href={doc.view_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <button
+                                  type="button"
                                   className="doc-btn-view"
+                                  onClick={() => openPreview(doc)}
                                   title="Xem trước"
                                 >
                                   <Eye size={16} />
-                                </a>
+                                </button>
                               )}
                               <button
                                 type="button"
@@ -762,6 +793,50 @@ export default function ExamRepoTab({ user }) {
       )}
 
       {/* ── Empty state ── */}
+      {previewDoc && (
+        <div
+          className="doc-preview-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="doc-preview-title"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) closePreview(); }}
+        >
+          <section className="doc-preview-modal">
+            <header className="doc-preview-header">
+              <div className="doc-preview-heading">
+                <Eye size={18} />
+                <h2 id="doc-preview-title">{previewDoc.ten_file}</h2>
+              </div>
+              <button type="button" className="doc-preview-close" onClick={closePreview} aria-label="Đóng xem trước">
+                <X size={18} />
+              </button>
+            </header>
+            <div className="doc-preview-body">
+              {(previewDoc.loai_file || '').toLowerCase() === 'doc' || (previewDoc.loai_file || '').toLowerCase() === 'docx' ? (
+                <iframe
+                  title={`Xem trước ${previewDoc.ten_file}`}
+                  src={getPreviewUrl(previewDoc)}
+                  className="doc-preview-frame"
+                />
+              ) : (
+                <iframe
+                  title={`Xem trước ${previewDoc.ten_file}`}
+                  src={previewDoc.view_url}
+                  className="doc-preview-frame"
+                />
+              )}
+            </div>
+            <footer className="doc-preview-footer">
+              <span>Chế độ xem trước · Không chỉnh sửa</span>
+              <button type="button" className="doc-btn-download doc-preview-download" onClick={() => handleDownload(previewDoc)}>
+                <Download size={16} />
+                <span>Tải về</span>
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
       {!isLoading && filtered.length === 0 && (
         <div className="doc-empty">
           <FolderOpen size={40} strokeWidth={1.5} />

@@ -33,6 +33,17 @@ export default function App() {
 
   // User state: null = not logged in, object = logged in
   const [user, setUser] = useState(() => {
+    // Demo chỉ khôi phục trong sessionStorage; localStorage không phải bằng chứng đăng nhập.
+    const demoSaved = sessionStorage.getItem('tinhoc_demo_user');
+    if (demoSaved) {
+      try {
+        return resolveUserRole({ ...JSON.parse(demoSaved), isDemo: true, isAdmin: false, is_admin: false });
+      } catch { /* ignore invalid demo state */ }
+    }
+
+    // Khi Supabase Auth được cấu hình, chỉ session từ Supabase mới là nguồn xác thực.
+    if (supabase) return null;
+
     const saved = localStorage.getItem('tinhoc_user');
     if (saved) {
       try {
@@ -64,9 +75,18 @@ export default function App() {
     }, 4000);
   };
 
-  // Sync to localStorage
+  // Tài khoản demo chỉ tồn tại trong tab hiện tại; tài khoản thật dùng cache UI riêng.
   useEffect(() => {
-    localStorage.setItem('tinhoc_user', JSON.stringify(user));
+    if (user?.isDemo) {
+      sessionStorage.setItem('tinhoc_demo_user', JSON.stringify(user));
+      localStorage.removeItem('tinhoc_user');
+    } else if (user) {
+      localStorage.setItem('tinhoc_user', JSON.stringify(user));
+      sessionStorage.removeItem('tinhoc_demo_user');
+    } else {
+      localStorage.removeItem('tinhoc_user');
+      sessionStorage.removeItem('tinhoc_demo_user');
+    }
   }, [user]);
 
 
@@ -139,9 +159,11 @@ export default function App() {
       avatar: googleAccount.avatar || DEFAULT_USER.avatar,
       grade: googleAccount.grade || DEFAULT_USER.grade
     };
-    const syncedUser = await syncUserRoleToSupabase(rawUser);
+    const isDemo = googleAccount?.isDemo === true;
+    const syncedUser = isDemo
+      ? { ...rawUser, isDemo: true, isAdmin: false, is_admin: false, role: 'user' }
+      : await syncUserRoleToSupabase(rawUser);
     setUser(syncedUser);
-    localStorage.setItem('tinhoc_user', JSON.stringify(syncedUser));
     showToast(`🎉 Chào mừng ${googleAccount.name}! Bắt đầu luyện thi thôi!`);
   };
 
@@ -219,6 +241,7 @@ export default function App() {
         streak={streak}
         onLogout={handleLogout}
         onOpenStreakDetails={() => {
+          setActiveTab(TABS.HOME);
           navigate('/');
           setTimeout(() => {
             const el = document.getElementById('streak-card-section');

@@ -1,26 +1,59 @@
+import crypto from 'node:crypto';
 import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession } from './botpressService.js';
 
-// Hàm helper phân tích body JSON
+const MAX_BODY_BYTES = 16 * 1024;
+const MAX_MESSAGE_CHARS = 4000;
+const CHAT_COOKIE = 'mewtinhoc_chat_session';
+
 function parseJsonBody(req) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let raw = '';
+    let size = 0;
+    let rejected = false;
+
     req.on('data', (chunk) => {
+      if (rejected) return;
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        rejected = true;
+        reject(Object.assign(new Error('Payload quá lớn'), { statusCode: 413 }));
+        req.resume();
+        return;
+      }
       raw += chunk;
     });
     req.on('end', () => {
+      if (rejected) return;
       try {
         resolve(JSON.parse(raw || '{}'));
       } catch {
-        resolve({});
+        reject(Object.assign(new Error('JSON không hợp lệ'), { statusCode: 400 }));
       }
     });
-    req.on('error', () => {
-      resolve({});
-    });
+    req.on('error', reject);
   });
 }
 
-// Hàm helper gửi phản hồi JSON chuẩn
+function getCookie(req, name) {
+  const header = req.headers.cookie || '';
+  const match = header.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : '';
+}
+
+function getChatSession(req, res) {
+  const existing = getCookie(req, CHAT_COOKIE);
+  if (existing && /^[0-9a-f-]{36}$/i.test(existing)) return existing;
+
+  const sessionId = crypto.randomUUID();
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `${CHAT_COOKIE}=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${secure}`);
+  return sessionId;
+}
+
+function cleanString(value, maxLength) {
+  return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+}
+
 function sendJson(res, statusCode, data) {
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -28,24 +61,30 @@ function sendJson(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-// Middleware xử lý các API Botpress Backend
 export async function botpressMiddleware(req, res, next) {
   const url = req.url?.split('?')[0] || '';
   const method = req.method?.toUpperCase();
+  const allowedOrigin = process.env.BOTPRESS_ALLOWED_ORIGIN || '';
+  const requestOrigin = req.headers.origin;
 
-  // Bật CORS cho môi trường dev nếu cần
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (allowedOrigin && requestOrigin === allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (method === 'OPTIONS') {
-    res.statusCode = 204;
-    res.end();
+    if (!allowedOrigin || requestOrigin === allowedOrigin) {
+      res.statusCode = 204;
+      res.end();
+    } else {
+      sendJson(res, 403, { error: 'Origin không được phép' });
+    }
     return;
   }
 
   try {
-    // 1. Kiểm tra trạng thái cấu hình Backend
     if (url === '/status' || url === '/api/botpress/status') {
       const config = getBotpressConfig();
       return sendJson(res, 200, {
@@ -56,49 +95,36 @@ export async function botpressMiddleware(req, res, next) {
       });
     }
 
-    // 2. Lấy danh sách Files qua Botpress Cloud Files API
     if (url === '/files' || url === '/api/botpress/files') {
+      if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
       const result = await listBotpressFiles();
       return sendJson(res, result.status === 'error' ? 500 : 200, result);
     }
 
-    // 3. Gửi tin nhắn Chat (duy trì conversationId)
     if (url === '/chat' || url === '/api/botpress/chat') {
-      if (method !== 'POST') {
-        return sendJson(res, 405, { error: 'Method Not Allowed' });
-      }
-
+      if (method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
       const body = await parseJsonBody(req);
-      const message = body.message || body.text || '';
-      const userId = body.userId || 'student_user';
-      const conversationId = body.conversationId || null;
-
-      const chatRes = await processChatMessage({ message, userId, conversationId });
+      const message = cleanString(body.message || body.text, MAX_MESSAGE_CHARS);
+      if (!message) return sendJson(res, 400, { error: 'Tin nhắn không được để trống' });
+      const userId = getChatSession(req, res);
+      const chatRes = await processChatMessage({ message, userId, conversationId: null });
       return sendJson(res, 200, chatRes);
     }
 
-    // 4. Reset phiên hội thoại (khi tắt cửa sổ chat hoặc bấm reset)
     if (url === '/reset' || url === '/api/botpress/reset') {
-      if (method !== 'POST') {
-        return sendJson(res, 405, { error: 'Method Not Allowed' });
-      }
-
-      const body = await parseJsonBody(req);
-      const userId = body.userId || 'student_user';
+      if (method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      const userId = getChatSession(req, res);
       resetSession(userId);
       return sendJson(res, 200, { success: true, message: 'Đã reset ngữ cảnh hội thoại' });
     }
 
-    if (typeof next === 'function') {
-      return next();
-    }
-
-    sendJson(res, 404, { error: 'Botpress endpoint not found' });
+    if (typeof next === 'function') return next();
+    return sendJson(res, 404, { error: 'Botpress endpoint not found' });
   } catch (err) {
-    console.error('[Botpress Middleware Error]:', err);
-    sendJson(res, 500, {
-      error: 'Lỗi máy chủ nội bộ khi xử lý Botpress API',
-      details: err.message
+    const statusCode = Number(err?.statusCode) || 500;
+    if (statusCode >= 500) console.error('[Botpress Middleware Error]:', err);
+    return sendJson(res, statusCode, {
+      error: statusCode >= 500 ? 'Lỗi máy chủ nội bộ khi xử lý Botpress API' : err.message
     });
   }
 }

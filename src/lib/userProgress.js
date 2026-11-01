@@ -87,6 +87,8 @@ export const getDayDiff = (dateStr1, dateStr2) => {
  */
 export function useUserProgress(user) {
   const userId = user?.id || 'guest';
+  const isDemo = user?.isDemo === true;
+  const storage = isDemo ? sessionStorage : localStorage;
   const progressKey = `tinhoc_user_progress_${userId}`;
   const masteryKey = `tinhoc_mastery_progress_${userId}`;
   const lessonsKey = `tinhoc_completed_lessons_${userId}`;
@@ -105,7 +107,7 @@ export function useUserProgress(user) {
   // 1. Tiến độ tổng quan (Streak bắt đầu từ 0 ngày khi tạo tài khoản)
   const [progress, setProgress] = useState(() => {
     try {
-      const saved = localStorage.getItem(progressKey);
+      const saved = storage.getItem(progressKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Xóa giá trị mock 7 hoặc 8 cũ nếu tài khoản chưa từng điểm danh thực tế
@@ -121,7 +123,7 @@ export function useUserProgress(user) {
   // 2. Mức độ làm chủ 4 khối
   const [mastery, setMastery] = useState(() => {
     try {
-      const saved = localStorage.getItem(masteryKey);
+      const saved = storage.getItem(masteryKey);
       if (saved) return JSON.parse(saved);
     } catch {}
     return { ...DEFAULT_MASTERY };
@@ -130,7 +132,7 @@ export function useUserProgress(user) {
   // 3. Danh sách bài học hoàn thành trong lộ trình
   const [completedLessons, setCompletedLessons] = useState(() => {
     try {
-      const saved = localStorage.getItem(lessonsKey);
+      const saved = storage.getItem(lessonsKey);
       if (saved) return JSON.parse(saved);
     } catch {}
     return {};
@@ -139,7 +141,7 @@ export function useUserProgress(user) {
   // 4. Lịch sử các ngày đã điểm danh
   const [checkinHistory, setCheckinHistory] = useState(() => {
     try {
-      const saved = localStorage.getItem(checkinKey);
+      const saved = storage.getItem(checkinKey);
       if (saved) return JSON.parse(saved);
     } catch {}
     return [];
@@ -152,7 +154,7 @@ export function useUserProgress(user) {
     setHydratedUserId(null);
     setDayOffset(0);
     try {
-      const saved = localStorage.getItem(progressKey);
+      const saved = storage.getItem(progressKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (!parsed.streak_last_date && parsed.streak_count > 0) {
@@ -167,21 +169,21 @@ export function useUserProgress(user) {
     }
 
     try {
-      const savedMastery = localStorage.getItem(masteryKey);
+      const savedMastery = storage.getItem(masteryKey);
       setMastery(savedMastery ? JSON.parse(savedMastery) : { ...DEFAULT_MASTERY });
     } catch {
       setMastery({ ...DEFAULT_MASTERY });
     }
 
     try {
-      const savedLessons = localStorage.getItem(lessonsKey);
+      const savedLessons = storage.getItem(lessonsKey);
       setCompletedLessons(savedLessons ? JSON.parse(savedLessons) : {});
     } catch {
       setCompletedLessons({});
     }
 
     try {
-      const savedHist = localStorage.getItem(checkinKey);
+      const savedHist = storage.getItem(checkinKey);
       setCheckinHistory(savedHist ? JSON.parse(savedHist) : []);
     } catch {
       setCheckinHistory([]);
@@ -201,7 +203,7 @@ export function useUserProgress(user) {
   // Dọn khoá mô phỏng cũ (nếu phiên bản trước đã lỡ lưu) để F5 luôn về ngày thật
   useEffect(() => {
     try {
-      localStorage.removeItem('tinhoc_day_offset');
+      storage.removeItem('tinhoc_day_offset');
     } catch { /* ignore */ }
   }, []);
 
@@ -228,7 +230,7 @@ export function useUserProgress(user) {
     if (count > 0) {
       setProgress(prev => ({ ...prev, streak_count: 0 }));
 
-      if (user?.id && supabase) {
+      if (!isDemo && user?.id && supabase) {
         supabase
           .from('user_progress')
           .upsert({ id: user.id, streak_count: 0, updated_at: new Date().toISOString() })
@@ -241,8 +243,8 @@ export function useUserProgress(user) {
   useEffect(() => {
     if (isSimulating || hydratedUserId !== userId) return;
 
-    localStorage.setItem(progressKey, JSON.stringify(progress));
-    localStorage.setItem(`tinhoc_streak_${userId}`, JSON.stringify({
+    storage.setItem(progressKey, JSON.stringify(progress));
+    storage.setItem(`tinhoc_streak_${userId}`, JSON.stringify({
       count: progress.streak_count,
       checkedToday: progress.streak_last_date === effectiveToday,
       lastCheckInDate: progress.streak_last_date,
@@ -253,24 +255,24 @@ export function useUserProgress(user) {
 
   useEffect(() => {
     if (hydratedUserId !== userId) return;
-    localStorage.setItem(masteryKey, JSON.stringify(mastery));
+    storage.setItem(masteryKey, JSON.stringify(mastery));
   }, [mastery, masteryKey, hydratedUserId, userId]);
 
   useEffect(() => {
     if (hydratedUserId !== userId) return;
-    localStorage.setItem(lessonsKey, JSON.stringify(completedLessons));
+    storage.setItem(lessonsKey, JSON.stringify(completedLessons));
   }, [completedLessons, lessonsKey, hydratedUserId, userId]);
 
   useEffect(() => {
     if (isSimulating || hydratedUserId !== userId) return;
 
-    localStorage.setItem(checkinKey, JSON.stringify(checkinHistory));
+    storage.setItem(checkinKey, JSON.stringify(checkinHistory));
   }, [checkinHistory, checkinKey, isSimulating, hydratedUserId, userId]);
 
 
   // Tải dữ liệu ban đầu từ Supabase (nếu user đăng nhập)
   const loadUserDataFromSupabase = useCallback(async (targetUserId) => {
-    if (!targetUserId || !supabase) {
+    if (isDemo || !targetUserId || !supabase) {
       setDbStatus('fallback');
       return;
     }
@@ -312,7 +314,7 @@ export function useUserProgress(user) {
           xp_total: progData.xp_total ?? 0
         };
         setProgress(loadedProgress);
-        localStorage.setItem(targetProgressKey, JSON.stringify(loadedProgress));
+        storage.setItem(targetProgressKey, JSON.stringify(loadedProgress));
       } else {
         // Người dùng mới -> tự tạo dòng mặc định
         if (isCurrentUser()) {
@@ -341,7 +343,7 @@ export function useUserProgress(user) {
           if (row.block_key) loadedMastery[row.block_key] = row.progress;
         });
         setMastery(loadedMastery);
-        localStorage.setItem(targetMasteryKey, JSON.stringify(loadedMastery));
+        storage.setItem(targetMasteryKey, JSON.stringify(loadedMastery));
       }
 
       // 3. Tải roadmap_lessons
@@ -356,7 +358,7 @@ export function useUserProgress(user) {
           if (row.lesson_id) loadedLessons[row.lesson_id] = !!row.completed;
         });
         setCompletedLessons(loadedLessons);
-        localStorage.setItem(targetLessonsKey, JSON.stringify(loadedLessons));
+        storage.setItem(targetLessonsKey, JSON.stringify(loadedLessons));
       }
 
       // 4. Tải daily_checkins
@@ -370,19 +372,19 @@ export function useUserProgress(user) {
       if (!checkinErr && checkinData && isCurrentUser()) {
         const loadedCheckins = checkinData.map(r => r.checkin_date);
         setCheckinHistory(loadedCheckins);
-        localStorage.setItem(targetCheckinKey, JSON.stringify(loadedCheckins));
+        storage.setItem(targetCheckinKey, JSON.stringify(loadedCheckins));
       }
 
     } catch (err) {
       console.warn('Lỗi kết nối Supabase, chuyển sang Offline LocalStorage:', err);
       if (isCurrentUser()) setDbStatus('fallback');
     }
-  }, [loadRequestIdRef]);
+  }, [loadRequestIdRef, isDemo]);
 
   // Thiết lập Supabase Realtime Subscription
   useEffect(() => {
     const userId = user?.id;
-    if (!userId || !supabase) {
+    if (isDemo || !userId || !supabase) {
       setDbStatus('fallback');
       setIsRealtimeActive(false);
       return;
@@ -470,7 +472,7 @@ export function useUserProgress(user) {
         supabase.removeChannel(realtimeChannelRef.current);
       }
     };
-  }, [user?.id, loadUserDataFromSupabase]);
+  }, [user?.id, isDemo, loadUserDataFromSupabase]);
 
   // Hành động: Điểm danh (Check-In)
   const checkIn = useCallback(async () => {
@@ -507,7 +509,7 @@ export function useUserProgress(user) {
 
     // Gửi lên Supabase — CHỈ khi dùng NGÀY THẬT.
     // Khi Admin đang mô phỏng ngày thì tuyệt đối không ghi ngày ảo vào CSDL.
-    if (!isSimulating && user?.id && supabase) {
+    if (!isSimulating && !isDemo && user?.id && supabase) {
       try {
         await supabase.from('daily_checkins').upsert({
           user_id: user.id,
@@ -546,7 +548,7 @@ export function useUserProgress(user) {
       };
     });
 
-    if (user?.id && supabase && resolvedValue !== undefined) {
+    if (!isDemo && user?.id && supabase && resolvedValue !== undefined) {
       try {
         await supabase.from('mastery_progress').upsert({
           user_id: user.id,
@@ -578,7 +580,7 @@ export function useUserProgress(user) {
       }));
     }
 
-    if (user?.id && supabase) {
+    if (!isDemo && user?.id && supabase) {
       try {
         await supabase.from('roadmap_lessons').upsert({
           user_id: user.id,
@@ -620,7 +622,7 @@ export function useUserProgress(user) {
         xp_total: newXp
       };
 
-      if (user?.id && supabase) {
+      if (!isDemo && user?.id && supabase) {
         supabase
           .from('user_progress')
           .upsert({
@@ -668,10 +670,10 @@ export function useUserProgress(user) {
     setDayOffset(0);
 
     try {
-      const savedProg = localStorage.getItem(progressKey);
+      const savedProg = storage.getItem(progressKey);
       if (savedProg) setProgress(JSON.parse(savedProg));
 
-      const savedHist = localStorage.getItem(checkinKey);
+      const savedHist = storage.getItem(checkinKey);
       if (savedHist) setCheckinHistory(JSON.parse(savedHist));
     } catch { /* ignore */ }
 

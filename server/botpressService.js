@@ -44,13 +44,15 @@ export function getBotpressConfig() {
   const env = loadBackendEnv();
   const token = env.BOTPRESS_TOKEN || env.VITE_BOTPRESS_TOKEN || '';
   const botId = env.BOTPRESS_BOT_ID || env.VITE_BOTPRESS_BOT_ID || '';
-  const webhookId = env.BOTPRESS_WEBHOOK_ID || '495d4013-89a7-4f9c-ad32-1a623750a35c';
-  const encryptionKey = env.BOTPRESS_ENCRYPTION_KEY || 'crackhobomay1cailuonconcho-AnBaoNhi2008';
+  const webhookId = env.BOTPRESS_WEBHOOK_ID || '';
+  const encryptionKey = env.BOTPRESS_ENCRYPTION_KEY || '';
 
   const isConfigured = Boolean(
     webhookId &&
+    encryptionKey &&
     webhookId !== 'your_default_webhook_url' &&
-    !webhookId.startsWith('$')
+    !webhookId.startsWith('$') &&
+    !encryptionKey.startsWith('$')
   );
 
   return {
