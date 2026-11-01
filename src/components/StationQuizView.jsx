@@ -166,9 +166,11 @@ export default function StationQuizView({
         overflow: 'hidden',
         fontFamily: 'inherit'
       }}
+      className="station-quiz-view"
     >
       {/* 1. Header Toolbar */}
       <div
+        className="station-quiz-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -272,6 +274,7 @@ export default function StationQuizView({
       {/* 2. Score Banner (When Submitted) */}
       {isSubmitted && scoreResult && (
         <div
+          className="station-quiz-score"
           style={{
             padding: '1rem 1.25rem',
             background: scoreResult.score10 >= 8.0 ? 'linear-gradient(90deg, #064E3B 0%, #0F172A 100%)' : '#1E293B',
@@ -335,9 +338,10 @@ export default function StationQuizView({
       )}
 
       {/* 3. Main Question Container & Sidebar Navigator */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="station-quiz-body" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left: Questions Scroll Area */}
         <div
+          className="station-quiz-questions"
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -684,6 +688,7 @@ export default function StationQuizView({
 
         {/* Right: Quick Palette Navigator & Submit Action */}
         <div
+          className="station-quiz-navigator"
           style={{
             width: '260px',
             background: '#111827',

@@ -34,10 +34,11 @@ export default function Navbar({
   const location = useLocation();
   const prefersReducedMotion = useReducedMotion();
 
-  const isHomeActive = location.pathname === '/' || location.pathname === '/home' || activeTab === TABS.HOME;
-  const isRoadmapActive = location.pathname.startsWith('/roadmap') || activeTab === TABS.ROADMAP;
-  const isExamsActive = location.pathname.startsWith('/exams') || activeTab === TABS.EXAMS;
-  const isAiExamActive = location.pathname.startsWith('/ai-exam') || activeTab === TABS.AI_EXAM;
+  // URL là nguồn sự thật để tab không bị giữ trạng thái cũ sau khi điều hướng từ Home.
+  const isHomeActive = location.pathname === '/' || location.pathname === '/home';
+  const isRoadmapActive = location.pathname.startsWith('/roadmap');
+  const isExamsActive = location.pathname.startsWith('/exams');
+  const isAiExamActive = location.pathname.startsWith('/ai-exam');
 
   const handleNav = (path, tabKey) => {
     if (setActiveTab) setActiveTab(tabKey);

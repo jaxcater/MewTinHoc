@@ -206,6 +206,14 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Đồng bộ tab state với URL khi điều hướng bằng nút trong nội dung trang.
+  useEffect(() => {
+    if (location.pathname.startsWith('/roadmap')) setActiveTab(TABS.ROADMAP);
+    else if (location.pathname.startsWith('/exams')) setActiveTab(TABS.EXAMS);
+    else if (location.pathname.startsWith('/ai-exam')) setActiveTab(TABS.AI_EXAM);
+    else if (location.pathname === '/' || location.pathname === '/home') setActiveTab(TABS.HOME);
+  }, [location.pathname]);
+
   const isAdminRoute = location.pathname.endsWith('/admin') || window.location.hash === '#admin';
 
   if (isAdminRoute) {

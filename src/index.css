@@ -8267,4 +8267,475 @@ a {
   }
 }
 
+/* Mobile study and quiz polish */
+.station-quiz-view { min-height: 0; }
+
+@media (max-width: 640px) {
+  .exam-taker-window.study-focus-mode {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+  .station-quiz-view { overflow: hidden !important; }
+  .station-quiz-view > div:first-child {
+    align-items: flex-start !important;
+    padding: 0.7rem 0.75rem !important;
+    gap: 0.6rem !important;
+  }
+  .station-quiz-view > div:first-child > div:first-child {
+    min-width: 0;
+    width: 100%;
+    gap: 0.5rem !important;
+  }
+  .station-quiz-view > div:first-child > div:first-child > div:last-child {
+    min-width: 0;
+  }
+  .station-quiz-view > div:first-child > div:first-child > div:last-child > div:first-child {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    font-size: 0.88rem !important;
+  }
+  .station-quiz-view > div:first-child > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem !important;
+  }
+  .station-quiz-view > div:first-child > div:last-child button {
+    min-width: 0;
+    padding: 0.55rem 0.45rem !important;
+    line-height: 1.25;
+  }
+  .station-quiz-view > div:first-child > div:last-child button span:first-child {
+    white-space: normal;
+    text-align: left;
+  }
+  .station-quiz-body {
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .station-quiz-questions {
+    min-height: 0;
+    padding: 0.75rem !important;
+    gap: 0.9rem !important;
+  }
+  .station-quiz-questions > div { gap: 0.9rem !important; }
+  .station-quiz-questions > div > div {
+    padding: 0.85rem !important;
+    border-radius: 10px !important;
+  }
+  .station-quiz-questions > div > div > div:first-child {
+    flex-wrap: wrap !important;
+    margin-bottom: 0.65rem !important;
+  }
+  .station-quiz-questions > div > div > div:nth-child(2) {
+    font-size: 0.92rem !important;
+    line-height: 1.5 !important;
+    overflow-wrap: anywhere;
+  }
+  .station-quiz-questions > div > div > div:nth-child(3) > div {
+    padding: 0.68rem 0.7rem !important;
+    gap: 0.55rem !important;
+  }
+  .station-quiz-questions > div > div > div:nth-child(3) > div > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .station-quiz-navigator {
+    width: 100% !important;
+    max-height: 190px;
+    flex: 0 0 auto !important;
+    border-left: 0 !important;
+    border-top: 1px solid #1F2937;
+    padding: 0.7rem 0.75rem !important;
+    overflow-y: auto !important;
+  }
+  .station-quiz-navigator > div:first-child {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+  .station-quiz-navigator > div:first-child > div { margin-bottom: 0 !important; }
+  .station-quiz-navigator > div:first-child > div:first-child { grid-column: 1 / -1; }
+  .station-quiz-navigator > div:first-child > div > div[style*="grid-template-columns"] {
+    grid-template-columns: repeat(5, minmax(30px, 1fr)) !important;
+    gap: 0.3rem !important;
+  }
+  .station-quiz-navigator > div:first-child > div:nth-child(3) > div[style*="grid-template-columns"] {
+    grid-template-columns: repeat(4, minmax(30px, 1fr)) !important;
+  }
+  .station-quiz-navigator > div:last-child {
+    margin-top: 0 !important;
+    padding-top: 0.6rem !important;
+  }
+  .station-quiz-navigator > div:last-child button { min-height: 38px; }
+  .pdf-reading-stage { min-height: 0; }
+  .pdf-iframe-shell {
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+  .pdf-iframe-shell iframe {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+  .pdf-reading-actions {
+    padding: 0.7rem 0.75rem !important;
+    gap: 0.65rem !important;
+  }
+  .pdf-reading-actions .theory-quiz-cta-button {
+    width: 100%;
+    min-height: 44px;
+  }
+  .theory-main-content {
+    padding: 0.9rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 0.9rem !important;
+  }
+  .theory-reading-container {
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .theory-section-box { padding: 0.85rem !important; }
+  .theory-section-text,
+  .theory-bullet-item,
+  .theory-summary-text,
+  .theory-exam-tips-text {
+    font-size: 0.96rem !important;
+    line-height: 1.6 !important;
+  }
+}
+
+/* Mobile study and quiz layout: keep every control usable without horizontal overflow. */
+@media (max-width: 640px) {
+  .modal-backdrop {
+    align-items: stretch;
+    padding: 0 !important;
+  }
+
+  .exam-taker-window,
+  .exam-taker-window.study-focus-mode,
+  .exam-taker-window.full-screen-mode {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+  }
+
+  .theory-modal-container {
+    border-radius: 0;
+  }
+
+  .theory-modal-main > div:first-child {
+    padding: 0.65rem 0.75rem !important;
+    gap: 0.5rem;
+  }
+
+  .theory-modal-main > div:first-child > div:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .theory-modal-main > div:first-child > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .theory-toolbar-btn {
+    min-height: 40px;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .theory-reading-container {
+    gap: 1rem;
+  }
+
+  .theory-section-box {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .theory-section-title {
+    font-size: 1rem;
+  }
+
+  .theory-section-text,
+  .theory-bullet-item {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .pdf-reading-stage {
+    min-height: 0;
+  }
+
+  .pdf-iframe-shell {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .pdf-iframe-shell iframe {
+    min-height: 0;
+  }
+
+  .pdf-reading-actions {
+    padding: 0.75rem;
+  }
+
+  .station-quiz-view {
+    min-height: 0;
+  }
+
+  .station-quiz-view > div:first-child {
+    align-items: stretch !important;
+    padding: 0.65rem 0.75rem !important;
+    gap: 0.6rem !important;
+  }
+
+  .station-quiz-view > div:first-child > div:first-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .station-quiz-view > div:first-child > div:first-child > div:last-child {
+    min-width: 0;
+  }
+
+  .station-quiz-view > div:first-child > div:first-child > div:last-child > div {
+    white-space: normal !important;
+    line-height: 1.35;
+  }
+
+  .station-quiz-view > div:first-child > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem !important;
+  }
+
+  .station-quiz-view > div:first-child > div:last-child > button {
+    min-width: 0;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.55rem 0.6rem !important;
+  }
+
+  .station-quiz-view > div:first-child > div:last-child > button > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .station-quiz-view > div:nth-child(2) {
+    padding: 0.75rem !important;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:first-child {
+    gap: 1rem !important;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:first-child > div {
+    padding: 1rem !important;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:first-child > div > div:first-child {
+    flex-wrap: wrap;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:first-child > div > div:first-child > div:last-child {
+    width: 100%;
+    text-align: left;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:first-child > div > div:nth-child(3) > div {
+    flex-wrap: wrap;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:last-child {
+    width: auto !important;
+    border-left: 0 !important;
+    border-top: 1px solid #1F2937;
+    padding: 0.75rem !important;
+    gap: 0.75rem;
+    flex: 0 0 auto !important;
+    max-height: 42vh;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:last-child > div:first-child {
+    overflow-y: auto;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:last-child > div:last-child {
+    margin-top: 0 !important;
+    padding-top: 0.75rem !important;
+  }
+
+  .station-quiz-view > div:nth-child(2) > div:last-child {
+    max-height: 190px !important;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .station-quiz-view > div:first-child > div:last-child {
+    grid-template-columns: 1fr;
+  }
+
+  .station-quiz-view > div:nth-child(2) {
+    padding: 0.6rem !important;
+  }
+}
+
+/* Final mobile layout: one predictable scroll surface for study and quiz. */
+@media (max-width: 640px) {
+  html,
+  body {
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  .modal-backdrop {
+    align-items: stretch;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .exam-taker-window,
+  .exam-taker-window.study-focus-mode,
+  .exam-taker-window.full-screen-mode {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .theory-modal-container,
+  .theory-modal-main {
+    min-height: 0;
+  }
+
+  .theory-modal-main {
+    overflow: hidden;
+  }
+
+  /* Quiz is a long document on phones; let the modal itself own the scroll. */
+  .theory-modal-main:has(.station-quiz-view) {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* The lesson body owns vertical scrolling, so fixed toolbar content cannot cover it. */
+  .theory-main-content {
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .theory-section-box,
+  .theory-section-text,
+  .theory-bullet-item,
+  .theory-summary-text,
+  .theory-exam-tips-text {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Quiz: header stays in the modal flow; questions and navigator scroll together. */
+  .station-quiz-view {
+    height: auto !important;
+    min-height: 100%;
+    overflow: visible !important;
+  }
+
+  .station-quiz-body {
+    display: block !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .station-quiz-questions {
+    display: block !important;
+    overflow: visible !important;
+    padding: 0.85rem 0.75rem 1rem !important;
+  }
+
+  .station-quiz-questions > div {
+    gap: 0.9rem !important;
+  }
+
+  .station-quiz-navigator {
+    width: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+    border-left: 0 !important;
+    border-top: 1px solid #1F2937;
+    padding: 0.85rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .station-quiz-navigator > div:first-child {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .station-quiz-navigator > div:first-child > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .station-quiz-navigator > div:last-child {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -0.75rem !important;
+    padding: 0.7rem 0.75rem calc(0.7rem + env(safe-area-inset-bottom, 0px)) !important;
+    background: #111827;
+  }
+
+  .station-quiz-navigator > div:last-child button {
+    min-height: 44px;
+  }
+
+  .station-quiz-questions > div > div {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .station-quiz-questions > div > div > div:nth-child(3) > div,
+  .station-quiz-questions > div > div > div:first-child {
+    min-width: 0;
+  }
+
+  .station-quiz-questions > div > div > div:nth-child(3) > div > span:last-child {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pdf-reading-stage {
+    min-height: 0;
+  }
+
+  .pdf-iframe-shell,
+  .pdf-iframe-shell iframe {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+}
+
 
