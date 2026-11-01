@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import StreakEvolutionArt from '../StreakEvolutionArt';
@@ -178,8 +178,8 @@ export default function StreakFlameStage({
       <div className="streak-evo-progress">
         <motion.div
           className="streak-evo-progress-fill"
-          initial={{ width: '0%' }}
-          animate={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+          initial={{ clipPath: 'inset(0 100% 0 0 round 999px)' }}
+          animate={{ clipPath: `inset(0 ${100 - Math.min(100, Math.max(0, progressPercent))}% 0 0 round 999px)` }}
           transition={{
             duration: 0.9,
             ease: [0.22, 1, 0.36, 1]

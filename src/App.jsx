@@ -10,7 +10,7 @@ import LoginPage from './components/LoginPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageTransition from './components/motion/PageTransition';
 import { DEFAULT_USER } from './mockData';
-import { Flame, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import AdminPage from './components/AdminPage';
 import { supabase } from './supabase';
 import { useUserProgress } from './lib/userProgress';
@@ -46,13 +46,9 @@ export default function App() {
   // Tích hợp dữ liệu Realtime Database (Streak, Mastery 4 khối, Lộ trình, Lịch sử điểm danh)
   const {
     progress,
-    mastery,
     completedLessons,
     streak,
-    dbStatus,
-    isRealtimeActive,
     checkIn,
-    updateMastery,
     toggleLesson,
     recordExamResult,
     simulateNextDay,
@@ -135,10 +131,11 @@ export default function App() {
 
   // Handle login from LoginPage
   const handleLogin = async (googleAccount) => {
+    const normalizedEmail = String(googleAccount.email || '').trim().toLowerCase();
     const rawUser = {
-      ...(user || DEFAULT_USER),
-      name: googleAccount.name,
-      email: googleAccount.email,
+      id: googleAccount.id || `demo_${encodeURIComponent(normalizedEmail || 'student')}`,
+      name: googleAccount.name || 'Học viên',
+      email: normalizedEmail,
       avatar: googleAccount.avatar || DEFAULT_USER.avatar,
       grade: googleAccount.grade || DEFAULT_USER.grade
     };
@@ -159,20 +156,6 @@ export default function App() {
     localStorage.removeItem('tinhoc_user');
     showToast('Đã đăng xuất tài khoản Google.');
   };
-
-  // Google OAuth selection (from modal inside app)
-  const handleSelectGoogleAccount = (googleAccount) => {
-    const updated = {
-      ...(user || DEFAULT_USER),
-      name: googleAccount.name,
-      email: googleAccount.email,
-      avatar: googleAccount.avatar || DEFAULT_USER.avatar,
-      grade: googleAccount.grade || DEFAULT_USER.grade
-    };
-    setUser(updated);
-    showToast(`Đổi tài khoản thành công! Tên học viên: ${googleAccount.name}`);
-  };
-
   // Streak Check-in: +1 streak với Supabase Realtime
   const handleCheckIn = async () => {
     const res = await checkIn();
@@ -256,10 +239,8 @@ export default function App() {
                     user={user}
                     streak={streak}
                     progress={progress}
-                    mastery={mastery}
-                    onUpdateMastery={updateMastery}
-                    dbStatus={dbStatus}
-                    isRealtimeActive={isRealtimeActive}
+                    completedLessons={completedLessons}
+                    userId={user?.id}
                     onCheckIn={handleCheckIn}
                     onSimulateNextDay={handleSimulateNextDay}
                     onSimulateMissedDays={handleSimulateMissedDays}
@@ -283,7 +264,6 @@ export default function App() {
                     user={user}
                     completedLessonIds={completedLessons}
                     onToggleLesson={toggleLesson}
-                    onUpdateMastery={updateMastery}
                   />
                 </PageTransition>
               }
@@ -296,7 +276,6 @@ export default function App() {
                     user={user}
                     completedLessonIds={completedLessons}
                     onToggleLesson={toggleLesson}
-                    onUpdateMastery={updateMastery}
                   />
                 </PageTransition>
               }

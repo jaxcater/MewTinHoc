@@ -1,18 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CheckCircle,
   XCircle,
-  HelpCircle,
-  Award,
   RotateCcw,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  Flame,
   Check,
-  AlertCircle,
-  Lightbulb,
-  FileText
+  Lightbulb
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -21,10 +13,19 @@ export default function StationQuizView({
   stationTitle = 'Chủ đề ôn tập',
   stationCode = 'Chủ đề',
   onComplete,
-  isAlreadyCompleted = false
+  onSubmitResult,
 }) {
-  const mcqList = useMemo(() => quizData?.mcq || [], [quizData]);
-  const tfList = useMemo(() => quizData?.tf || [], [quizData]);
+  const [quizVersion, setQuizVersion] = useState(0);
+  const shuffle = (items, version = 0) => {
+    const copied = [...items];
+    const offset = copied.length ? version % copied.length : 0;
+    return copied.slice(offset).concat(copied.slice(0, offset)).sort(() => Math.random() - 0.5);
+  };
+  const mcqList = useMemo(() => shuffle(quizData?.mcq || [], quizVersion), [quizData, quizVersion]);
+  const tfList = useMemo(() => shuffle((quizData?.tf || []).map((question) => ({
+    ...question,
+    items: shuffle(question.items || [], quizVersion)
+  })), quizVersion), [quizData, quizVersion]);
 
   // Tab: 'mcq' (Phần I) hoặc 'tf' (Phần II)
   const [activePart, setActivePart] = useState('mcq');
@@ -126,8 +127,9 @@ export default function StationQuizView({
 
     setScoreResult(res);
     setIsSubmitted(true);
+    onSubmitResult?.(res);
 
-    if (score10 >= 8.0) {
+    if (res.accuracy >= 80) {
       confetti({
         particleCount: 90,
         spread: 70,
@@ -136,13 +138,14 @@ export default function StationQuizView({
       });
     }
 
-    if (score10 >= 6.5 && onComplete) {
-      onComplete();
+    if (res.accuracy >= 80 && onComplete) {
+      onComplete(res);
     }
   };
 
   // Reset
   const handleReset = () => {
+    setQuizVersion((version) => version + 1);
     setMcqAnswers({});
     setTfAnswers({});
     setIsSubmitted(false);
@@ -301,7 +304,7 @@ export default function StationQuizView({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: '1rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {scoreResult.score10 >= 9 ? '🎉 Xuất sắc! Nắm chắc điểm 10 THPTQG' : scoreResult.score10 >= 7 ? '👍 Rất tốt! Đã đạt yêu cầu kiến thức' : '⚠️ Cần củng cố thêm lý thuyết!'}
+                {scoreResult.accuracy >= 80 ? '🎉 Hoàn thành chủ đề! Bạn đã đạt từ 80%' : '⚠️ Chưa đạt 80% — hãy ôn lại và thử lại nhé!'}
               </div>
               <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
                 Đúng: <strong style={{ color: '#10B981' }}>{scoreResult.correctCount}/{scoreResult.totalItems} ý</strong> (Độ chính xác {scoreResult.accuracy}%) • {scoreResult.wrongMcq.length + scoreResult.wrongTf.length === 0 ? 'Hoàn hảo không sai câu nào!' : `Còn sai ${scoreResult.wrongMcq.length + scoreResult.wrongTf.length} câu/ý`}

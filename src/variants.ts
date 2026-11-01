@@ -16,7 +16,9 @@ export const EASINGS = {
   // Vào / ra cân bằng cho các hiệu ứng trôi chậm (ambient)
   easeInOut: [0.4, 0, 0.2, 1],
   // Thoát nhanh cho thao tác đóng/rút lui
-  fastExit: [0.4, 0, 1, 1]
+  fastExit: [0.4, 0, 1, 1],
+  // Ease-out mạnh (Emil Kowalski) cho vào/ra giao diện: khớp biến CSS --ease-out
+  emilOut: [0.23, 1, 0.32, 1]
 };
 
 // 2. SPRING CONFIGURATIONS (Lực đàn hồi vật lý)
@@ -33,6 +35,13 @@ export const SPRINGS = {
     type: 'spring',
     stiffness: 380,
     damping: 30
+  },
+  // Spring giảm chấn tới hạn cho pill trượt giữa các tab: damping >= 2*sqrt(stiffness)
+  // (~39) nên không vượt đích, pill không tràn ra ngoài khung tab ở tab đầu/cuối
+  pill: {
+    type: 'spring',
+    stiffness: 380,
+    damping: 40
   },
   // Spring nảy rõ cho sự kiện vinh danh (Streak claim, level up)
   rewardPop: {
@@ -126,6 +135,42 @@ export const statCardVariants = {
       duration: 0.5,
       ease: EASINGS.naturalOut
     }
+  },
+  // Nâng thẻ 4px khi rê chuột (framer ghi transform inline nên CSS :hover transform không có tác dụng)
+  hover: {
+    y: -4,
+    transition: { type: 'spring', duration: 0.35, bounce: 0.15 }
+  }
+};
+
+// 6b. VARIANTS: LƯỚI 4 KHỐI KIẾN THỨC (stagger 60ms, nâng 3px khi rê chuột)
+export const matrixGridVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05
+    }
+  }
+};
+
+export const matrixCardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 16
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: EASINGS.emilOut
+    }
+  },
+  hover: {
+    y: -3,
+    transition: { type: 'spring', duration: 0.35, bounce: 0.15 }
   }
 };
 

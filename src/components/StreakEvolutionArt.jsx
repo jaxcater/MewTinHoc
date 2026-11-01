@@ -29,15 +29,23 @@ const ART = {
  */
 export default function StreakEvolutionArt({ id, mono = false, size = 64, style, className }) {
   const src = ART[id] || ART['ngon-lua'];
+  const blockImageActions = (event) => event.preventDefault();
 
   return (
     <span
       className={className}
+      onContextMenu={blockImageActions}
+      onDragStart={blockImageActions}
+      onSelectStart={blockImageActions}
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         height: size,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        touchAction: 'pan-y',
         ...style
       }}
     >
@@ -46,13 +54,18 @@ export default function StreakEvolutionArt({ id, mono = false, size = 64, style,
         alt=""
         aria-hidden="true"
         draggable={false}
+        onContextMenu={blockImageActions}
+        onDragStart={blockImageActions}
         style={{
           height: '100%',
           width: 'auto',
           maxWidth: '100%',
           objectFit: 'contain',
           display: 'block',
+          pointerEvents: 'none',
           userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none',
           // Chưa mở khoá -> đổ đen toàn bộ, giữ nguyên alpha => thành cái bóng
           filter: mono ? 'brightness(0)' : 'none'
         }}

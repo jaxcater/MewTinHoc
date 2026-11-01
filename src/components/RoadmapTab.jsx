@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronUp,
-  Flame,
   Check,
   Laptop,
   Cpu,
@@ -50,7 +49,6 @@ import StationQuizView from './StationQuizView';
 export default function RoadmapTab({
   completedLessonIds: propCompletedLessonIds,
   onToggleLesson,
-  onUpdateMastery,
   user
 }) {
   const { track } = useParams();
@@ -75,16 +73,19 @@ export default function RoadmapTab({
   }, [validTrack]);
 
   // 2. Trạng thái các bài học đã hoàn thành: ưu tiên từ Supabase Realtime prop, fallback localStorage
+  const userId = user?.id || 'guest';
+  const completedLessonsKey = `tinhoc_completed_lessons_${userId}`;
+  const quizScoresKey = `tinhoc_roadmap_quiz_scores_${userId}`;
   const [internalCompletedLessonIds, setInternalCompletedLessonIds] = useState(() => {
     try {
-      const saved = localStorage.getItem('tinhoc_completed_lessons');
+      const saved = localStorage.getItem(completedLessonsKey);
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
     }
   });
 
-  const completedLessonIds = propCompletedLessonIds || internalCompletedLessonIds;
+  const completedLessonIds = propCompletedLessonIds ?? internalCompletedLessonIds;
 
   // 3. Modal xem lý thuyết chặng
 
@@ -119,6 +120,39 @@ export default function RoadmapTab({
   const [isSavingTheory, setIsSavingTheory] = useState(false);
   const [theorySaveStatus, setTheorySaveStatus] = useState(null);
   const [rawRoadmapCache, setRawRoadmapCache] = useState({});
+  const [quizScores, setQuizScores] = useState(() => {
+    try {
+      const saved = localStorage.getItem(quizScoresKey);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const lessons = localStorage.getItem(completedLessonsKey);
+      const scores = localStorage.getItem(quizScoresKey);
+      setInternalCompletedLessonIds(lessons ? JSON.parse(lessons) : {});
+      setQuizScores(scores ? JSON.parse(scores) : {});
+    } catch {
+      setInternalCompletedLessonIds({});
+      setQuizScores({});
+    }
+  }, [completedLessonsKey, quizScoresKey]);
+
+  // Khi đang học, khóa cuộn trang nền để con trỏ chỉ tác động lên modal.
+  useEffect(() => {
+    if (!selectedStation) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, [selectedStation]);
 
   // Tải dữ liệu lộ trình từ Supabase Storage
   const loadRoadmapFromSupabase = async (trackToLoad = activeTrack) => {
@@ -189,11 +223,23 @@ export default function RoadmapTab({
   // Tính toán tiến độ học tập của từng chặng dựa trên completedLessonIds
   const getStationProgress = (station) => {
     if (!station) return 0;
+    const stationQuiz = station.quiz || getStationQuiz(station.id);
+    const quizProgress = quizScores[`${activeTrack}:${station.id}`]?.accuracy;
+    if (stationQuiz) return typeof quizProgress === 'number' ? quizProgress : 0;
     if (station.lessons && station.lessons.length > 0) {
       const doneCount = station.lessons.filter((l) => completedLessonIds[l.id]).length;
       return Math.round((doneCount / station.lessons.length) * 100);
     }
     return completedLessonIds[station.id] ? 100 : 0;
+  };
+
+  const handleQuizSubmit = (station, result) => {
+    const key = `${activeTrack}:${station.id}`;
+    setQuizScores((prev) => {
+      const next = { ...prev, [key]: { accuracy: result.accuracy, score10: result.score10, updatedAt: Date.now() } };
+      localStorage.setItem(quizScoresKey, JSON.stringify(next));
+      return next;
+    });
   };
 
   // Tổng số bài học trong lộ trình hiện tại
@@ -211,15 +257,8 @@ export default function RoadmapTab({
 
   // Số chặng đạt 100%
   const completedStationsCount = stations.filter(
-    (st) => getStationProgress(st) === 100
+    (st) => getStationProgress(st) >= 80
   ).length;
-
-  // Điểm kinh nghiệm XP ước tính
-  const totalEarnedXP = stations.reduce((acc, st) => {
-    const progress = getStationProgress(st);
-    return acc + Math.round((st.xp * progress) / 100);
-  }, 0);
-
   // Mở modal học lý thuyết chặng hoặc stream PDF trực tiếp
   const handleOpenStationModal = (station, lessonIdx = 0, startImmediately = false, preferredTab = null) => {
     setSelectedStation(station);
@@ -269,25 +308,11 @@ export default function RoadmapTab({
     } else {
       setInternalCompletedLessonIds((prev) => {
         const next = { ...prev, [lessonId]: !prev[lessonId] };
-        localStorage.setItem('tinhoc_completed_lessons', JSON.stringify(next));
+        localStorage.setItem(completedLessonsKey, JSON.stringify(next));
         return next;
       });
     }
 
-    // Tự động gia tăng mức độ làm chủ khối kiến thức tương ứng nếu đang học chặng này
-    if (onUpdateMastery && selectedStation) {
-      const text = ((selectedStation.title || '') + ' ' + (selectedStation.domain || '') + ' ' + (selectedStation.subTitle || '')).toLowerCase();
-      if (text.includes('python') || text.includes('thuật toán') || text.includes('lập trình')) {
-        // block python: tăng nhẹ tiến độ nếu chưa 100
-        onUpdateMastery('python', (prev) => Math.min(100, (prev || 88) + 2));
-      } else if (text.includes('sql') || text.includes('cơ sở dữ liệu') || text.includes('csdl') || text.includes('database')) {
-        onUpdateMastery('sql', (prev) => Math.min(100, (prev || 65) + 3));
-      } else if (text.includes('mạng') || text.includes('internet') || text.includes('ip') || text.includes('network')) {
-        onUpdateMastery('network', (prev) => Math.min(100, (prev || 45) + 3));
-      } else if (text.includes('an toàn') || text.includes('đạo đức') || text.includes('pháp luật') || text.includes('bảo mật') || text.includes('safety')) {
-        onUpdateMastery('safety', (prev) => Math.min(100, (prev || 80) + 2));
-      }
-    }
   };
 
 
@@ -672,19 +697,8 @@ export default function RoadmapTab({
       <div className="chain-track">
         {stations.map((station, index) => {
           const progress = getStationProgress(station);
-          const isCompleted = progress === 100;
-          const isInProgress = progress > 0 && progress < 100;
-          const isFresh = progress === 0;
-
-          // Xác định class ưu tiên
-          const priorityClass =
-            station.priorityBadge === 'extreme'
-              ? 'badge-priority-extreme'
-              : station.priorityBadge === 'high'
-              ? 'badge-priority-high'
-              : station.priorityBadge === 'low'
-              ? 'badge-priority-low'
-              : 'badge-priority-normal';
+          const isCompleted = progress >= 80;
+          const isInProgress = progress > 0 && progress < 80;
 
           return (
             <div key={station.id} className="chain-station-wrapper">
@@ -830,7 +844,7 @@ export default function RoadmapTab({
                     <div
                       className="progress-bar-fill"
                       style={{
-                        width: `${progress}%`,
+                        clipPath: `inset(0 ${100 - progress}% 0 0 round 999px)`,
                         background: isCompleted ? '#22C55E' : currentTrackData.gradientBg
                       }}
                     ></div>
@@ -1127,92 +1141,24 @@ export default function RoadmapTab({
                       </button>
                     )}
 
-                    {/* Bộ chuyển đổi Tab: PDF Stream vs Lý thuyết bài học vs Luyện tập */}
-                    {(() => {
-                      const currentStationQuiz = selectedStation?.quiz || getStationQuiz(selectedStation?.id);
-                      return (
-                        <div style={{ display: 'inline-flex', padding: '3px', background: '#F1F5F9', borderRadius: '10px', gap: '4px' }}>
-                          {selectedStation.pdfUrl && (
-                            <button
-                              onClick={() => setModalTab('pdf')}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.35rem 0.85rem',
-                                borderRadius: '7px',
-                                fontSize: '0.78rem',
-                                fontWeight: 800,
-                                border: 'none',
-                                cursor: 'pointer',
-                                background: modalTab === 'pdf' ? (activeTrack === TRACK_TYPES.CS ? '#EA580C' : '#0284C7') : 'transparent',
-                                color: modalTab === 'pdf' ? '#FFFFFF' : '#64748B',
-                                boxShadow: modalTab === 'pdf' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <span style={{
-                                display: 'inline-block',
-                                width: '7px',
-                                height: '7px',
-                                borderRadius: '50%',
-                                backgroundColor: modalTab === 'pdf' ? '#4ADE80' : '#94A3B8'
-                              }} />
-                              <FileText size={14} />
-                              <span>Stream PDF</span>
-                            </button>
-                          )}
-
-                          {currentStationQuiz && (
-                            <button
-                              onClick={() => setModalTab('quiz')}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.35rem 0.85rem',
-                                borderRadius: '7px',
-                                fontSize: '0.78rem',
-                                fontWeight: 800,
-                                border: 'none',
-                                cursor: 'pointer',
-                                background: modalTab === 'quiz' ? '#EA580C' : 'transparent',
-                                color: modalTab === 'quiz' ? '#FFFFFF' : '#64748B',
-                                boxShadow: modalTab === 'quiz' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <Sparkles size={14} color={modalTab === 'quiz' ? '#FFFFFF' : '#EA580C'} />
-                              <span>Luyện Tập Câu Hỏi ({currentStationQuiz.totalItems || 24} câu)</span>
-                            </button>
-                          )}
-
-                          {selectedStation.lessons && selectedStation.lessons.length > 0 && (
-                            <button
-                              onClick={() => setModalTab('theory')}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.35rem 0.85rem',
-                                borderRadius: '7px',
-                                fontSize: '0.78rem',
-                                fontWeight: 800,
-                                border: 'none',
-                                cursor: 'pointer',
-                                background: modalTab === 'theory' ? (activeTrack === TRACK_TYPES.CS ? '#EA580C' : '#0284C7') : 'transparent',
-                                color: modalTab === 'theory' ? '#FFFFFF' : '#64748B',
-                                boxShadow: modalTab === 'theory' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <BookOpen size={14} />
-                              <span>Lý thuyết (${selectedStation.lessons.length} bài)</span>
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })()}
+                    {/* Trạng thái duy nhất của nội dung đang học */}
+                    <div
+                      className="study-mode-status-badge"
+                      style={{
+                        background: modalTab === 'quiz'
+                          ? 'linear-gradient(135deg, #EA580C, #C2410C)'
+                          : activeTrack === TRACK_TYPES.CS
+                            ? 'linear-gradient(135deg, #EA580C, #C2410C)'
+                            : 'linear-gradient(135deg, #0284C7, #0369A1)'
+                      }}
+                    >
+                      {modalTab === 'quiz' ? <Sparkles size={14} /> : <BookOpen size={14} />}
+                      <span>
+                        {modalTab === 'quiz'
+                          ? `Luyện tập câu hỏi (${(selectedStation?.quiz || getStationQuiz(selectedStation?.id))?.totalItems || 36} câu)`
+                          : 'Lý thuyết'}
+                      </span>
+                    </div>
 
                     {modalTab === 'theory' && (
                       <>
@@ -1317,7 +1263,8 @@ export default function RoadmapTab({
                     stationTitle={selectedStation.title}
                     stationCode={selectedStation.code}
                     onComplete={() => handleToggleLessonComplete(selectedStation.id)}
-                    isAlreadyCompleted={!!completedLessonIds[selectedStation.id]}
+                    onSubmitResult={(result) => handleQuizSubmit(selectedStation, result)}
+                    isAlreadyCompleted={getStationProgress(selectedStation) >= 80}
                   />
                 ) : modalTab === 'pdf' && selectedStation.pdfUrl ? (
                   <div
@@ -1363,7 +1310,7 @@ export default function RoadmapTab({
                           }}
                         >
                           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ADE80' }} />
-                          LIVE STREAM TỪ SUPABASE
+                          TÀI LIỆU ÔN TẬP
                         </span>
                         <span style={{ fontWeight: 700, color: '#F8FAFC', fontSize: '0.82rem' }}>
                           {selectedStation.code}: {selectedStation.title} — Tài Liệu Ôn Thi PDF Gốc
@@ -1402,19 +1349,47 @@ export default function RoadmapTab({
                     </div>
 
                     {/* Iframe trực tiếp stream PDF */}
-                    <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', minHeight: '500px' }}>
-                      <iframe
-                        src={`${selectedStation.pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
-                        title={`${selectedStation.title} - Tài liệu ôn thi`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          border: 'none',
-                          display: 'block',
-                          backgroundColor: '#525659'
-                        }}
-                      />
+                    <div className="pdf-reading-stage">
+                      <aside className="pdf-reading-rail pdf-reading-rail-left" aria-label="Thông tin chặng học">
+                        <div className="pdf-rail-kicker">ĐANG HỌC</div>
+                        <BookOpen size={24} />
+                        <strong>{selectedStation.code}</strong>
+                        <span>{selectedStation.title}</span>
+                        <div className="pdf-rail-line" />
+                        <small>Đọc kỹ nội dung, sau đó chuyển sang bài kiểm tra ở cuối phần lý thuyết.</small>
+                      </aside>
+                      <div className="pdf-iframe-shell">
+                        <iframe
+                          src={`${selectedStation.pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                          title={`${selectedStation.title} - Tài liệu ôn thi`}
+                        />
+                      </div>
+                      <aside className="pdf-reading-rail pdf-reading-rail-right" aria-label="Hướng dẫn hoàn thành">
+                        <div className="pdf-rail-kicker">MỤC TIÊU</div>
+                        <Award size={24} />
+                        <strong>Đạt 80%</strong>
+                        <span>để hoàn thành chặng</span>
+                        <div className="pdf-rail-progress"><span /></div>
+                        <small>Sau khi nộp bài, điểm số sẽ cập nhật vào thanh tiến độ ngoài trang Lộ trình học.</small>
+                      </aside>
                     </div>
+                    {(selectedStation?.quiz || getStationQuiz(selectedStation?.id)) && (
+                      <div className="pdf-reading-actions">
+                        <div>
+                          <strong>Đã đọc xong tài liệu?</strong>
+                          <span>Cuộn tới cuối PDF rồi bắt đầu bài kiểm tra của chủ đề.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setModalTab('quiz')}
+                          className="theory-quiz-cta-button"
+                        >
+                          <Sparkles size={17} />
+                          <span>Bắt đầu kiểm tra</span>
+                          <ChevronRight size={17} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -1773,6 +1748,25 @@ export default function RoadmapTab({
                             </div>
                           )}
                         </div>
+
+                        {/* CTA luôn nằm ở đáy trang lý thuyết, sau toàn bộ nội dung */}
+                        {(selectedStation?.quiz || getStationQuiz(selectedStation?.id)) && (
+                          <div className="theory-quiz-cta theory-quiz-cta-bottom">
+                            <div>
+                              <strong>Đã học xong phần lý thuyết?</strong>
+                              <span>Làm bài kiểm tra để cập nhật tiến độ chủ đề. Từ 80% trở lên sẽ được đánh dấu hoàn thành.</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setModalTab('quiz')}
+                              className="theory-quiz-cta-button"
+                            >
+                              <Sparkles size={17} />
+                              <span>Bắt đầu kiểm tra</span>
+                              <ChevronRight size={17} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

@@ -5,11 +5,7 @@ import {
   Search,
   RotateCw,
   ArrowLeft,
-  Users,
   CheckCircle,
-  Clock,
-  UserX,
-  AlertTriangle,
   Lock,
   Copy,
   Check,
@@ -26,7 +22,7 @@ import LoadingScreen from './LoadingScreen.jsx';
 import AdminAnnouncementsPanel from './AdminAnnouncementsPanel.jsx';
 
 export default function AdminPage({ currentUser: propUser }) {
-  const [currentUser, setCurrentUser] = useState(() => {
+  const [currentUser] = useState(() => {
     if (propUser) return propUser;
     try {
       const saved = localStorage.getItem('tinhoc_user');
@@ -48,9 +44,8 @@ export default function AdminPage({ currentUser: propUser }) {
   // Demo màn hình Loading (chỉ Admin mới thấy)
   const [isLoadingDemoOpen, setIsLoadingDemoOpen] = useState(false);
 
-  // Người dùng được coi là có quyền quản trị nếu profile có is_admin = true,
-  // hoặc trong quá trình khởi tạo ban đầu khi bảng profiles chưa được tạo.
-  const isAdmin = isCompanyAdmin(currentUser) || !tableExists || (currentUser && currentUser.isAdmin);
+  // Chỉ tài khoản được cấp quyền mới có thể mở khu vực quản trị.
+  const isAdmin = isCompanyAdmin(currentUser) || Boolean(currentUser?.isAdmin);
 
   const load = async () => {
     setIsLoading(true);
@@ -284,13 +279,8 @@ CREATE POLICY "storage_read_all" ON storage.objects
   const SUPABASE_STORAGE_POLICY_URL =
     'https://supabase.com/dashboard/project/vxqvjffssebnuxtslghp/storage/buckets/KhoTaiLieuTinHocThiThu';
 
-  // NẾU BẢNG ĐÃ TỒN TẠI VÀ USER ĐĂNG NHẬP KHÔNG PHẢI ADMIN: TỪ CHỐI TRUY CẬP
-  if (tableExists && currentUser && !isCompanyAdmin(currentUser) && rows.length > 0) {
-    const isUserInAdminRows = rows.some(
-      (r) => (r.id === currentUser.id || r.email === currentUser.email) && r.is_admin
-    );
-
-    if (!isUserInAdminRows) {
+  // Từ chối ngay mọi tài khoản không có quyền quản trị.
+  if (!isAdmin) {
       return (
         <div
           style={{
@@ -334,7 +324,7 @@ CREATE POLICY "storage_read_all" ON storage.objects
               Không Có Quyền Truy Cập
             </h2>
             <p style={{ fontSize: '0.92rem', color: '#6B7280', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              Trang này chỉ dành cho tài khoản có quyền Quản trị viên trên hệ thống Supabase. Tài khoản của bạn (
+              Trang này chỉ dành cho tài khoản có quyền Quản trị viên. Tài khoản của bạn (
               <strong>{currentUser?.email || 'Người dùng phổ thông'}</strong>) chưa được cấp quyền Admin.
             </p>
             <button
@@ -359,7 +349,6 @@ CREATE POLICY "storage_read_all" ON storage.objects
           </div>
         </div>
       );
-    }
   }
 
   const shown = (rows || []).filter((r) =>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, BookOpen, Brain, ArrowRight, Trophy, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail } from 'lucide-react';
+import { ShieldCheck, BookOpen, Brain, ArrowRight, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail } from 'lucide-react';
 import { supabase } from '../supabase';
 import logoMeoCam from '../../img/logomeocam.png';
 
@@ -326,7 +326,7 @@ export default function LoginPage({ onLogin }) {
     setSuccess('');
 
     if (!supabase) {
-      setError('Chưa cấu hình Supabase Client. Vui lòng kiểm tra lại cấu hình.');
+      setError('Hệ thống đăng nhập tạm thời chưa sẵn sàng. Vui lòng thử lại sau.');
       return;
     }
 

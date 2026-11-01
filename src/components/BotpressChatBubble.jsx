@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Bot,
   Send,
   X,
-  Sparkles,
   Settings,
   RefreshCw,
   RotateCcw,
@@ -129,7 +127,7 @@ function FormattedMessage({ text, isUser = false }) {
 
 export default function BotpressChatBubble({ user }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'backend_status'
+  const [activeTab, setActiveTab] = useState('chat');
   const [copiedCurl, setCopiedCurl] = useState(false);
   const [conversationId, setConversationId] = useState(null);
 
@@ -341,17 +339,17 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
           }
         ]);
       } else {
-        throw new Error('Lỗi phản hồi từ backend');
+        throw new Error('Không nhận được phản hồi');
       }
     } catch (err) {
-      console.warn('[Botpress Chat Error]:', err.message);
-      // Fallback phản hồi nếu mất kết nối server
+      console.warn('[Assistant Chat Error]:', err.message);
+      // Fallback phản hồi nếu trợ lý tạm thời bận
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           sender: 'bot',
-          text: `Tôi đã nhận được câu hỏi "${text}". Hãy kiểm tra kết nối với Backend Botpress để nhận phản hồi trực tiếp từ AI.`,
+          text: `Mình đã nhận được câu hỏi "${text}". Trợ lý đang tạm bận, bạn thử lại sau ít phút nhé.`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -404,7 +402,7 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
                   <span>CamCam giải đáp</span>
                 </div>
                 <div className="botpress-subtitle">
-                  {backendConfig.configured ? 'Connected to Botpress' : ''}
+                  Trợ lý học tập MewTinHoc
                 </div>
               </div>
             </div>
@@ -417,13 +415,15 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
               >
                 <RotateCcw size={15} />
               </button>
-              <button
-                className={`botpress-header-btn ${activeTab === 'backend_status' ? 'active' : ''}`}
-                onClick={() => setActiveTab(activeTab === 'backend_status' ? 'chat' : 'backend_status')}
-                title="Bảo mật & Trạng thái Backend"
-              >
-                <Settings size={17} />
-              </button>
+              {user?.isAdmin && (
+                <button
+                  className={`botpress-header-btn ${activeTab === 'backend_status' ? 'active' : ''}`}
+                  onClick={() => setActiveTab(activeTab === 'backend_status' ? 'chat' : 'backend_status')}
+                  title="Công cụ quản trị trợ lý"
+                >
+                  <Settings size={17} />
+                </button>
+              )}
               <button
                 className="botpress-header-btn"
                 onClick={handleCloseChat}
@@ -527,9 +527,9 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
           {/* Tab 2: Chat Messages */}
           {activeTab === 'chat' && (
             <>
-              {!backendConfig.configured && (
+              {!backendConfig.configured && user?.isAdmin && (
                 <div className="botpress-demo-banner">
-                  <span>💡 Backend đang chạy chế độ mô phỏng an toàn. Bấm ⚙️ để xem trạng thái bảo mật hoặc cấu hình Token thật.</span>
+                  <span>Trợ lý đang chạy ở chế độ mô phỏng an toàn.</span>
                 </div>
               )}
 

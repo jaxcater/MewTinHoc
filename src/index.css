@@ -9,6 +9,7 @@
    ============================================================ */
 
 :root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --color-deep: #7C2D12;
   --color-primary: #EA580C;
   --color-primary-hover: #C2410C;
@@ -370,6 +371,10 @@ a {
   gap: 0.5rem;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Chừa vùng đệm để pill (khi nảy spring) và bóng đổ không bị overflow cắt góc
+     ở tab đầu/cuối; margin âm bù lại để bố cục giữ nguyên vị trí cũ */
+  padding: 6px 10px 10px;
+  margin: -6px -10px -10px;
 }
 
 .category-tabs::-webkit-scrollbar {
@@ -387,7 +392,7 @@ a {
   color: var(--color-text-muted);
   background: transparent;
   white-space: nowrap;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
   position: relative;
   z-index: 1;
   outline: none;
@@ -414,7 +419,7 @@ a {
 .nav-tab-active-pill {
   position: absolute;
   inset: 0;
-  border-radius: var(--radius-md);
+  /* border-radius đặt qua style inline trong Navbar để Framer Motion hiệu chỉnh khi co giãn */
   background: linear-gradient(135deg, var(--color-primary), var(--color-deep));
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28);
   z-index: 1;
@@ -499,23 +504,123 @@ a {
 /* Lớp gradient cam trôi chậm chu kỳ 12s */
 .hero-gradient-layer {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 160%;
   background: linear-gradient(115deg, #C93B03 0%, #D84315 28%, #EA580C 60%, #F05A00 85%, #C93B03 100%);
-  background-size: 240% 240%;
   animation: heroGradientShift 12s ease-in-out infinite;
-  will-change: background-position;
-  border-radius: inherit;
+  will-change: transform;
 }
 
+/* Trôi bằng transform (chạy trên compositor) thay vì background-position (repaint mỗi khung hình) */
 @keyframes heroGradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(18%, 0, 0); }
 }
 
 .hero-animated-bg.is-paused .hero-gradient-layer,
-.hero-animated-bg.is-paused .hero-ambient-orb {
+.hero-animated-bg.is-paused .hero-ambient-orb,
+.hero-animated-bg.is-paused .hero-glyph,
+.hero-animated-bg.is-paused .hero-lens-sweep {
   animation-play-state: paused !important;
+}
+
+/* ---- Chiều sâu banner: 3 tầng (xa: đốm sáng / giữa: ký tự code / gần: kính của Mew) ---- */
+.hero-depth-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Ký tự code lơ lửng, nằm nửa phải để không đè lên tiêu đề */
+.hero-glyph {
+  position: absolute;
+  color: rgba(255, 241, 214, 0.34);
+  font-family: var(--font-code);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  animation: glyphFloat var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes glyphFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); opacity: 0.55; }
+  50% { transform: translate3d(0, -10px, 0) rotate(2deg); opacity: 1; }
+}
+
+/* Cặp kính: neo góc phải trên, trang trí thuần túy */
+.hero-lens-slot {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 188px;
+  height: 84px;
+}
+
+.hero-lens {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+}
+
+.hero-lens-rim {
+  position: relative;
+  width: 78px;
+  height: 66px;
+  border-radius: 46% 46% 52% 52%;
+  border: 4px solid rgba(255, 241, 214, 0.78);
+  background: rgba(255, 237, 213, 0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-lens-bridge {
+  width: 18px;
+  height: 4px;
+  margin: 0 -1px;
+  border-radius: 999px;
+  background: rgba(255, 241, 214, 0.78);
+  transform: translateY(-8px);
+}
+
+.hero-lens-glyph {
+  font-family: var(--font-code);
+  font-weight: 800;
+  font-size: 17px;
+  color: rgba(255, 247, 237, 0.92);
+}
+
+/* Vệt sáng quét qua tròng kính, lặp 6s */
+.hero-lens-sweep {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 38%;
+  height: 120%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: lensSweep 6s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)) infinite;
+}
+
+.hero-lens-sweep--late {
+  animation-delay: 0.25s;
+}
+
+@keyframes lensSweep {
+  0%, 62% { transform: translateX(-160%) skewX(-18deg); }
+  86%, 100% { transform: translateX(340%) skewX(-18deg); }
+}
+
+/* Banner hẹp: bỏ kính và bớt ký tự để không chen vào chữ */
+@media (max-width: 900px) {
+  .hero-lens-slot { display: none; }
+  .hero-glyph:nth-child(n+4) { display: none; }
 }
 
 .hero-welcome-cat {
@@ -613,7 +718,7 @@ a {
   content: '';
   position: absolute;
   top: 0;
-  left: -130%;
+  left: 0;
   width: 55%;
   height: 100%;
   background: linear-gradient(
@@ -622,17 +727,18 @@ a {
     rgba(255, 255, 255, 0.24) 50%,
     transparent 100%
   );
-  transform: skewX(-25deg);
+  transform: translateX(-150%) skewX(-25deg);
   animation: btnShineSweep 5s ease-in-out infinite;
   pointer-events: none;
 }
 
+/* Quét bằng transform thay vì animate `left` (tránh layout mỗi khung hình) */
 @keyframes btnShineSweep {
   0%, 72% {
-    left: -130%;
+    transform: translateX(-150%) skewX(-25deg);
   }
   86%, 100% {
-    left: 210%;
+    transform: translateX(260%) skewX(-25deg);
   }
 }
 
@@ -701,21 +807,46 @@ a {
   border-radius: var(--radius-md);
   padding: 1.25rem 1rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease;
+  /* Nâng thẻ do framer-motion (variant hover) điều khiển; CSS chỉ lo màu viền */
+  transition: border-color 200ms ease;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  will-change: transform;
+  position: relative;
 }
 
-.metric-card:hover {
-  border-color: rgba(234, 88, 12, 0.35);
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px -4px rgba(234, 88, 12, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+/* Lớp bóng đổ cam đặt sẵn, chỉ đổi opacity khi hover (rẻ hơn animate box-shadow) */
+.metric-card::after,
+.matrix-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 10px 24px -4px rgba(234, 88, 12, 0.18), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
 }
 
-.metric-card:hover .metric-icon-wrap {
-  transform: scale(1.08) rotate(4deg);
+.matrix-card {
+  position: relative;
+  transition: border-color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .metric-card:hover,
+  .matrix-card:hover {
+    border-color: rgba(234, 88, 12, 0.4) !important;
+  }
+
+  .metric-card:hover::after,
+  .matrix-card:hover::after {
+    opacity: 1;
+  }
+
+  .metric-card:hover .metric-icon-wrap {
+    transform: scale(1.08) rotate(4deg);
+  }
 }
 
 .metric-icon-wrap {
@@ -849,7 +980,7 @@ a {
   background: #F3F4F6;
   color: #9CA3AF;
   border: 1.5px solid #E5E7EB;
-  transition: all var(--transition-fast);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 
 .day-bubble.checked .day-bubble-circle {
@@ -897,7 +1028,7 @@ a {
   justify-content: center;
   gap: 0.6rem;
   box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
-  transition: all var(--transition-fast);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .btn-checkin-streak:hover:not(:disabled) {
@@ -1001,7 +1132,7 @@ a {
 
 /* Tên cấp hiện tại.
    KHÔNG dùng text-transform: uppercase nữa — chuỗi dữ liệu đã ở dạng
-   "Ngọn Lửa Khởi Đầu" nên không cần, mà uppercase + letter-spacing rộng
+   "Tia lửa đầu tiên" nên không cần, mà uppercase + letter-spacing rộng
    trong cột hẹp làm dấu tiếng Việt tầng tầng bị cắt -> chữ méo. */
 .streak-evo-name {
   position: relative;
@@ -1039,7 +1170,7 @@ a {
   border-radius: 999px;
   background: linear-gradient(90deg, var(--evo-accent, var(--color-primary)), var(--evo-secondary, var(--color-amber)));
   box-shadow: 0 0 10px var(--evo-glow, rgba(234, 88, 12, 0.4));
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
 }
 
 /* Nhãn ân hạn (3 ngày) */
@@ -1161,7 +1292,7 @@ a {
 
 /* Tên cấp trong ô bộ sưu tập.
    KHÔNG dùng text-transform: uppercase — chuỗi dữ liệu đã ở dạng
-   "Ngọn Lửa Khởi Đầu", mà uppercase + ô hẹp làm dấu tiếng Việt bị cắt. */
+   "Tia lửa đầu tiên", mà uppercase + ô hẹp làm dấu tiếng Việt bị cắt. */
 .evo-tile-name {
   font-size: 0.7rem;
   font-weight: 900;
@@ -1570,7 +1701,9 @@ a {
   height: 100%;
   background: linear-gradient(90deg, var(--color-amber), var(--color-primary));
   border-radius: var(--radius-full);
-  transition: width 0.5s ease;
+  width: 100%;
+  /* Vẽ phần đã đạt bằng clip-path: không đổi layout, giữ đầu bo tròn */
+  transition: clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .btn-open-station {
@@ -1885,10 +2018,28 @@ a {
   flex: 1;
   height: 100%;
   max-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: #FFFFFF;
+}
+
+/* Chỉ vùng nội dung bên trong modal được phép cuộn. */
+.exam-taker-window,
+.theory-modal-container,
+.theory-modal-main {
+  overscroll-behavior: contain;
+}
+
+.exam-taker-window {
+  min-height: 0;
+}
+
+.theory-main-content {
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .theory-main-content {
@@ -3569,6 +3720,8 @@ a {
 .modal-backdrop {
   position: fixed;
   inset: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: rgba(39, 28, 25, 0.6);
   backdrop-filter: blur(6px);
   z-index: 1200;
@@ -5672,7 +5825,9 @@ a {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 0.35rem;
-    padding-bottom: 2px;
+    /* Mobile: dock tự cuộn ngang nên không dùng margin âm, chỉ chừa đệm cho pill */
+    padding: 4px 4px 6px;
+    margin: 0;
   }
 
   .category-tabs::-webkit-scrollbar {
@@ -6058,7 +6213,636 @@ a {
   outline-offset: 3px !important;
 }
 
+/* ============================================================
+   HOME: CHIỀU SÂU CHO CÁC KHỐI NỀN TRẮNG PHÍA DƯỚI BANNER
+   Chỉ animate transform / opacity; hover chỉ bật trên chuột thật.
+   ============================================================ */
+
+/* --- Thẻ chỉ số nhanh: nhuộm theo màu nhấn riêng của từng thẻ --- */
+.metric-card {
+  --metric-accent: var(--color-primary);
+  background: var(--color-surface);
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--metric-accent) 12%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, var(--metric-accent) 4%, #FFFFFF) 100%);
+  border-color: color-mix(in srgb, var(--metric-accent) 18%, #FFEDD5);
+}
+
+/* Vạch nhấn trên đỉnh thẻ: nghỉ ở 28% chiều ngang, bung hết khi rê chuột */
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--metric-accent);
+  transform: scaleX(0.28);
+  transform-origin: left center;
+  opacity: 0.85;
+  transition: transform 320ms var(--ease-out);
+  pointer-events: none;
+}
+
+.metric-icon-wrap {
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--metric-accent) 10%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.metric-val {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .metric-card:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+/* --- Khung ma trận kiến thức --- */
+.matrix-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF8EE 100%);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Lưới chấm mờ dần xuống dưới, tạo chất liệu cho nền */
+.matrix-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(234, 88, 12, 0.16) 1px, transparent 1.3px);
+  background-size: 18px 18px;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, transparent 65%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Quầng sáng cam trôi rất chậm ở góc phải */
+.matrix-panel::after {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -70px;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, rgba(234, 88, 12, 0.12) 45%, transparent 70%);
+  animation: panelOrbDrift 14s ease-in-out infinite alternate;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes panelOrbDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-36px, 28px, 0) scale(1.12); }
+}
+
+.panel-title-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-cream);
+  box-shadow: inset 0 0 0 1px rgba(234, 88, 12, 0.22), 0 2px 6px rgba(234, 88, 12, 0.12);
+}
+
+.mastery-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.mastery-help-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mastery-help-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #64748B;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.mastery-help-trigger:hover,
+.mastery-help-trigger:focus-visible {
+  color: #C2410C;
+  border-color: #FB923C;
+}
+
+.mastery-help-trigger:active {
+  transform: scale(0.96);
+}
+
+.mastery-help-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 10px);
+  left: 50%;
+  width: min(340px, calc(100vw - 48px));
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #FED7AA;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #334155;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.55;
+  white-space: normal;
+  transform: translateX(-50%);
+}
+
+/* Chip trạng thái đồng bộ: chấm xanh có vòng sóng lan ra */
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #047857;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+}
+
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #10B981;
+  animation: liveDotPing 2s var(--ease-out) infinite;
+}
+
+@keyframes liveDotPing {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  80%, 100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* --- 4 thẻ khối kiến thức --- */
+.matrix-card {
+  --card-accent: var(--color-primary);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--card-accent) 20%, #FFEDD5);
+  background: #FFFDF9;
+  background:
+    radial-gradient(130% 100% at 0% 0%, color-mix(in srgb, var(--card-accent) 11%, transparent) 0%, transparent 58%),
+    linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, var(--card-accent) 4%, #FFFDF9) 100%);
+  box-shadow: 0 1px 2px rgba(124, 45, 18, 0.05);
+}
+
+.matrix-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--card-accent);
+  background: color-mix(in srgb, var(--card-accent) 13%, #FFFFFF);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-accent) 24%, transparent);
+  transition: transform 240ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .matrix-card:hover .matrix-icon {
+    transform: translateY(-1px) rotate(-6deg) scale(1.06);
+  }
+}
+
+/* Thanh tiến độ: nền ray nhuộm theo màu thẻ + vệt sáng quét qua định kỳ */
+.matrix-card .progress-bar-shell {
+  background: color-mix(in srgb, var(--card-accent) 14%, #F3E8DC);
+}
+
+.matrix-card .progress-bar-fill {
+  position: relative;
+}
+
+.matrix-card .progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+  transform: translateX(-120%);
+  animation: barShimmer 3.8s var(--ease-out) infinite;
+  pointer-events: none;
+}
+
+.matrix-card:nth-child(2) .progress-bar-fill::after { animation-delay: 0.5s; }
+.matrix-card:nth-child(3) .progress-bar-fill::after { animation-delay: 1s; }
+.matrix-card:nth-child(4) .progress-bar-fill::after { animation-delay: 1.5s; }
+
+@keyframes barShimmer {
+  0%   { transform: translateX(-120%); }
+  55%, 100% { transform: translateX(300%); }
+}
+
+/* Nút -5% / +5%: viên thuốc nhỏ, nhấn co 0.97, vùng bấm mở rộng */
+.btn-mastery-step {
+  position: relative;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.btn-mastery-step::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+
+.btn-mastery-step.is-up {
+  color: var(--card-accent);
+  font-weight: 800;
+  border-color: color-mix(in srgb, var(--card-accent) 38%, #FED7AA);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-mastery-step:hover {
+    background: color-mix(in srgb, var(--card-accent) 10%, #FFFFFF);
+    border-color: var(--card-accent);
+  }
+}
+
+.btn-mastery-step:active {
+  transform: scale(0.97);
+}
+
+.btn-mastery-step:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* --- Thẻ streak bên phải: lưới chấm + quầng sáng + nút điểm danh có vệt sáng --- */
+.streak-card {
+  isolation: isolate;
+  background:
+    radial-gradient(rgba(234, 88, 12, 0.09) 1px, transparent 1.3px) 0 0 / 18px 18px,
+    linear-gradient(180deg, #FFFFFF 0%, #FFF9F2 100%);
+}
+
+.streak-card::after {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  z-index: -1;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.28) 0%, rgba(234, 88, 12, 0.1) 48%, transparent 70%);
+  animation: panelOrbDrift 16s ease-in-out infinite alternate;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.day-bubble-circle {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms var(--ease-out);
+}
+
+.day-bubble.checked .day-bubble-circle {
+  background: linear-gradient(145deg, #F97316 0%, var(--color-primary) 100%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .day-bubble:hover .day-bubble-circle {
+    transform: translateY(-2px) scale(1.06);
+  }
+}
+
+.btn-checkin-streak {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-checkin-streak:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  width: 45%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  transform: translateX(-130%) skewX(-20deg);
+  animation: checkinSheen 3.6s var(--ease-out) infinite;
+  pointer-events: none;
+}
+
+@keyframes checkinSheen {
+  0%   { transform: translateX(-130%) skewX(-20deg); }
+  45%, 100% { transform: translateX(330%) skewX(-20deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-panel::after,
+  .streak-card::after,
+  .live-dot::after,
+  .matrix-card .progress-bar-fill::after,
+  .btn-checkin-streak::after {
+    animation: none !important;
+  }
+
+  .live-dot::after {
+    opacity: 0;
+  }
+}
+
 /* Tôn trọng người dùng bật tính năng giảm chuyển động trong hệ điều hành */
+.study-mode-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+  white-space: nowrap;
+}
+
+.theory-quiz-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, #fed7aa);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 92% 20%, rgba(251, 146, 60, 0.18), transparent 32%),
+    linear-gradient(135deg, #fff7ed, #ffffff 72%);
+  box-shadow: 0 10px 26px rgba(234, 88, 12, 0.1);
+}
+
+.theory-quiz-cta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.theory-quiz-cta strong {
+  color: var(--color-deep);
+  font-size: 0.98rem;
+}
+
+.theory-quiz-cta span {
+  color: #7c2d12;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.theory-quiz-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 7px 18px rgba(234, 88, 12, 0.28);
+  transition: transform 160ms var(--ease-out), box-shadow 160ms ease;
+}
+
+.theory-quiz-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(234, 88, 12, 0.34);
+}
+
+.theory-quiz-cta-button:active {
+  transform: scale(0.97);
+}
+
+.pdf-reading-stage {
+  display: grid;
+  grid-template-columns: minmax(150px, 18%) minmax(0, 1fr) minmax(150px, 18%);
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
+    #090f1d;
+}
+
+.pdf-reading-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 2rem 1.25rem;
+  color: #cbd5e1;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.58));
+}
+
+.pdf-reading-rail-left {
+  border-right: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.pdf-reading-rail-right {
+  border-left: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.pdf-reading-rail svg {
+  color: #fb923c;
+  filter: drop-shadow(0 0 9px rgba(251, 146, 60, 0.42));
+}
+
+.pdf-reading-rail-right svg {
+  color: #4ade80;
+  filter: drop-shadow(0 0 9px rgba(74, 222, 128, 0.42));
+}
+
+.pdf-rail-kicker {
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.pdf-reading-rail strong {
+  color: #f8fafc;
+  font-size: 1.1rem;
+}
+
+.pdf-reading-rail span {
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.pdf-reading-rail small {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.pdf-rail-line {
+  width: 100%;
+  height: 1px;
+  margin: 0.7rem 0;
+  background: linear-gradient(90deg, rgba(251, 146, 60, 0.65), transparent);
+}
+
+.pdf-rail-progress {
+  width: 100%;
+  height: 7px;
+  margin: 0.35rem 0 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1e293b;
+}
+
+.pdf-rail-progress span {
+  display: block;
+  width: 80%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.42);
+}
+
+.pdf-iframe-shell {
+  min-width: 0;
+  min-height: 0;
+  padding: 0 1.2rem;
+  background: rgba(2, 6, 23, 0.42);
+}
+
+.pdf-iframe-shell iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border: 0;
+  background: #525659;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.32);
+}
+
+.pdf-reading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.98);
+  color: #e2e8f0;
+}
+
+.pdf-reading-actions > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pdf-reading-actions strong {
+  color: #f8fafc;
+  font-size: 0.86rem;
+}
+
+.pdf-reading-actions span {
+  color: #94a3b8;
+  font-size: 0.74rem;
+}
+
+@media (max-width: 820px) {
+  .pdf-reading-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pdf-reading-actions .theory-quiz-cta-button {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 820px) {
+  .theory-quiz-cta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .theory-quiz-cta-button {
+    justify-content: center;
+  }
+
+  .pdf-reading-stage {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .pdf-reading-rail {
+    display: none;
+  }
+
+  .pdf-iframe-shell {
+    height: 100%;
+    min-height: 500px;
+    padding: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -6077,6 +6861,249 @@ a {
   .streak-flame-giant,
   .streak-sim-box {
     animation: none !important;
+  }
+}
+
+/* ============================================================
+   ROADMAP POLISH — Learning constellation
+   Glow/gradient is reserved for progress and active interactions.
+   ============================================================ */
+.roadmap-container {
+  --roadmap-accent: var(--color-primary, #ea580c);
+  --roadmap-accent-soft: color-mix(in srgb, var(--roadmap-accent) 14%, #fff);
+  --roadmap-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  isolation: isolate;
+}
+
+.roadmap-container::before,
+.roadmap-container::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(42px);
+  opacity: 0.24;
+}
+
+.roadmap-container::before {
+  width: 18rem;
+  height: 18rem;
+  top: 1rem;
+  right: -4rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--roadmap-accent) 30%, transparent), transparent 68%);
+}
+
+.roadmap-container::after {
+  width: 15rem;
+  height: 15rem;
+  top: 28rem;
+  left: -5rem;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.2), transparent 68%);
+}
+
+.roadmap-header-card {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--roadmap-accent) 22%, var(--color-border));
+  background:
+    radial-gradient(circle at 92% 15%, color-mix(in srgb, var(--roadmap-accent) 19%, transparent), transparent 30%),
+    linear-gradient(135deg, color-mix(in srgb, var(--roadmap-accent) 7%, #fff), #fff 70%);
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--roadmap-accent) 12%, transparent);
+}
+
+.roadmap-header-card::after {
+  content: '';
+  position: absolute;
+  width: 11rem;
+  height: 11rem;
+  right: 12%;
+  bottom: -8rem;
+  border: 1px solid color-mix(in srgb, var(--roadmap-accent) 22%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5rem color-mix(in srgb, var(--roadmap-accent) 7%, transparent), 0 0 0 3rem color-mix(in srgb, var(--roadmap-accent) 4%, transparent);
+  pointer-events: none;
+}
+
+.roadmap-header-text h2 {
+  letter-spacing: -0.025em;
+}
+
+.stat-chip {
+  transition: transform 180ms var(--roadmap-ease-out), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stat-chip:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--roadmap-accent) 42%, var(--color-border));
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--roadmap-accent) 12%, transparent);
+  }
+}
+
+.track-switch-btn,
+.blueprint-card,
+.station-node-card,
+.btn-open-station,
+.btn-quiz-station,
+.btn-stream-pdf,
+.theory-toolbar-btn {
+  transition:
+    transform 180ms var(--roadmap-ease-out),
+    opacity 160ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.track-switch-btn:active,
+.blueprint-header-toggle:active,
+.station-node-card:active,
+.btn-open-station:active,
+.btn-quiz-station:active,
+.btn-stream-pdf:active,
+.theory-toolbar-btn:active {
+  transform: scale(0.975);
+}
+
+.track-switch-btn:focus-visible,
+.station-node-card:focus-visible,
+.btn-open-station:focus-visible,
+.btn-quiz-station:focus-visible,
+.btn-stream-pdf:focus-visible,
+.theory-toolbar-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--roadmap-accent) 34%, transparent);
+  outline-offset: 3px;
+}
+
+.track-switch-btn {
+  background: color-mix(in srgb, var(--roadmap-accent) 3%, #f8fafc);
+}
+
+.track-switch-btn.active-cs,
+.track-switch-btn.active-ict {
+  position: relative;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--roadmap-accent) 15%, transparent);
+}
+
+.track-switch-btn.active-cs::before,
+.track-switch-btn.active-ict::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 24%, rgba(255,255,255,0.48) 50%, transparent 76%);
+  transform: translateX(-120%);
+  animation: roadmapSheen 4.8s var(--roadmap-ease-out) infinite;
+  pointer-events: none;
+}
+
+.track-icon-wrapper {
+  transition: transform 180ms var(--roadmap-ease-out), box-shadow 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .track-switch-btn:hover .track-icon-wrapper {
+    transform: rotate(-4deg) scale(1.06);
+  }
+
+  .blueprint-card:hover {
+    border-color: color-mix(in srgb, var(--roadmap-accent) 30%, var(--color-border));
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--roadmap-accent) 9%, transparent);
+  }
+}
+
+.station-node-card {
+  border-color: color-mix(in srgb, var(--roadmap-accent) 12%, var(--color-border));
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.station-node-card:hover {
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--roadmap-accent) 14%, rgba(15, 23, 42, 0.08));
+}
+
+.station-node-card.in-progress {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 18%, transparent), 0 12px 30px color-mix(in srgb, var(--roadmap-accent) 18%, transparent);
+}
+
+.station-node-card.completed {
+  border-color: rgba(34, 197, 94, 0.42);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.09);
+}
+
+.node-badge-icon {
+  transition: transform 180ms var(--roadmap-ease-out), box-shadow 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .station-node-card:hover .node-badge-icon {
+    transform: translateY(-2px) rotate(-3deg);
+  }
+}
+
+.progress-bar-shell {
+  position: relative;
+  height: 9px;
+  background: color-mix(in srgb, var(--roadmap-accent) 12%, #e5e7eb);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.progress-bar-fill {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--roadmap-accent) 35%, transparent);
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -40%;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.66), transparent);
+  transform: translateX(-100%);
+  animation: roadmapProgressSheen 3.6s var(--roadmap-ease-out) infinite;
+}
+
+.chain-link-connector {
+  transition: transform 180ms var(--roadmap-ease-out), filter 180ms ease;
+}
+
+.chain-link-connector:active {
+  transform: scale(0.94);
+}
+
+@keyframes roadmapSheen {
+  0%, 58% { transform: translateX(-120%); }
+  78%, 100% { transform: translateX(320%); }
+}
+
+@keyframes roadmapProgressSheen {
+  0%, 45% { transform: translateX(-100%); }
+  72%, 100% { transform: translateX(360%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roadmap-container::before,
+  .roadmap-container::after,
+  .track-switch-btn.active-cs::before,
+  .track-switch-btn.active-ict::before,
+  .progress-bar-fill::after,
+  .station-node-card.in-progress .node-badge-icon {
+    animation: none !important;
+  }
+
+  .track-switch-btn,
+  .blueprint-card,
+  .station-node-card,
+  .btn-open-station,
+  .btn-quiz-station,
+  .btn-stream-pdf,
+  .theory-toolbar-btn,
+  .node-badge-icon,
+  .chain-link-connector {
+    transition-duration: 0.01ms !important;
   }
 }
 

@@ -5,12 +5,12 @@
 // hình dạng mới. Cấp tối đa: 3 tháng (90 ngày).
 //
 // Ngưỡng mở khoá tính theo SỐ NGÀY STREAK hiện có (>= minDays):
-//   Cấp 1 - 0  ngày : Ngọn Lửa Khởi Đầu
-//   Cấp 2 - 14 ngày : Tinh Linh Lửa Đỏ
-//   Cấp 3 - 30 ngày : Ngọn Lửa Tím
-//   Cấp 4 - 45 ngày : Tinh Linh Lửa Tím
-//   Cấp 5 - 60 ngày : Rồng Lửa Tím - Đỏ
-//   Cấp 6 - 90 ngày : Đại Cổ Thụ Cam   (cấp tối đa)
+//   Cấp 1 - 0  ngày : Tia lửa đầu tiên
+//   Cấp 2 - 14 ngày : Tinh linh than hồng
+//   Cấp 3 - 30 ngày : Tàn lửa thần bí
+//   Cấp 4 - 45 ngày : Tinh linh hư không
+//   Cấp 5 - 60 ngày : Rồng chạng vạng
+//   Cấp 6 - 90 ngày : Yggdrasil   (cấp tối đa)
 //
 // Mỗi cấp chỉ mô tả 1 lần duy nhất tại đây. UI (thẻ streak, bộ sưu
 // tập) chỉ đọc dữ liệu từ mảng này để tránh lệch nội dung.
@@ -24,7 +24,7 @@ export const STREAK_EVOLUTIONS = [
     id: 'ngon-lua',
     tier: 1,
     tierLabel: 'Cấp 1',
-    name: 'Ngọn Lửa Khởi Đầu',
+    name: 'Tia lửa đầu tiên',
     minDays: 0,
     dateLabel: '0 ngày',
     accent: '#F97316',
@@ -40,8 +40,8 @@ export const STREAK_EVOLUTIONS = [
     id: 'tinh-linh-do',
     tier: 2,
     tierLabel: 'Cấp 2',
-    name: 'Tinh Linh Lửa Đỏ',
-    shortName: 'Tinh Linh Lửa Đỏ',
+    name: 'Tinh linh than hồng',
+    shortName: 'Tinh linh than hồng',
     minDays: 14,
     dateLabel: '14 ngày (2 tuần)',
     accent: '#EF4444',
@@ -57,7 +57,7 @@ export const STREAK_EVOLUTIONS = [
     id: 'lua-tim',
     tier: 3,
     tierLabel: 'Cấp 3',
-    name: 'Ngọn Lửa Tím',
+    name: 'Tàn lửa thần bí',
     minDays: 30,
     dateLabel: '30 ngày (1 tháng)',
     accent: '#8B5CF6',
@@ -73,8 +73,8 @@ export const STREAK_EVOLUTIONS = [
     id: 'tinh-linh-tim',
     tier: 4,
     tierLabel: 'Cấp 4',
-    name: 'Tinh Linh Lửa Tím',
-    shortName: 'Tinh Linh Lửa Tím',
+    name: 'Tinh linh hư không',
+    shortName: 'Tinh linh hư không',
     minDays: 45,
     dateLabel: '45 ngày (1 tháng 2 tuần)',
     accent: '#A855F7',
@@ -90,8 +90,8 @@ export const STREAK_EVOLUTIONS = [
     id: 'rong-lua',
     tier: 5,
     tierLabel: 'Cấp 5',
-    name: 'Rồng Lửa Tím - Đỏ',
-    shortName: 'Rồng Lửa Tím - Đỏ',
+    name: 'Rồng chạng vạng',
+    shortName: 'Rồng chạng vạng',
     minDays: 60,
     dateLabel: '60 ngày (2 tháng)',
     accent: '#DB2777',
@@ -107,7 +107,7 @@ export const STREAK_EVOLUTIONS = [
     id: 'dai-co-thu',
     tier: 6,
     tierLabel: 'Cấp 6',
-    name: 'Đại Cổ Thụ Cam',
+    name: 'Yggdrasil',
     minDays: 90,
     dateLabel: '90 ngày (3 tháng)',
     accent: '#F59E0B',

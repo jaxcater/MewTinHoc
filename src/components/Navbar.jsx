@@ -7,11 +7,8 @@ import {
   GitCommit,
   BookOpen,
   Sparkles,
-  Target,
-  LogIn,
   LogOut,
   Layers,
-  Award,
   ShieldCheck
 } from 'lucide-react';
 import logoMeoCam from '../../img/logomeocam.png';
@@ -203,7 +200,8 @@ export default function Navbar({
                 <motion.div
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
-                  transition={SPRINGS.snappy}
+                  style={{ borderRadius: 14 }}
+                  transition={SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -224,7 +222,8 @@ export default function Navbar({
                 <motion.div
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
-                  transition={SPRINGS.snappy}
+                  style={{ borderRadius: 14 }}
+                  transition={SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -247,7 +246,8 @@ export default function Navbar({
                 <motion.div
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
-                  transition={SPRINGS.snappy}
+                  style={{ borderRadius: 14 }}
+                  transition={SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -268,7 +268,8 @@ export default function Navbar({
                 <motion.div
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
-                  transition={SPRINGS.snappy}
+                  style={{ borderRadius: 14 }}
+                  transition={SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">

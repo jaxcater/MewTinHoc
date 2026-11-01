@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import {
   Flame,
   CheckCircle2,
@@ -12,25 +13,20 @@ import {
   AlertCircle,
   RotateCcw,
   FastForward,
-  Undo2,
   Code2,
   Database,
   Globe2,
   ShieldAlert,
-  Lock,
   Trophy,
-  CalendarClock,
-  CalendarDays
+  CircleHelp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { TABS } from './Navbar';
 import { isCompanyAdmin } from '../lib/roleService.js';
 
-import { Radio, Wifi, Database as DbIcon, CheckCircle2 as CheckIcon } from 'lucide-react';
 import { formatLocalDate } from '../lib/userProgress';
 import {
   STREAK_EVOLUTIONS,
-  STREAK_EVOLUTION_MAX_DAYS,
   getEvolutionByDays,
   getEvolutionProgress
 } from '../lib/streakEvolutions';
@@ -41,29 +37,49 @@ import {
   bannerItemVariants,
   statsRowVariants,
   statCardVariants,
+  matrixGridVariants,
+  matrixCardVariants,
   streakCardVariants,
   iconHoverVariants,
   reducedMotionVariants
 } from '../variants';
 import CountUpNumber from './motion/CountUpNumber';
+import MasteryBar from './motion/MasteryBar';
 import MascotHeroCat from './motion/MascotHeroCat';
 import HeroBannerBackground from './motion/HeroBannerBackground';
 import StreakFlameStage from './motion/StreakFlameStage';
+import { TRACK_INFO, TRACK_TYPES } from '../data/roadmap';
+import { getStationQuiz } from '../data/questions';
+
+const MASTERY_BLOCKS = [
+  { key: 'python', label: 'Lập trình & Thuật toán Python', color: '#EA580C', terms: ['python', 'lập trình', 'thuật toán', 'học máy', 'machine learning', 'khoa học dữ liệu'] },
+  { key: 'sql', label: 'Cơ sở dữ liệu & SQL', color: '#D97706', terms: ['cơ sở dữ liệu', 'csdl', 'database', 'sql', 'bảng tính', 'excel', 'pivot', 'truy vấn'] },
+  { key: 'network', label: 'Mạng Máy Tính & Internet', color: '#7C2D12', terms: ['mạng', 'internet', 'tcp/ip', 'router', 'switch', 'wifi', 'wi-fi', 'đám mây'] },
+  { key: 'safety', label: 'An toàn số & Đạo đức ICT', color: '#16A34A', terms: ['an toàn', 'đạo đức', 'pháp luật', 'văn hóa số', 'văn hoá', 'bản quyền', 'sở hữu trí tuệ', 'hướng nghiệp', 'nghề nghiệp', 'html', 'css', 'trang web', 'website', 'đồ họa', 'video'] }
+];
+
+const getStationMasteryBlockKeys = (station) => {
+  const text = `${station.title || ''} ${station.category || ''} ${station.description || ''} ${(station.skills || []).join(' ')}`.toLocaleLowerCase('vi');
+  return MASTERY_BLOCKS.filter((block) => block.terms.some((term) => text.includes(term))).map((block) => block.key);
+};
 
 export default function HomeTab({
   user,
   streak,
   progress,
-  mastery,
-  onUpdateMastery,
-  dbStatus,
-  isRealtimeActive,
+  completedLessons,
+  userId: suppliedUserId,
   onCheckIn,
   onSimulateNextDay,
   onSimulateMissedDays,
-  onResetSimulation,
   onNavigateTab
 }) {
+  const { track } = useParams();
+  const storedTrack = localStorage.getItem('tinhoc_selected_track');
+  const activeTrack = track && [TRACK_TYPES.ICT, TRACK_TYPES.CS].includes(track.toLowerCase())
+    ? track.toLowerCase()
+    : [TRACK_TYPES.ICT, TRACK_TYPES.CS].includes(storedTrack) ? storedTrack : TRACK_TYPES.ICT;
+  const [showMasteryHelp, setShowMasteryHelp] = React.useState(false);
   const [showAllEvolutions, setShowAllEvolutions] = React.useState(false);
   const [adminPreviewMode, setAdminPreviewMode] = React.useState(false);
   const [adminPreviewStreak, setAdminPreviewStreak] = React.useState(null);
@@ -118,8 +134,6 @@ export default function HomeTab({
   const streakCount = streak?.count || 0;
   const curEvo = streak?.currentEvolution || getEvolutionByDays(streakCount);
   const evoProg = streak?.evolutionProgress || getEvolutionProgress(streakCount);
-  const nextEvo = evoProg.next;
-  const isMaxEvo = !nextEvo && streakCount > 0;
   const curEvoIndex = STREAK_EVOLUTIONS.findIndex(e => e.id === curEvo.id);
   // Chưa điểm danh ngày nào thì coi như chưa sở hữu hình dạng nào cả (0/6).
   const hasStarted = streakCount > 0;
@@ -157,7 +171,29 @@ export default function HomeTab({
     '--evo-aura': displayEvo.aura
   };
 
-
+  const trackData = TRACK_INFO[activeTrack] || TRACK_INFO[TRACK_TYPES.ICT];
+  const quizScoresKey = `tinhoc_roadmap_quiz_scores_${suppliedUserId || user?.id || 'guest'}`;
+  let savedQuizScores = {};
+  try {
+    savedQuizScores = JSON.parse(localStorage.getItem(quizScoresKey) || '{}');
+  } catch {
+    savedQuizScores = {};
+  }
+  const masteryByBlock = MASTERY_BLOCKS.map((block) => {
+    const stations = trackData.stations.filter((station) => getStationMasteryBlockKeys(station).includes(block.key));
+    const completedCount = stations.filter((station) => {
+      const quizScore = savedQuizScores[`${activeTrack}:${station.id}`]?.accuracy;
+      if (typeof quizScore === 'number') return quizScore >= 80;
+      if (station.quiz || getStationQuiz(station.id)) return false;
+      return station.lessons?.length > 0 && station.lessons.every((lesson) => completedLessons?.[lesson.id]);
+    }).length;
+    return {
+      ...block,
+      completedCount,
+      totalCount: stations.length,
+      value: stations.length ? Math.round((completedCount / stations.length) * 100) : 0
+    };
+  });
 
   return (
     <div className="home-dashboard">
@@ -222,7 +258,7 @@ export default function HomeTab({
             viewport={{ once: true, amount: 0.2 }}
             className="metrics-row"
           >
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card">
+            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#EA580C' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FFF1D6', color: '#EA580C' }}>
                 <Flame size={20} />
               </motion.div>
@@ -232,7 +268,7 @@ export default function HomeTab({
               <div className="metric-label">Chuỗi Streak liên tục</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card">
+            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#D97706' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FEF3C7', color: '#D97706' }}>
                 <BookOpen size={20} />
               </motion.div>
@@ -242,7 +278,7 @@ export default function HomeTab({
               <div className="metric-label">Đề thi đã hoàn thành</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card">
+            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#16A34A' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#DCFCE7', color: '#16A34A' }}>
                 <Award size={20} />
               </motion.div>
@@ -252,7 +288,7 @@ export default function HomeTab({
               <div className="metric-label">Điểm trung bình</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card">
+            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#DC2626' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FEE2E2', color: '#DC2626' }}>
                 <TrendingUp size={20} />
               </motion.div>
@@ -268,135 +304,68 @@ export default function HomeTab({
           </motion.div>
 
           {/* Ma trận kiến thức THPTQG & Độ thành thục (Dữ liệu thật từ bảng mastery_progress) */}
-          <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', border: '1.5px solid var(--color-border)', padding: '1.5rem', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="matrix-panel">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div className="section-title" style={{ fontSize: '1.15rem', margin: 0 }}>
-                <Zap size={20} color="var(--color-primary)" />
+              <div className="section-title mastery-title-wrap" style={{ fontSize: '1.15rem', margin: 0 }}>
+                <span className="panel-title-icon"><Zap size={18} color="var(--color-primary)" /></span>
                 <span>Mức độ làm chủ 4 khối kiến thức đề thi Bộ GD&ĐT</span>
+                <span className="mastery-help-anchor">
+                  <button
+                    type="button"
+                    className="mastery-help-trigger"
+                    aria-label="Giải thích cách tính tiến độ làm chủ"
+                    aria-expanded={showMasteryHelp}
+                    onClick={() => setShowMasteryHelp((open) => !open)}
+                                    onMouseEnter={() => setShowMasteryHelp(true)}
+                    onMouseLeave={() => setShowMasteryHelp(false)}
+                    onFocus={() => setShowMasteryHelp(true)}
+                    onBlur={() => setShowMasteryHelp(false)}
+                  >
+                    <CircleHelp size={14} />
+                  </button>
+                  {showMasteryHelp && (
+                    <span className="mastery-help-popover" role="tooltip">
+                      Tiến độ được tính riêng theo định hướng {activeTrack === TRACK_TYPES.CS ? 'Khoa học máy tính (CS)' : 'Tin học ứng dụng (ICT)'}. Mỗi chủ đề hoàn thành từ 80% bài kiểm tra trở lên được tính là đã học; chủ đề không có bài kiểm tra tính khi hoàn thành toàn bộ lý thuyết. Khi hoàn thành hết chủ đề của một khối, tiến độ khối đó đạt 100%.
+                    </span>
+                  )}
+                </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span>
+              <div className="live-chip">
+                <span className="live-dot" aria-hidden="true"></span>
                 <span>Realtime Sync</span>
               </div>
             </div>
 
-            <div className="knowledge-matrix-grid">
-              {/* Khối Python */}
-              <div style={{ padding: '1rem', background: '#FFFDF9', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)', position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
-                  <Code2 size={18} color="var(--color-primary)" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-deep)' }}>Lập trình & Thuật toán Python</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Tiến độ</span>
-                  <span style={{ color: 'var(--color-primary)' }}>{mastery?.python ?? 88}%</span>
-                </div>
-                <div className="progress-bar-shell" style={{ width: '100%', height: '7px' }}>
-                  <div className="progress-bar-fill" style={{ width: `${mastery?.python ?? 88}%` }}></div>
-                </div>
-                {onUpdateMastery && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.3rem', marginTop: '0.5rem' }}>
-                    <button
-                      onClick={() => onUpdateMastery('python', Math.max(0, (mastery?.python ?? 88) - 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer' }}
-                      title="Giảm 5% để thử nghiệm"
-                    >-5%</button>
-                    <button
-                      onClick={() => onUpdateMastery('python', Math.min(100, (mastery?.python ?? 88) + 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer', color: 'var(--color-primary)', fontWeight: 700 }}
-                      title="Tăng 5% để thử nghiệm"
-                    >+5%</button>
-                  </div>
-                )}
-              </div>
-
-              {/* Khối CSDL & SQL */}
-              <div style={{ padding: '1rem', background: '#FFFDF9', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
-                  <Database size={18} color="#D97706" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-deep)' }}>Cơ sở dữ liệu & SQL</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Tiến độ</span>
-                  <span style={{ color: '#D97706' }}>{mastery?.sql ?? 65}%</span>
-                </div>
-                <div className="progress-bar-shell" style={{ width: '100%', height: '7px' }}>
-                  <div className="progress-bar-fill" style={{ width: `${mastery?.sql ?? 65}%`, background: '#D97706' }}></div>
-                </div>
-                {onUpdateMastery && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.3rem', marginTop: '0.5rem' }}>
-                    <button
-                      onClick={() => onUpdateMastery('sql', Math.max(0, (mastery?.sql ?? 65) - 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer' }}
-                      title="Giảm 5% để thử nghiệm"
-                    >-5%</button>
-                    <button
-                      onClick={() => onUpdateMastery('sql', Math.min(100, (mastery?.sql ?? 65) + 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer', color: '#D97706', fontWeight: 700 }}
-                      title="Tăng 5% để thử nghiệm"
-                    >+5%</button>
-                  </div>
-                )}
-              </div>
-
-              {/* Khối Mạng máy tính */}
-              <div style={{ padding: '1rem', background: '#FFFDF9', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
-                  <Globe2 size={18} color="var(--color-deep)" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-deep)' }}>Mạng Máy Tính & Internet</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Tiến độ</span>
-                  <span style={{ color: 'var(--color-deep)' }}>{mastery?.network ?? 45}%</span>
-                </div>
-                <div className="progress-bar-shell" style={{ width: '100%', height: '7px' }}>
-                  <div className="progress-bar-fill" style={{ width: `${mastery?.network ?? 45}%`, background: 'var(--color-deep)' }}></div>
-                </div>
-                {onUpdateMastery && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.3rem', marginTop: '0.5rem' }}>
-                    <button
-                      onClick={() => onUpdateMastery('network', Math.max(0, (mastery?.network ?? 45) - 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer' }}
-                      title="Giảm 5% để thử nghiệm"
-                    >-5%</button>
-                    <button
-                      onClick={() => onUpdateMastery('network', Math.min(100, (mastery?.network ?? 45) + 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer', color: 'var(--color-deep)', fontWeight: 700 }}
-                      title="Tăng 5% để thử nghiệm"
-                    >+5%</button>
-                  </div>
-                )}
-              </div>
-
-              {/* Khối An toàn số */}
-              <div style={{ padding: '1rem', background: '#FFFDF9', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
-                  <ShieldAlert size={18} color="#16A34A" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-deep)' }}>An toàn số & Đạo đức ICT</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Tiến độ</span>
-                  <span style={{ color: '#16A34A' }}>{mastery?.safety ?? 80}%</span>
-                </div>
-                <div className="progress-bar-shell" style={{ width: '100%', height: '7px' }}>
-                  <div className="progress-bar-fill" style={{ width: `${mastery?.safety ?? 80}%`, background: '#16A34A' }}></div>
-                </div>
-                {onUpdateMastery && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.3rem', marginTop: '0.5rem' }}>
-                    <button
-                      onClick={() => onUpdateMastery('safety', Math.max(0, (mastery?.safety ?? 80) - 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer' }}
-                      title="Giảm 5% để thử nghiệm"
-                    >-5%</button>
-                    <button
-                      onClick={() => onUpdateMastery('safety', Math.min(100, (mastery?.safety ?? 80) + 5))}
-                      style={{ padding: '2px 6px', fontSize: '0.7rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: '#FFF', cursor: 'pointer', color: '#16A34A', fontWeight: 700 }}
-                      title="Tăng 5% để thử nghiệm"
-                    >+5%</button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <motion.div
+              className="knowledge-matrix-grid"
+              variants={prefersReducedMotion ? reducedMotionVariants : matrixGridVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+            >
+              {masteryByBlock.map((block) => {
+                const Icon = block.key === 'python' ? Code2 : block.key === 'sql' ? Database : block.key === 'network' ? Globe2 : ShieldAlert;
+                return (
+                  <motion.div
+                    key={block.key}
+                    variants={prefersReducedMotion ? reducedMotionVariants : matrixCardVariants}
+                    whileHover={prefersReducedMotion ? undefined : 'hover'}
+                    className="matrix-card"
+                    style={{ '--card-accent': block.color }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                      <span className="matrix-icon"><Icon size={16} /></span>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-deep)' }}>{block.label}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>Chủ đề hoàn thành {block.totalCount ? `(${block.completedCount}/${block.totalCount})` : ''}</span>
+                      <span style={{ color: block.color }}>{block.value}%</span>
+                    </div>
+                    <MasteryBar value={block.value} color={block.color} />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </div>
 
 
@@ -598,7 +567,7 @@ export default function HomeTab({
                           background: adminPreviewMode ? 'var(--color-primary)' : '#FFFFFF',
                           color: adminPreviewMode ? '#FFFFFF' : 'var(--color-primary)',
                           cursor: 'pointer',
-                          transition: 'all 0.2s'
+                          transition: 'background-color 160ms ease, color 160ms ease'
                         }}
                       >
                         {adminPreviewMode ? 'BẬT ✓' : 'TẮT'}
@@ -636,7 +605,7 @@ export default function HomeTab({
                             borderRadius: 'var(--radius-md)',
                             border: isPreviewActive ? '2px solid #10B981' : (isCurrent ? `2px solid ${evo.accent}` : '1px solid var(--color-border-subtle)'),
                             position: 'relative',
-                            transition: 'all 0.2s',
+                            transition: 'transform 200ms var(--ease-out), background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease',
                             boxShadow: isPreviewActive ? '0 2px 8px rgba(16, 185, 129, 0.4)' : (isCurrent ? `0 2px 8px ${evo.glow}` : 'none'),
                             cursor: isCompanyAdmin(user) ? 'pointer' : 'default',
                             transform: isPreviewActive ? 'scale(1.05)' : 'scale(1)'

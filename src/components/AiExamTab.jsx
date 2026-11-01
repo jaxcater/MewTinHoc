@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import {
   Sparkles,
-  Cpu,
   BrainCircuit,
   Sliders,
   Send,
   CheckCircle,
-  AlertTriangle,
-  Lightbulb,
   ArrowRight,
   TrendingUp,
-  FileQuestion,
   RefreshCw,
   MessageSquare
 } from 'lucide-react';
@@ -21,7 +17,6 @@ export default function AiExamTab({ user }) {
   const [subject, setSubject] = useState('full'); // full | python | sql | network
   const [difficulty, setDifficulty] = useState('high'); // medium | high | perfect
   const [questionCount, setQuestionCount] = useState(20);
-  const [language, setLanguage] = useState('python');
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
