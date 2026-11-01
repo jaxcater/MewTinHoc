@@ -23,9 +23,11 @@ jobs:
             git config --global --add safe.directory /www/wwwroot/mewtinhoc
             git pull --ff-only origin main
             export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
-            export NODE_ENV=production
-            npm ci
+            # Vite nằm trong devDependencies nên phải cài đầy đủ dependency để build.
+            npm ci --include=dev
             npm run build
+            # NODE_ENV chỉ dành cho tiến trình production, không được đặt trước npm ci.
+            export NODE_ENV=production
             pm2 restart mewtinhoc --update-env
             git log -1 --oneline
             test -f dist/index.html
