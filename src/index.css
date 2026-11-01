@@ -2550,6 +2550,27 @@ a {
   word-break: break-word;
 }
 
+.doc-filename-link {
+  display: -webkit-box;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--color-deep);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.doc-filename-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.doc-filename-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 .doc-meta {
   display: flex;
   align-items: center;
@@ -5756,6 +5777,183 @@ a {
 }
 
 /* ============================================================
+   EXAM LIBRARY — compact cards with a mobile two-column shelf
+   ============================================================ */
+.doc-library-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  align-items: stretch;
+}
+
+.doc-library-card.doc-row {
+  min-width: 0;
+  min-height: 174px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transform: none;
+}
+
+.doc-library-card.doc-row:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.doc-library-card .doc-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.doc-library-card .doc-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.doc-library-card .doc-filename {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.6em;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.doc-library-card .doc-meta {
+  gap: 0.4rem 0.65rem;
+  margin-top: auto;
+  font-size: 0.72rem;
+}
+
+.doc-library-card .doc-path-hint {
+  display: none;
+}
+
+.doc-library-card .doc-actions {
+  width: 100%;
+  min-height: 36px;
+  padding-top: 0.65rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.doc-library-card .doc-actions > .doc-btn-download {
+  flex: 1;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.45rem 0.7rem;
+  background: #ea580c;
+  border: 1px solid #ea580c;
+  box-shadow: none;
+}
+
+.doc-library-card .doc-actions > .doc-btn-download:hover {
+  background: #c2410c;
+  border-color: #c2410c;
+  box-shadow: none;
+}
+
+.doc-library-card .doc-btn-view,
+.doc-library-card .doc-btn-icon,
+.doc-library-card .doc-btn-cancel {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+
+.doc-load-more {
+  display: none;
+}
+
+@media (max-width: 1050px) {
+  .doc-library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .doc-library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .doc-library-card.doc-row {
+    min-height: 164px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
+    padding: 0.7rem;
+  }
+
+  .doc-library-card .doc-icon-wrap {
+    width: 32px;
+    height: 32px;
+  }
+
+  .doc-library-card .doc-filename {
+    min-height: 0;
+    font-size: 0.82rem;
+  }
+
+  .doc-library-card .doc-actions {
+    grid-column: 1 / -1;
+  }
+
+  .doc-library-card .doc-actions > .doc-btn-download {
+    min-width: 0;
+  }
+
+  .doc-library-card .doc-actions > .doc-btn-download span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .doc-load-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 42px;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #c2410c;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .doc-load-more:hover,
+  .doc-load-more:focus-visible {
+    border-color: #ea580c;
+    background: #fff7ed;
+  }
+
+  .doc-load-more-count {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+}
+
+/* ============================================================
    MOBILE-FIRST RESPONSIVE OPTIMIZATION
    ============================================================ */
 
@@ -5917,7 +6115,13 @@ a {
   }
 
   .category-badge {
-    display: none !important; /* Ẩn nhãn tĩnh LEARNING trên mobile */
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    gap: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 
   .category-tabs {
@@ -6322,6 +6526,208 @@ a {
   .nav-tab-btn {
     padding: 0.4rem 0.5rem;
     font-size: 0.74rem;
+  }
+}
+
+/* ============================================================
+   MOBILE FINAL OVERRIDES — Exam library + navigation stability
+   These rules come after legacy mobile rules so the compact layout wins.
+   ============================================================ */
+@media (max-width: 640px) {
+  .horizontal-sidebar {
+    overflow: hidden;
+  }
+
+  .top-nav-row {
+    min-width: 0;
+  }
+
+  .brand-section {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand-section > div:last-child {
+    min-width: 0;
+  }
+
+  .student-bar-widget {
+    flex: 0 0 auto;
+  }
+
+  .category-dock-wrapper {
+    overflow: hidden;
+  }
+
+  .category-dock {
+    min-width: 0;
+  }
+
+  .category-tabs {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .nav-tab-btn {
+    flex: 0 0 auto;
+  }
+
+  .doc-library-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.55rem !important;
+    width: 100%;
+  }
+
+  .doc-library-card.doc-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    min-width: 0;
+    min-height: 164px;
+    padding: 0.7rem;
+    overflow: hidden;
+  }
+
+  .doc-library-card .doc-info,
+  .doc-library-card .doc-actions {
+    min-width: 0;
+  }
+
+  .doc-library-card .doc-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .doc-library-card .doc-filename {
+    display: -webkit-box;
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .doc-library-card .doc-filename-link {
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .doc-load-more {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 42px;
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    color: var(--color-deep);
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out;
+  }
+
+  .doc-load-more:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.14);
+  }
+
+  .doc-load-more:active {
+    transform: scale(0.98);
+  }
+
+  .doc-load-more-count {
+    color: var(--color-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+}
+
+/* ============================================================
+   MOBILE NAV COMPACT MODE — icon first, active tab expands
+   ============================================================ */
+@media (max-width: 640px) {
+  .category-tabs {
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.3rem;
+    overflow: hidden;
+  }
+
+  .nav-tab-btn {
+    flex: 0 0 42px;
+    justify-content: center;
+    min-width: 42px;
+    min-height: 38px;
+    padding: 0.45rem;
+    border-radius: 10px;
+    isolation: isolate;
+    overflow: visible;
+    transition: flex-basis 180ms cubic-bezier(0.23, 1, 0.32, 1),
+      padding 180ms cubic-bezier(0.23, 1, 0.32, 1),
+      color 160ms ease-out,
+      background-color 160ms ease-out;
+  }
+
+  .nav-tab-btn .nav-tab-inner {
+    position: relative;
+    z-index: 2;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  /* Kính active vẫn hiện trên mobile; layoutId của Framer Motion trượt lớp này giữa các tab. */
+  .nav-tab-btn .nav-tab-active-pill {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-deep));
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow:
+      0 4px 12px rgba(124, 45, 18, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    backdrop-filter: blur(10px) saturate(1.2);
+    transform: translateZ(0);
+    will-change: transform, width;
+    z-index: 0;
+  }
+
+  .nav-tab-btn .nav-tab-label,
+  .nav-tab-btn .tab-label-short {
+    display: none !important;
+    overflow: hidden;
+    max-width: 0;
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  .nav-tab-btn.active {
+    flex: 1 1 auto;
+    min-width: 92px;
+    padding-inline: 0.7rem;
+  }
+
+  .nav-tab-btn.active .nav-tab-label,
+  .nav-tab-btn.active .tab-label-short {
+    display: inline !important;
+    max-width: 120px;
+    opacity: 1;
+    transition: max-width 180ms cubic-bezier(0.23, 1, 0.32, 1), opacity 140ms ease-out;
+  }
+
+  .nav-tab-btn .tab-badge-hot {
+    display: none !important;
+  }
+
+  .nav-tab-btn:active {
+    transform: scale(0.97);
   }
 }
 

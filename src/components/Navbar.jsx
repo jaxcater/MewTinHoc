@@ -206,7 +206,7 @@ export default function Navbar({
               )}
               <span className="nav-tab-inner">
                 <Home size={17} />
-                <span>Trang chủ</span>
+                <span className="nav-tab-label">Trang chủ</span>
               </span>
             </button>
 
@@ -229,7 +229,7 @@ export default function Navbar({
               <span className="nav-tab-inner">
                 <GitCommit size={17} />
                 <span className="tab-label-full">Lộ trình học trực quan</span>
-                <span className="tab-label-short">Lộ trình</span>
+                <span className="tab-label-short nav-tab-label">Lộ trình</span>
                 <span className="tab-badge-hot">Mới</span>
               </span>
             </button>
@@ -252,7 +252,7 @@ export default function Navbar({
               )}
               <span className="nav-tab-inner">
                 <BookOpen size={17} />
-                <span>Kho đề thi</span>
+                <span className="nav-tab-label">Kho đề thi</span>
               </span>
             </button>
 
@@ -275,7 +275,7 @@ export default function Navbar({
               <span className="nav-tab-inner">
                 <Sparkles size={17} />
                 <span className="tab-label-full">Tạo bài thi thử & Đánh giá bằng AI</span>
-                <span className="tab-label-short">Đề thi AI</span>
+                <span className="tab-label-short nav-tab-label">Đề thi AI</span>
                 <span className="tab-badge-hot">AI</span>
               </span>
             </button>

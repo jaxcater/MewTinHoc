@@ -47,6 +47,8 @@ const MAX_MB = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
 
 // Loại file có thể xem trực tiếp trên trình duyệt
 const PREVIEWABLE = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
+const MOBILE_DOC_INITIAL_LIMIT = 6;
+const MOBILE_DOC_PAGE_SIZE = 4;
 
 // Icon + màu nhận diện cho từng "loại tài liệu"
 const TYPE_VISUALS = {
@@ -98,6 +100,8 @@ export default function ExamRepoTab({ user }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(MOBILE_DOC_INITIAL_LIMIT);
 
   // ── Trạng thái dành riêng cho Admin ──
   const isAdmin = isCompanyAdmin(user);
@@ -123,6 +127,18 @@ export default function ExamRepoTab({ user }) {
 
   useEffect(() => () => {
     if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 640px)');
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
+    updateViewport();
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', updateViewport);
+      return () => mediaQuery.removeEventListener('change', updateViewport);
+    }
+    mediaQuery.addListener(updateViewport);
+    return () => mediaQuery.removeListener(updateViewport);
   }, []);
 
   const activeType = useMemo(
@@ -201,6 +217,7 @@ export default function ExamRepoTab({ user }) {
     if (type.id === activeType?.id) return;
     setActiveTypeId(type.id);
     setSearchQuery('');
+    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
     setEditingId(null);
     setConfirmDeleteId(null);
     await fetchDocs(type);
@@ -247,6 +264,7 @@ export default function ExamRepoTab({ user }) {
       showNotice(failures.length > 0 ? 'error' : 'success', parts.join(' '));
     }
     if (okCount > 0) {
+      setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
       await loadTypes();
       await fetchDocs(activeType);
     }
@@ -296,6 +314,7 @@ export default function ExamRepoTab({ user }) {
     }
 
     cancelRename();
+    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
     showNotice(
       'success',
       `Đã đổi tên thành "${next}${doc.loai_file ? `.${doc.loai_file}` : ''}" và đồng bộ lên Supabase.`
@@ -327,6 +346,7 @@ export default function ExamRepoTab({ user }) {
     const res = await deleteExamDocument(doc);
     setBusyId(null);
     setConfirmDeleteId(null);
+    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
 
     if (!res.success) {
       showNotice('error', `Xoá thất bại: ${res.error}`);
@@ -346,6 +366,8 @@ export default function ExamRepoTab({ user }) {
   const filtered = docs.filter((d) =>
     (d.ten_file || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const visibleDocs = isMobileViewport ? filtered.slice(0, mobileVisibleCount) : filtered;
+  const hasMoreMobileDocs = isMobileViewport && mobileVisibleCount < filtered.length;
 
   const errorHint = (() => {
     if (!error) return null;
@@ -394,7 +416,10 @@ export default function ExamRepoTab({ user }) {
               type="text"
               placeholder="Tìm kiếm tài liệu..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+              }}
             />
           </div>
 
@@ -548,8 +573,8 @@ export default function ExamRepoTab({ user }) {
 
       {/* ── Documents list ── */}
       {!isLoading && filtered.length > 0 && (
-        <div className="doc-list">
-          {filtered.map((doc) => {
+        <div className="doc-library-grid">
+          {visibleDocs.map((doc) => {
             const fi = getFileIcon(doc.loai_file);
             const IconComp = fi.icon;
             const canPreview = PREVIEWABLE.includes(doc.loai_file);
@@ -558,7 +583,7 @@ export default function ExamRepoTab({ user }) {
             const isConfirmingDelete = confirmDeleteId === doc.id;
 
             return (
-              <div key={doc.id} className={`doc-row${isEditing ? ' editing' : ''}`}>
+              <article key={doc.id} className={`doc-row doc-library-card${isEditing ? ' editing' : ''}`}>
                 {/* File type icon */}
                 <div className="doc-icon-wrap" style={{ background: fi.bg }}>
                   <IconComp size={22} color={fi.color} />
@@ -581,7 +606,19 @@ export default function ExamRepoTab({ user }) {
                       <span className="doc-rename-hint">Nhấn Enter để lưu</span>
                     </div>
                   ) : (
-                    <div className="doc-filename">{doc.ten_file}</div>
+                    canPreview && doc.view_url ? (
+                      <a
+                        href={doc.view_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="doc-filename doc-filename-link"
+                        title="Nhấn để xem tài liệu"
+                      >
+                        {doc.ten_file}
+                      </a>
+                    ) : (
+                      <div className="doc-filename">{doc.ten_file}</div>
+                    )
                   )}
 
                   <div className="doc-meta">
@@ -707,10 +744,21 @@ export default function ExamRepoTab({ user }) {
                     </>
                   )}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
+      )}
+
+      {!isLoading && hasMoreMobileDocs && (
+        <button
+          type="button"
+          className="doc-load-more"
+          onClick={() => setMobileVisibleCount((count) => count + MOBILE_DOC_PAGE_SIZE)}
+        >
+          <span>Xem thêm</span>
+          <span className="doc-load-more-count">Còn {filtered.length - mobileVisibleCount} tài liệu</span>
+        </button>
       )}
 
       {/* ── Empty state ── */}
