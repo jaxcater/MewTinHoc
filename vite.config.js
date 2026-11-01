@@ -4,7 +4,7 @@ import { botpressMiddleware } from './server/botpressMiddleware.js'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/MewTinHoc/',
+  base: '/',
   plugins: [
     react(),
     {

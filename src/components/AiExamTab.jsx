@@ -11,12 +11,13 @@ import {
   MessageSquare
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { TRACK_TYPES } from '../data/roadmap';
 
-export default function AiExamTab({ user }) {
-  // Config state
-  const [subject, setSubject] = useState('full'); // full | python | sql | network
-  const [difficulty, setDifficulty] = useState('high'); // medium | high | perfect
-  const [questionCount, setQuestionCount] = useState(20);
+export default function AiExamTab({ user, progress }) {
+  const [direction, setDirection] = useState(() => {
+    const saved = localStorage.getItem('tinhoc_selected_track');
+    return [TRACK_TYPES.CS, TRACK_TYPES.ICT].includes(saved) ? saved : TRACK_TYPES.ICT;
+  });
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -64,10 +65,12 @@ export default function AiExamTab({ user }) {
           clearInterval(stepInterval);
           setIsGenerating(false);
           setGeneratedExam({
-            title: `Đề Thi Thử Phân Hóa AI — ${subject === 'python' ? 'Chuyên Sâu Python' : subject === 'sql' ? 'Chuyên Sâu SQL' : 'Chuẩn Cấu Trúc Bộ GD&ĐT 2025'}`,
-            questions: questionCount,
-            difficulty: difficulty === 'perfect' ? 'Điểm 9.5 - 10.0' : difficulty === 'high' ? 'Khá - Giỏi (8.0+)' : 'Cơ bản (7.0+)',
-            estimatedScore: 8.8
+            title: `Đề thi thử ${direction === TRACK_TYPES.CS ? 'Khoa học máy tính (CS)' : 'Tin học ứng dụng (ICT)'}`,
+            direction,
+            sections: { multipleChoice: 24, commonTrueFalse: 2, directionTrueFalse: 2 },
+            questions: 28,
+            difficulty: 'Chuẩn cấu trúc',
+            estimatedScore: null
           });
           confetti({
             particleCount: 70,
@@ -139,104 +142,39 @@ export default function AiExamTab({ user }) {
             <span>1. Tùy Chọn Ma Trận Đề Thi Thử AI</span>
           </div>
 
-          {/* Subject options */}
-          <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-deep)', display: 'block', marginBottom: '0.5rem' }}>
-              Chuyên đề trọng tâm:
-            </label>
-            <div className="selection-grid">
-              <div
-                className={`choice-box ${subject === 'full' ? 'selected' : ''}`}
-                onClick={() => setSubject('full')}
-              >
-                <div className="choice-box-title">Tổng hợp Chuẩn Bộ GD&ĐT</div>
-                <div className="choice-box-sub">Đầy đủ 4 mảng kiến thức</div>
+          <div className="ai-direction-control">
+            <div>
+              <div className="ai-direction-label">Định hướng đề thi</div>
+              <div className="ai-direction-description">
+                Chọn định hướng cho 2 câu đúng/sai cuối đề
               </div>
-              <div
-                className={`choice-box ${subject === 'python' ? 'selected' : ''}`}
-                onClick={() => setSubject('python')}
-              >
-                <div className="choice-box-title">Lập trình Python</div>
-                <div className="choice-box-sub">Cú pháp, xâu & thuật toán</div>
-              </div>
-              <div
-                className={`choice-box ${subject === 'sql' ? 'selected' : ''}`}
-                onClick={() => setSubject('sql')}
-              >
-                <div className="choice-box-title">Cơ sở dữ liệu & SQL</div>
-                <div className="choice-box-sub">Khóa, JOIN, GROUP BY</div>
-              </div>
-              <div
-                className={`choice-box ${subject === 'network' ? 'selected' : ''}`}
-                onClick={() => setSubject('network')}
-              >
-                <div className="choice-box-title">Mạng & An Toàn Số</div>
-                <div className="choice-box-sub">Giao thức IP, Bảo mật</div>
-              </div>
+            </div>
+            <div className="ai-direction-switch" role="group" aria-label="Chọn định hướng đề thi">
+              <button
+                type="button"
+                className={direction === TRACK_TYPES.CS ? 'active' : ''}
+                aria-pressed={direction === TRACK_TYPES.CS}
+                onClick={() => {
+                  setDirection(TRACK_TYPES.CS);
+                  localStorage.setItem('tinhoc_selected_track', TRACK_TYPES.CS);
+                }}
+              >Khoa học máy tính</button>
+              <button
+                type="button"
+                className={direction === TRACK_TYPES.ICT ? 'active' : ''}
+                aria-pressed={direction === TRACK_TYPES.ICT}
+                onClick={() => {
+                  setDirection(TRACK_TYPES.ICT);
+                  localStorage.setItem('tinhoc_selected_track', TRACK_TYPES.ICT);
+                }}
+              >Tin học ứng dụng</button>
             </div>
           </div>
 
-          {/* Difficulty Target */}
-          <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-deep)', display: 'block', marginBottom: '0.5rem' }}>
-              Mục tiêu điểm số & Độ phân hóa:
-            </label>
-            <div className="selection-grid selection-grid-3">
-              <div
-                className={`choice-box ${difficulty === 'medium' ? 'selected' : ''}`}
-                onClick={() => setDifficulty('medium')}
-              >
-                <div className="choice-box-title">Cơ bản 7.0+</div>
-                <div className="choice-box-sub">Nhận biết & Thông hiểu</div>
-              </div>
-              <div
-                className={`choice-box ${difficulty === 'high' ? 'selected' : ''}`}
-                onClick={() => setDifficulty('high')}
-              >
-                <div className="choice-box-title">Khá Giỏi 8.5+</div>
-                <div className="choice-box-sub">Vận dụng chuẩn đề</div>
-              </div>
-              <div
-                className={`choice-box ${difficulty === 'perfect' ? 'selected' : ''}`}
-                onClick={() => setDifficulty('perfect')}
-              >
-                <div className="choice-box-title">Điểm 10 Tuyệt Đối</div>
-                <div className="choice-box-sub">Vận dụng cao thử thách</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Question Count */}
-          <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-deep)', display: 'block', marginBottom: '0.5rem' }}>
-              Quy mô bài thi:
-            </label>
-            <div className="exam-scale-btn-group">
-              {[
-                { count: 10, label: '10 câu (Siêu tốc 15p)' },
-                { count: 20, label: '20 câu (Tiêu chuẩn 30p)' },
-                { count: 40, label: '40 câu (Chuẩn Bộ 50p)' }
-              ].map((item) => (
-                <button
-                  key={item.count}
-                  type="button"
-                  onClick={() => setQuestionCount(item.count)}
-                  style={{
-                    flex: 1,
-                    padding: '0.6rem',
-                    borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    border: '1.5px solid',
-                    borderColor: questionCount === item.count ? 'var(--color-primary)' : 'var(--color-border-subtle)',
-                    background: questionCount === item.count ? '#FFF7ED' : '#FFFFFF',
-                    color: questionCount === item.count ? 'var(--color-deep)' : 'var(--color-text-muted)'
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          <div className="ai-exam-structure" aria-label="Cấu trúc đề thi">
+            <div><strong>24</strong><span> câu trắc nghiệm</span></div>
+            <div><strong>2</strong><span> câu đúng/sai chung</span></div>
+            <div><strong>2</strong><span> câu đúng/sai theo định hướng</span></div>
           </div>
 
           {/* Generate Button */}
@@ -295,54 +233,25 @@ export default function AiExamTab({ user }) {
           )}
         </div>
 
-        {/* Right Card: AI Diagnostic Report & Performance Forecast */}
+        {/* Learner performance metrics, shared with the home page */}
         <div className="ai-report-card">
           <div className="config-group-title">
             <TrendingUp size={18} color="var(--color-primary)" />
-            <span>2. Báo Cáo Đánh Giá Năng Lực Học Viên (AI Diagnostic)</span>
+            <span>Báo cáo kết quả học tập</span>
           </div>
 
-          {/* Score Showcase */}
-          <div className="score-showcase">
-            <div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                Dự đoán điểm THPTQG
-              </div>
-              <div className="big-score-digit">9.2</div>
-              <div style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 700 }}>
-                ▲ Tăng +0.4 so với tuần trước
-              </div>
+          <div className="ai-home-metrics">
+            <div className="ai-home-metric">
+              <span>Đề thi đã hoàn thành</span>
+              <strong>{progress?.total_exams ?? user?.totalExamsTaken ?? 0}</strong>
             </div>
-
-            <div style={{ width: '1px', height: '60px', background: 'var(--color-border)' }}></div>
-
-            <div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                Xác suất đạt mục tiêu 9.5+
-              </div>
-              <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--color-deep)' }}>
-                86.5%
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>
-                Khả quan rất cao
-              </div>
+            <div className="ai-home-metric">
+              <span>Điểm trung bình</span>
+              <strong>{Number(progress?.avg_score ?? user?.avgScore ?? 0).toFixed(1)}<small>/10</small></strong>
             </div>
-          </div>
-
-          {/* AI Coach Diagnostic Advice */}
-          <div className="ai-coach-bubble">
-            <div className="ai-avatar-icon">
-              <BrainCircuit size={22} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--color-deep)' }}>
-                Nhận xét chuyên sâu từ Gia Sư AI:
-              </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--color-text-deep)', lineHeight: 1.5 }}>
-                • <strong>Điểm mạnh:</strong> Học viên {user?.name || ''} xử lý cực kỳ chuẩn xác các câu hỏi lập trình Python về hàm, lát cắt xâu và mảng 1 chiều (Độ chính xác: 94%).
-                <br />
-                • <strong>Lỗ hổng cần khắc phục:</strong> Hay bị mất điểm ở Phần II (Trắc nghiệm Đúng/Sai 4 ý) của chuyên đề CSDL quan hệ SQL, đặc biệt là sự khác biệt giữa WHERE và HAVING khi gom nhóm GROUP BY.
-              </div>
+            <div className="ai-home-metric">
+              <span>Độ chính xác câu hỏi</span>
+              <strong>{Number(progress?.accuracy ?? (parseFloat(user?.accuracy) || 0)).toFixed(1)}<small>%</small></strong>
             </div>
           </div>
 

@@ -292,7 +292,7 @@ export default function App() {
               path="/ai-exam"
               element={
                 <PageTransition>
-                  <AiExamTab user={user} onRecordExamResult={recordExamResult} />
+                  <AiExamTab user={user} progress={progress} onRecordExamResult={recordExamResult} />
                 </PageTransition>
               }
             />

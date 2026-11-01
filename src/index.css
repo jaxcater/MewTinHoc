@@ -3499,6 +3499,109 @@ a {
   gap: 1.75rem;
 }
 
+.ai-direction-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ai-direction-label {
+  color: var(--color-deep);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.ai-direction-description {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  margin-top: 0.2rem;
+}
+
+.ai-direction-switch {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #FFF7ED;
+}
+
+.ai-direction-switch button {
+  min-height: 40px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: transparent;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.ai-direction-switch button.active {
+  color: #FFFFFF;
+  background: var(--color-deep);
+}
+
+.ai-exam-structure {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--color-primary);
+  background: #FFF7ED;
+  border-radius: 0 8px 8px 0;
+  color: var(--color-text-deep);
+  font-size: 0.85rem;
+}
+
+.ai-exam-structure strong {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-home-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #FFFDF9;
+}
+
+.ai-home-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.ai-home-metric + .ai-home-metric {
+  border-left: 1px solid var(--color-border);
+}
+
+.ai-home-metric span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ai-home-metric strong {
+  color: var(--color-deep);
+  font-size: 1.65rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-home-metric small {
+  margin-left: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .ai-coach-bubble {
   background: linear-gradient(135deg, #FFF7ED, var(--color-cream));
   border-left: 4px solid var(--color-primary);
@@ -6067,6 +6170,30 @@ a {
   .selection-grid-3 {
     grid-template-columns: 1fr !important;
     gap: 0.5rem;
+  }
+
+  .ai-direction-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ai-direction-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ai-direction-switch button {
+    padding-inline: 0.4rem;
+    font-size: 0.74rem;
+  }
+
+  .ai-home-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-home-metric + .ai-home-metric {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
   }
 
   .exam-scale-btn-group {
