@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Use CDN worker URL to avoid bundler issues with .mjs MIME types and dynamic
-// import on production servers. This ensures the worker loads on all browsers.
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+// Disable worker to avoid CORS, MIME type, CSP, and module import issues on
+// production. Rendering runs on the main thread; slightly slower but works
+// universally across all browsers and server configurations without any setup.
+pdfjsLib.GlobalWorkerOptions.workerPort = null;
 
 const { getDocument } = pdfjsLib;
 
