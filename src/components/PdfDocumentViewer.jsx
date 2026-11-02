@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as pdfjs from 'pdfjs-dist/webpack.mjs';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Use pdfjs-dist's Vite/webpack-aware entry point so the worker URL is bundled
-// and resolved correctly on both localhost and the production subpath/domain.
-const { getDocument, GlobalWorkerOptions } = pdfjs;
+// Avoid pdfjs-dist/webpack.mjs: it creates one shared worker as an import side
+// effect, which can be terminated during React StrictMode's mount/cleanup cycle.
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   const scrollRef = useRef(null);
@@ -17,7 +18,6 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
 
   useEffect(() => {
     let cancelled = false;
-    let pdfDocument;
     let loadingTask;
     setError('');
     setStatus('loading');
@@ -28,13 +28,10 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
       try {
         loadingTask = getDocument({ url: src });
         const document = await loadingTask.promise;
-        pdfDocument = document;
         documentRef.current = document;
         if (!cancelled) {
           setPages(Array.from({ length: document.numPages }, (_, index) => index + 1));
           setStatus('ready');
-        } else {
-          await document.destroy().catch(() => {});
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -48,18 +45,12 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
     return () => {
       cancelled = true;
       documentRef.current = null;
-      // PDF.js destroy methods may reject while a page is loading/rendering.
-      try {
-        void loadingTask?.destroy()?.catch(() => {});
-      } catch {
-        // The task may already have been destroyed by PDF.js.
-      }
-      if (pdfDocument) {
-        try {
-          void pdfDocument.destroy()?.catch(() => {});
-        } catch {
-          // The document may already have been destroyed by PDF.js.
-        }
+      // PDF.js loading-task destruction also tears down its document and worker.
+      // Never destroy the document separately; concurrent destroy calls race.
+      if (loadingTask) {
+        void loadingTask.destroy().catch(() => {
+          // Expected if an in-flight request was already aborted by the browser.
+        });
       }
     };
   }, [src, loadAttempt]);

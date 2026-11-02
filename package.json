@@ -17,7 +17,7 @@
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^14.7.1",
     "lucide-react": "^1.56.0",
-    "pdfjs-dist": "^6.5.438",
+    "pdfjs-dist": "^4.10.38",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4"
