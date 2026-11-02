@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import * as pdfjs from 'pdfjs-dist/webpack.mjs';
 
-GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Use pdfjs-dist's Vite/webpack-aware entry point so the worker URL is bundled
+// and resolved correctly on both localhost and the production subpath/domain.
+const { getDocument, GlobalWorkerOptions } = pdfjs;
 
 export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   const scrollRef = useRef(null);
