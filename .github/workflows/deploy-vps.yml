@@ -21,7 +21,9 @@ jobs:
             set -e
             cd /www/wwwroot/mewtinhoc
             git config --global --add safe.directory /www/wwwroot/mewtinhoc
-            git pull --ff-only origin main
+            # Treat the VPS checkout as a deploy mirror; discard tracked server-side edits.
+            git fetch origin main
+            git reset --hard origin/main
             export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
             # Vite nằm trong devDependencies nên phải cài đầy đủ dependency để build.
             npm ci --include=dev
