@@ -46,6 +46,7 @@ import {
 
 import AdminTheoryEditor from './AdminTheoryEditor';
 import StationQuizView from './StationQuizView';
+import { lockBodyScroll } from '../lib/scrollLock';
 
 export default function RoadmapTab({
   completedLessonIds: propCompletedLessonIds,
@@ -142,17 +143,12 @@ export default function RoadmapTab({
     }
   }, [completedLessonsKey, quizScoresKey]);
 
-  // Khi đang học, khóa cuộn trang nền để con trỏ chỉ tác động lên modal.
+  // Khi đang học, khoá cuộn trang nền để con trỏ chỉ tác động lên modal.
+  // Dùng util riêng vì `body { overflow: hidden }` không đủ trên iOS/Android:
+  // trang lộ trình vẫn trượt và đẩy header/footer của modal đè lên nội dung.
   useEffect(() => {
     if (!selectedStation) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    const previousOverscroll = document.body.style.overscrollBehavior;
-    document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.overscrollBehavior = previousOverscroll;
-    };
+    return lockBodyScroll();
   }, [selectedStation]);
 
   // Tải dữ liệu lộ trình từ Supabase Storage
@@ -1799,6 +1795,7 @@ export default function RoadmapTab({
                 {/* Footer Modal: Chuyển bài & Đánh dấu hoàn thành (ẩn khi đang chỉnh sửa) */}
                 {!isEditingTheory && (
                 <div
+                  className="theory-modal-footer"
                   style={{
                     padding: '0.9rem 1.75rem',
                     background: '#F8FAFC',
