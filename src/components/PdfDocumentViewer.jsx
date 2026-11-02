@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// PDF.js can run without a web worker; this avoids iOS Safari rejecting the
+// Vite-served .mjs worker when the static host labels it application/octet-stream.
+
 
 export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   const scrollRef = useRef(null);
@@ -17,34 +19,39 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   useEffect(() => {
     let cancelled = false;
     let pdfDocument;
-    const loadingTask = getDocument({ url: src });
+    let loadingTask;
     setError('');
+    setStatus('loading');
+    setPages([]);
     canvasRefs.current = [];
 
-    loadingTask.promise.then((document) => {
-      pdfDocument = document;
-      documentRef.current = document;
-      if (!cancelled) {
-        setPages(Array.from({ length: document.numPages }, (_, index) => index + 1));
-        setStatus('ready');
-      } else {
-        void document.destroy();
+    const loadPdf = async () => {
+      try {
+        loadingTask = getDocument({ url: src, disableWorker: true });
+        const document = await loadingTask.promise;
+        pdfDocument = document;
+        documentRef.current = document;
+        if (!cancelled) {
+          setPages(Array.from({ length: document.numPages }, (_, index) => index + 1));
+          setStatus('ready');
+        } else {
+          await document.destroy().catch(() => {});
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError?.message || 'Không thể tải tài liệu PDF.');
+          setStatus('error');
+        }
       }
-    }).catch((loadError) => {
-      if (!cancelled) {
-        setError(loadError?.message || 'Không thể tải tài liệu PDF.');
-        setStatus('error');
-      }
-    });
+    };
+    void loadPdf();
 
     return () => {
       cancelled = true;
       documentRef.current = null;
       // PDF.js destroy methods may reject while a page is loading/rendering.
-      // Consume those rejections so closing the modal cannot leak an unhandled
-      // promise rejection into the React application.
       try {
-        void loadingTask.destroy()?.catch(() => {});
+        void loadingTask?.destroy()?.catch(() => {});
       } catch {
         // The task may already have been destroyed by PDF.js.
       }
