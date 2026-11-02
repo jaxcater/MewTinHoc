@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Use CDN worker with stable version number for guaranteed compatibility
-pdfjsLib.GlobalWorkerOptions.workerSrc = 
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+// Disable worker entirely - run on main thread for universal compatibility
+// This avoids ALL worker loading issues (CORS, CSP, CDN blocks, MIME types)
+pdfjsLib.GlobalWorkerOptions.workerPort = null;
 
 const { getDocument } = pdfjsLib;
 
