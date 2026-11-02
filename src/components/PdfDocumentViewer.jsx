@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-// Disable worker to avoid CORS, MIME type, CSP, and module import issues on
-// production. Rendering runs on the main thread; slightly slower but works
-// universally across all browsers and server configurations without any setup.
-pdfjsLib.GlobalWorkerOptions.workerPort = null;
+// Use legacy build which includes worker inline and handles all browser compat
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const { getDocument } = pdfjsLib;
 
