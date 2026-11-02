@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// Avoid pdfjs-dist/webpack.mjs: it creates one shared worker as an import side
-// effect, which can be terminated during React StrictMode's mount/cleanup cycle.
-GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Use CDN worker URL to avoid bundler issues with .mjs MIME types and dynamic
+// import on production servers. This ensures the worker loads on all browsers.
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
+const { getDocument } = pdfjsLib;
 
 export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   const scrollRef = useRef(null);
