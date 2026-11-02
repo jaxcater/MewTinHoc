@@ -2,9 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// PDF.js can run without a web worker; this avoids iOS Safari rejecting the
-// Vite-served .mjs worker when the static host labels it application/octet-stream.
-
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   const scrollRef = useRef(null);
@@ -27,7 +25,7 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
 
     const loadPdf = async () => {
       try {
-        loadingTask = getDocument({ url: src, disableWorker: true });
+        loadingTask = getDocument({ url: src });
         const document = await loadingTask.promise;
         pdfDocument = document;
         documentRef.current = document;
