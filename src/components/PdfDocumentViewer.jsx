@@ -7,8 +7,9 @@ import { AlertTriangle, ChevronLeft, ChevronRight, ExternalLink, Loader2 } from 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const MOBILE_QUERY = '(max-width: 820px)';
-// Khoảng đệm quanh trang PDF (px) — dùng chung cho cả tính scale và CSS.
-const STAGE_PADDING = 12;
+// Khoảng đệm quanh trang PDF (px). Mobile dùng đệm nhỏ để trang to tối đa.
+const STAGE_PADDING_DESKTOP = 12;
+const STAGE_PADDING_MOBILE = 4;
 // Chặn trần bộ nhớ canvas: trang lớn nhất ~ 6 triệu điểm ảnh để không tràn RAM.
 const MAX_CANVAS_PIXELS = 6_000_000;
 const MAX_DPR = 2.5;
@@ -248,10 +249,12 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
     const node = stageRef.current;
     if (!node) return undefined;
 
+    const padding = isMobile ? STAGE_PADDING_MOBILE : STAGE_PADDING_DESKTOP;
+
     const measure = () => {
       const rect = node.getBoundingClientRect();
-      const width = Math.max(0, rect.width - STAGE_PADDING * 2);
-      const height = Math.max(0, rect.height - STAGE_PADDING * 2);
+      const width = Math.max(0, rect.width - padding * 2);
+      const height = Math.max(0, rect.height - padding * 2);
       setBox((prev) =>
         Math.abs(prev.width - width) < 1 && Math.abs(prev.height - height) < 1
           ? prev
@@ -357,9 +360,8 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
     const canNext = currentPage < total;
 
     return (
-      <div className="pdfx pdfx--mobile" role="region" aria-label={dialogLabel}>
-        <div className="pdfx-stage pdfx-stage--single" ref={stageRef}>
-          <PdfPage
+      <div className="pdfx pdfx--mobile" role="region" aria-label={dialogLabel} style={{ '--pdfx-pad': `${STAGE_PADDING_MOBILE}px` }}>
+        <div className="pdfx-stage pdfx-stage--single" ref={stageRef}>          <PdfPage
             pdfDoc={pdfDoc}
             pageNumber={currentPage}
             boxWidth={box.width}
@@ -403,7 +405,7 @@ export default function PdfDocumentViewer({ src, zoom = 100, title }) {
   }
 
   return (
-    <div className="pdfx pdfx--desktop" role="region" aria-label={dialogLabel}>
+    <div className="pdfx pdfx--desktop" role="region" aria-label={dialogLabel} style={{ '--pdfx-pad': `${STAGE_PADDING_DESKTOP}px` }}>
       <div className="pdfx-stage pdfx-stage--scroll" ref={stageRef}>
         <div className="pdfx-scroll" ref={scrollRef}>
           <div className="pdfx-stack">

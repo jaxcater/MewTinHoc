@@ -7729,9 +7729,7 @@ a {
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
   background: #2b3138;
-}
-
-.pdfx-page {
+}.pdfx-page {
   position: relative;
   flex: 0 0 auto;
   overflow: hidden;
@@ -7798,7 +7796,7 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Nút chuyển trang nổi 2 bên (mobile): mờ, gọn, không chiếm diện tích --- */
+/* --- Nút chuyển trang nổi 2 bên (mobile): mờ, gọn, dính sát viền khung đọc --- */
 .pdfx-nav {
   position: absolute;
   top: 50%;
@@ -7806,36 +7804,39 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 58px;
+  width: 32px;
+  height: 56px;
   padding: 0;
-  border: 1px solid rgba(226, 232, 240, 0.28);
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.42);
-  color: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  background: rgba(15, 23, 42, 0.34);
+  color: rgba(248, 250, 252, 0.9);
   cursor: pointer;
   transform: translateY(-50%);
-  opacity: 0.55;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  opacity: 0.42;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   transition: opacity 200ms ease, background 200ms ease, transform 140ms ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
+/* Dính sát 2 viền: chỉ bo phần hướng vào trong cho gọn. */
 .pdfx-nav--prev {
-  left: 4px;
+  left: 0;
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
 }
 
 .pdfx-nav--next {
-  right: 4px;
+  right: 0;
+  border-right: 0;
+  border-radius: 999px 0 0 999px;
 }
 
 /* Chạm/giữ hoặc hover thì sáng rõ lên để biết đã bấm đúng. */
 .pdfx-nav:hover:not(:disabled),
 .pdfx-nav:focus-visible:not(:disabled) {
-  opacity: 0.95;
+  opacity: 0.9;
   background: rgba(15, 23, 42, 0.72);
   outline: none;
 }
@@ -7847,58 +7848,40 @@ a {
 
 /* Hết trang: vẫn giữ chỗ nhưng mờ hẳn để không gây nhiễu. */
 .pdfx-nav:disabled {
-  opacity: 0.16;
+  opacity: 0.1;
   cursor: default;
-  box-shadow: none;
 }
 
 /* Ô số trang nhỏ, nằm đáy khung đọc để không chen vào nội dung. */
 .pdfx-pill {
   position: absolute;
   left: 50%;
-  bottom: 10px;
+  bottom: 6px;
   z-index: 4;
   display: inline-flex;
   align-items: baseline;
   gap: 0.16rem;
-  padding: 0.2rem 0.6rem;
+  padding: 0.16rem 0.55rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.55);
-  color: rgba(226, 232, 240, 0.82);
-  font-size: 0.72rem;
+  background: rgba(15, 23, 42, 0.5);
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.68rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   transform: translateX(-50%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   pointer-events: none;
-  transition: opacity 180ms ease;
 }
 
 .pdfx-pill-current {
   color: #ffffff;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   font-weight: 800;
 }
 
 .pdfx-pill-sep {
   opacity: 0.5;
-}
-
-/* Màn hình rất hẹp: thu gọn nút để không đè lên nội dung trang. */
-@media (max-width: 400px) {
-  .pdfx-nav {
-    width: 34px;
-    height: 56px;
-  }
-
-  .pdfx-nav--prev {
-    left: 2px;
-  }
-
-  .pdfx-nav--next {
-    right: 2px;
-  }
 }
 
 /* --- Trạng thái tải / lỗi --- */
@@ -7963,6 +7946,70 @@ a {
 /* Trên điện thoại, PDF luôn tự fit nên ẩn nút zoom để giao diện gọn. */
 .exam-taker-window:has(.pdfx--mobile) .theory-zoom-controls {
   display: none;
+}
+
+/* --- Mobile: nén đầu modal, bỏ mọi khoảng trắng dư để PDF to nhất --- */
+@media (max-width: 820px) {
+  /* Ẩn 2 nút phóng toàn màn hình (đã có chế độ full-screen mặc định trên mobile). */
+  .exam-taker-window.pdf-mode .theory-modal-header .theory-toolbar-btn[title*="màn hình"],
+  .exam-taker-window.pdf-mode .theory-modal-header .theory-toolbar-btn[title*="Thu nhỏ"],
+  .exam-taker-window.pdf-mode .pdf-stream-fullscreen-btn {
+    display: none !important;
+  }
+
+  /* Thanh header gọn lại, chỉ còn nhãn + nút đóng. */
+  .exam-taker-window.pdf-mode .theory-modal-header {
+    padding: 0.4rem 0.6rem !important;
+    gap: 0.4rem !important;
+    border-bottom-width: 1px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Thanh "TÀI LIỆU ÔN TẬP" cũng thu gọn hết mức. */
+  .exam-taker-window.pdf-mode .pdf-stream-bar {
+    padding: 0.3rem 0.7rem !important;
+    gap: 0.35rem !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .exam-taker-window.pdf-mode .pdf-stream-bar > div:first-child {
+    gap: 0.4rem !important;
+    min-width: 0;
+  }
+
+  .exam-taker-window.pdf-mode .pdf-stream-bar > div:last-child {
+    flex: 0 0 auto;
+  }
+
+  /* Tiêu đề dài thì cắt 1 dòng, không xuống hàng làm cao header. */
+  .exam-taker-window.pdf-mode .pdf-stream-bar span[style*="0.82rem"] {
+    display: block;
+    overflow: hidden;
+    font-size: 0.72rem !important;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Khung đọc PDF chiếm trọn phần còn lại. */
+  .exam-taker-window.pdf-mode .pdf-reading-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .exam-taker-window.pdf-mode .pdf-reading-actions {
+    padding: 0.45rem 0.7rem calc(0.45rem + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 0.4rem !important;
+  }
+
+  .exam-taker-window.pdf-mode .pdf-reading-actions > div {
+    display: none;
+  }
+
+  .exam-taker-window.pdf-mode .pdf-reading-actions .theory-quiz-cta-button {
+    width: 100%;
+    min-height: 42px;
+  }
 }
 
 /* --- Responsive: ẩn rail, cho khung PDF chiếm trọn chiều cao --- */

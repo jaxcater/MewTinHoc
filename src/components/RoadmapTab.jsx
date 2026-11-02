@@ -983,7 +983,7 @@ export default function RoadmapTab({
       {selectedStation && (currentLesson || selectedStation.pdfUrl || selectedStation.quiz || getStationQuiz(selectedStation.id)) && (
         <div className="modal-backdrop" onClick={handleCloseModal}>
           <div
-            className={`exam-taker-window ${isStudyMode || modalTab === 'pdf' || modalTab === 'quiz' ? 'study-focus-mode' : ''} ${isFullScreen ? 'full-screen-mode' : ''}`}
+            className={`exam-taker-window ${isStudyMode || modalTab === 'pdf' || modalTab === 'quiz' ? 'study-focus-mode' : ''} ${modalTab === 'pdf' ? 'pdf-mode' : ''} ${isFullScreen ? 'full-screen-mode' : ''}`}
             style={{
               maxWidth: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '1400px' : '1050px',
               width: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '96vw' : '92vw',
@@ -1118,6 +1118,7 @@ export default function RoadmapTab({
                 <div className="theory-modal-main">
                 {/* Header thanh trên của modal */}
                 <div
+                  className="theory-modal-header"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1299,6 +1300,7 @@ export default function RoadmapTab({
                   >
                     {/* Thanh điều khiển mini của PDF Stream */}
                     <div
+                      className="pdf-stream-bar"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1341,6 +1343,7 @@ export default function RoadmapTab({
                         
 
                         <button
+                          className="pdf-stream-fullscreen-btn"
                           onClick={() => setIsFullScreen(!isFullScreen)}
                           style={{
                             display: 'inline-flex',
