@@ -7655,9 +7655,10 @@ a {
 }
 
 .pdf-iframe-shell {
+  display: flex;
   min-width: 0;
   min-height: 0;
-  padding: 0 1.2rem;
+  padding: 0;
   background: rgba(2, 6, 23, 0.42);
 }
 
@@ -7671,49 +7672,308 @@ a {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.32);
 }
 
-.pdf-document-viewer {
+/* ============================================================
+   PDF VIEWER (render bằng pdf.js ra canvas)
+   Desktop: cuộn dọc liên tục, fit bề ngang.
+   Mobile : từng trang, fit cả ngang lẫn dọc, chuyển trang bằng nút.
+   ============================================================ */
+.pdfx {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
-  padding: 1rem 0.75rem;
+  background: #3c434d;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pdfx-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --- Desktop: khung cuộn --- */
+.pdfx-scroll {
+  position: absolute;
+  inset: 0;
+  padding: var(--pdfx-pad, 12px);
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y pinch-zoom;
-  background: #525659;
+  scrollbar-gutter: stable;
+  touch-action: pan-x pan-y;
 }
 
-.pdf-document-page {
-  display: block;
+.pdfx-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-items: safe center;
+  gap: 14px;
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+}
+
+/* --- Mobile: một trang duy nhất, luôn nằm trọn trong khung --- */
+.pdfx-stage--single {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pdfx-pad, 12px);
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+  background: #2b3138;
+}
+
+.pdfx-page {
+  position: relative;
   flex: 0 0 auto;
+  overflow: hidden;
   max-width: none;
-  background: #FFFFFF;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+  background: #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.38);
 }
 
-.pdf-viewer-message {
-  margin: auto;
-  padding: 1.25rem;
-  color: #E2E8F0;
-  text-align: center;
+.pdfx-page--single {
+  border-radius: 3px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42);
 }
 
-.pdf-viewer-error a {
-  display: inline-block;
-  margin: 0.5rem;
-  color: #7DD3FC;
-  text-decoration: underline;
-}
-
-.pdf-viewer-error small {
+.pdfx-canvas {
   display: block;
-  max-width: 100%;
+  background: #ffffff;
+}
+
+.pdfx-skeleton {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: linear-gradient(100deg, #f1f5f9 20%, #e6ecf3 42%, #f1f5f9 64%);
+  background-size: 220% 100%;
+  animation: pdfx-shimmer 1.25s ease-in-out infinite;
+}
+
+@keyframes pdfx-shimmer {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
+}
+
+.pdfx-page-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  color: #b91c1c;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #fef2f2;
+}
+
+/* --- Huy hiệu số trang (desktop) --- */
+.pdfx-badge {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Nút chuyển trang nổi 2 bên (mobile): mờ, gọn, không chiếm diện tích --- */
+.pdfx-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 58px;
+  padding: 0;
+  border: 1px solid rgba(226, 232, 240, 0.28);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.42);
+  color: rgba(248, 250, 252, 0.92);
+  cursor: pointer;
+  transform: translateY(-50%);
+  opacity: 0.55;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  transition: opacity 200ms ease, background 200ms ease, transform 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.pdfx-nav--prev {
+  left: 4px;
+}
+
+.pdfx-nav--next {
+  right: 4px;
+}
+
+/* Chạm/giữ hoặc hover thì sáng rõ lên để biết đã bấm đúng. */
+.pdfx-nav:hover:not(:disabled),
+.pdfx-nav:focus-visible:not(:disabled) {
+  opacity: 0.95;
+  background: rgba(15, 23, 42, 0.72);
+  outline: none;
+}
+
+.pdfx-nav:active:not(:disabled) {
+  opacity: 1;
+  transform: translateY(-50%) scale(0.93);
+}
+
+/* Hết trang: vẫn giữ chỗ nhưng mờ hẳn để không gây nhiễu. */
+.pdfx-nav:disabled {
+  opacity: 0.16;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* Ô số trang nhỏ, nằm đáy khung đọc để không chen vào nội dung. */
+.pdfx-pill {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.16rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.pdfx-pill-current {
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.pdfx-pill-sep {
+  opacity: 0.5;
+}
+
+/* Màn hình rất hẹp: thu gọn nút để không đè lên nội dung trang. */
+@media (max-width: 400px) {
+  .pdfx-nav {
+    width: 34px;
+    height: 56px;
+  }
+
+  .pdfx-nav--prev {
+    left: 2px;
+  }
+
+  .pdfx-nav--next {
+    right: 2px;
+  }
+}
+
+/* --- Trạng thái tải / lỗi --- */
+.pdfx-message {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  padding: 1.5rem;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  background: #3c434d;
+}
+
+.pdfx-message--error {
+  color: #fecaca;
+  background: #1f2937;
+}
+
+.pdfx-message--error strong {
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.pdfx-message--error p {
+  max-width: 34ch;
+  margin: 0;
+  color: #cbd5e1;
+  font-weight: 500;
   overflow-wrap: anywhere;
-  color: #94A3B8;
+}
+
+.pdfx-message--error a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 9px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pdfx-spin {
+  animation: pdfx-spin 900ms linear infinite;
+}
+
+@keyframes pdfx-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Trên điện thoại, PDF luôn tự fit nên ẩn nút zoom để giao diện gọn. */
+.exam-taker-window:has(.pdfx--mobile) .theory-zoom-controls {
+  display: none;
+}
+
+/* --- Responsive: ẩn rail, cho khung PDF chiếm trọn chiều cao --- */
+@media (max-width: 1100px) {
+  .pdf-reading-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pdf-reading-rail {
+    display: none;
+  }
 }
 
 .pdf-reading-actions {
@@ -7776,8 +8036,9 @@ a {
 
   .pdf-iframe-shell {
     height: 100%;
-    min-height: 500px;
+    min-height: 0;
     padding: 0;
+    display: flex;
   }
 }
 
@@ -8475,10 +8736,6 @@ a {
     height: 100% !important;
     min-height: 0 !important;
     padding: 0 !important;
-  }
-  .pdf-document-viewer {
-    min-height: 0;
-    padding: 0.5rem;
   }
   .pdf-iframe-shell iframe {
     min-height: 0 !important;
