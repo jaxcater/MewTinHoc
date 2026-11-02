@@ -2236,6 +2236,60 @@ a {
   border-color: var(--color-deep);
 }
 
+.theory-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #F8FAFC;
+}
+
+.theory-zoom-controls .theory-toolbar-btn {
+  min-width: 36px;
+  min-height: 36px;
+  justify-content: center;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.9rem;
+}
+
+.theory-zoom-controls .theory-zoom-reset {
+  min-width: 48px;
+  font-size: 0.75rem;
+}
+
+.theory-zoom-controls .theory-toolbar-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.theory-zoom-value {
+  min-width: 3.5rem;
+  text-align: center;
+  color: var(--color-deep);
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .theory-zoom-controls {
+    gap: 0.15rem;
+  }
+
+  .theory-zoom-controls .theory-toolbar-btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0.3rem;
+  }
+
+  .theory-zoom-controls .theory-zoom-reset {
+    min-width: 44px;
+    font-size: 0.7rem;
+  }
+}
+
 /* Syntax & Code Box */
 .code-editor-box {
   background: #0F172A;
@@ -7617,6 +7671,51 @@ a {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.32);
 }
 
+.pdf-document-viewer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 1rem 0.75rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y pinch-zoom;
+  background: #525659;
+}
+
+.pdf-document-page {
+  display: block;
+  flex: 0 0 auto;
+  max-width: none;
+  background: #FFFFFF;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+
+.pdf-viewer-message {
+  margin: auto;
+  padding: 1.25rem;
+  color: #E2E8F0;
+  text-align: center;
+}
+
+.pdf-viewer-error a {
+  display: inline-block;
+  margin: 0.5rem;
+  color: #7DD3FC;
+  text-decoration: underline;
+}
+
+.pdf-viewer-error small {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #94A3B8;
+}
+
 .pdf-reading-actions {
   display: flex;
   align-items: center;
@@ -8377,6 +8476,10 @@ a {
     min-height: 0 !important;
     padding: 0 !important;
   }
+  .pdf-document-viewer {
+    min-height: 0;
+    padding: 0.5rem;
+  }
   .pdf-iframe-shell iframe {
     min-height: 0 !important;
     height: 100% !important;
@@ -8594,7 +8697,7 @@ a {
   html,
   body {
     -webkit-text-size-adjust: 100%;
-    overscroll-behavior: none;
+    overscroll-behavior: auto;
   }
 
   button,
@@ -8620,13 +8723,21 @@ a {
     border-radius: 0 !important;
   }
 
-  .theory-modal-container,
-  .theory-modal-main {
+  .theory-modal-container {
     min-height: 0;
+    height: 100%;
   }
 
   .theory-modal-main {
+    flex: 1 1 0%;
+    height: auto;
+    min-height: 0;
     overflow: hidden;
+    overscroll-behavior: auto;
+  }
+
+  .theory-main-content {
+    overscroll-behavior-y: auto;
   }
 
   /* Quiz is a long document on phones; let the modal itself own the scroll. */
@@ -8636,31 +8747,16 @@ a {
     overscroll-behavior: contain;
   }
 
-  /* On mobile only, the theory toolbar and lesson share one scroll surface. */
-  .theory-modal-main:has(.theory-main-content) {
+  /* Mobile theory scrolls inside the lesson body; keep the toolbar outside that scroller. */
+  .theory-main-content {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
-
-  .theory-modal-main:has(.theory-main-content) > div:first-child {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    flex: 0 0 auto;
-  }
-
-  .theory-modal-main:has(.theory-main-content) .theory-main-content {
-    flex: 0 0 auto;
-    min-height: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  /* Theory content scrolls with its toolbar in the single modal scroll surface above. */
-  .theory-main-content {
-    min-height: 0;
-    overflow: visible;
-    overscroll-behavior: contain;
   }
 
   .theory-section-box,

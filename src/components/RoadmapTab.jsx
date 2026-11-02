@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PdfDocumentViewer from './PdfDocumentViewer';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Link as ChainIcon,
@@ -99,7 +100,7 @@ export default function RoadmapTab({
   const [isStudyMode, setIsStudyMode] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [fontSizeLevel, setFontSizeLevel] = useState(1); // 0: 0.94rem, 1: 1.03rem, 2: 1.15rem
+  const [theoryZoom, setTheoryZoom] = useState(100);
 
   // 4. Trạng thái câu hỏi phản xạ trong bài học đang xem
   const [selectedOption, setSelectedOption] = useState(null);
@@ -1209,21 +1210,38 @@ export default function RoadmapTab({
 
                   {/* Thanh công cụ phụ trợ (Cỡ chữ, Toàn màn hình, Thoát) */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {modalTab === 'theory' && isStudyMode && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    {(modalTab === 'theory' || modalTab === 'pdf') && (
+                      <div className="theory-zoom-controls" role="group" aria-label="Thu phóng nội dung lý thuyết">
                         <button
+                          type="button"
                           className="theory-toolbar-btn"
-                          onClick={() => setFontSizeLevel((prev) => Math.max(0, prev - 1))}
-                          title="Giảm cỡ chữ"
+                          onClick={() => setTheoryZoom((zoom) => Math.max(70, zoom - 10))}
+                          disabled={theoryZoom <= 70}
+                          aria-label="Thu nhỏ 10 phần trăm"
+                          title="Thu nhỏ nội dung 10%"
                         >
-                          A-
+                          −
+                        </button>
+                        <span className="theory-zoom-value" aria-live="polite">{theoryZoom}%</span>
+                        <button
+                          type="button"
+                          className="theory-toolbar-btn"
+                          onClick={() => setTheoryZoom((zoom) => Math.min(150, zoom + 10))}
+                          disabled={theoryZoom >= 150}
+                          aria-label="Phóng to 10 phần trăm"
+                          title="Phóng to nội dung 10%"
+                        >
+                          +
                         </button>
                         <button
-                          className="theory-toolbar-btn"
-                          onClick={() => setFontSizeLevel((prev) => Math.min(2, prev + 1))}
-                          title="Tăng cỡ chữ"
+                          type="button"
+                          className="theory-toolbar-btn theory-zoom-reset"
+                          onClick={() => setTheoryZoom(100)}
+                          disabled={theoryZoom === 100}
+                          aria-label="Đặt thu phóng về 100 phần trăm"
+                          title="Đặt lại 100%"
                         >
-                          A+
+                          100%
                         </button>
                       </div>
                     )}
@@ -1359,8 +1377,10 @@ export default function RoadmapTab({
                         <small>Đọc kỹ nội dung, sau đó chuyển sang bài kiểm tra ở cuối phần lý thuyết.</small>
                       </aside>
                       <div className="pdf-iframe-shell">
-                        <iframe
-                          src={`${selectedStation.pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                        <PdfDocumentViewer
+                          key={selectedStation.pdfUrl}
+                          src={selectedStation.pdfUrl}
+                          zoom={theoryZoom}
                           title={`${selectedStation.title} - Tài liệu ôn thi`}
                         />
                       </div>
@@ -1397,7 +1417,8 @@ export default function RoadmapTab({
                     <div
                   className="theory-main-content"
                   style={{
-                    fontSize: fontSizeLevel === 0 ? '0.94rem' : fontSizeLevel === 2 ? '1.14rem' : '1.03rem'
+                    fontSize: `${theoryZoom}%`,
+                    zoom: theoryZoom / 100
                   }}
                 >
                   {/* Banner kết quả lưu lý thuyết (Admin) */}
