@@ -1114,7 +1114,7 @@ export default function RoadmapTab({
               )}
 
               {/* Main: Nội dung lý thuyết chi tiết của bài */}
-              <div className="theory-modal-main">
+                <div className="theory-modal-main">
                 {/* Header thanh trên của modal */}
                 <div
                   style={{
@@ -1503,7 +1503,7 @@ export default function RoadmapTab({
                     </div>
                   ) : (
                     /* CHẾ ĐỘ HỌC PHÓNG TO & ĐỌC LÝ THUYẾT CHI TIẾT */
-                    <div className="theory-reading-container">
+                      <div className="theory-reading-container" key={currentLesson.id}>
                       {/* Tiêu đề bài học & Tóm tắt */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>

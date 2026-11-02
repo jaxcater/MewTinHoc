@@ -2093,7 +2093,7 @@ a {
 }
 
 .theory-reading-container {
-  max-width: 960px;
+  max-width: 1120px;
   margin: 0 auto;
   width: 100%;
   display: flex;
@@ -3886,6 +3886,7 @@ a {
   inset: 0;
   overflow: hidden;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   background: rgba(39, 28, 25, 0.6);
   backdrop-filter: blur(6px);
   z-index: 1200;
@@ -8635,13 +8636,31 @@ a {
     overscroll-behavior: contain;
   }
 
-  /* The lesson body owns vertical scrolling, so fixed toolbar content cannot cover it. */
-  .theory-main-content {
-    min-height: 0;
+  /* On mobile only, the theory toolbar and lesson share one scroll surface. */
+  .theory-modal-main:has(.theory-main-content) {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+  }
+
+  .theory-modal-main:has(.theory-main-content) > div:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    flex: 0 0 auto;
+  }
+
+  .theory-modal-main:has(.theory-main-content) .theory-main-content {
+    flex: 0 0 auto;
+    min-height: auto;
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Theory content scrolls with its toolbar in the single modal scroll surface above. */
+  .theory-main-content {
+    min-height: 0;
+    overflow: visible;
+    overscroll-behavior: contain;
   }
 
   .theory-section-box,
