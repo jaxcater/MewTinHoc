@@ -20,13 +20,15 @@ jobs:
           ENV_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           ENV_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           ENV_EXAM_ADMIN_TOKEN: ${{ secrets.EXAM_ADMIN_TOKEN }}
+          ENV_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ENV_GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
         with:
           host: 31.97.188.238
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script_stop: true
           command_timeout: 20m
-          envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_EXAM_ADMIN_TOKEN
+          envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_EXAM_ADMIN_TOKEN,ENV_GEMINI_API_KEY,ENV_GEMINI_MODEL
           script: |
             set -e
             cd /www/wwwroot/mewtinhoc
@@ -63,6 +65,8 @@ jobs:
             write_env SUPABASE_URL "$ENV_SUPABASE_URL"
             write_env SUPABASE_ANON_KEY "$ENV_SUPABASE_ANON_KEY"
             write_env EXAM_ADMIN_TOKEN "$ENV_EXAM_ADMIN_TOKEN"
+            write_env GEMINI_API_KEY "$ENV_GEMINI_API_KEY"
+            write_env GEMINI_MODEL "$ENV_GEMINI_MODEL"
             # Cố ý KHÔNG ghi EXAM_KEY_SECRET: đổi khoá này sẽ làm toàn bộ đề đã
             # sinh trong dethicosan/ không đọc được nữa.
 
@@ -71,6 +75,12 @@ jobs:
                && ! grep -q '^BOTPRESS_WEBHOOK_ID=.' .env.example; then
               echo "WARNING: Khong co BOTPRESS_WEBHOOK_ID trong .env.local lan .env.example"
               echo "WARNING: CamCam se chi tra loi mau cho toi khi them secret BOTPRESS_WEBHOOK_ID."
+            fi
+
+            # Nút "Đánh giá của AI" chỉ chạy khi có khoá Gemini trên máy chủ.
+            if ! grep -q '^GEMINI_API_KEY=.' .env.local; then
+              echo "WARNING: Chua co GEMINI_API_KEY - nut 'Danh gia cua AI' se bao chua cau hinh."
+              echo "WARNING: Them secret GEMINI_API_KEY trong GitHub repo (Settings > Secrets)."
             fi
 
             # Vite nằm trong devDependencies nên phải cài đầy đủ dependency để build.

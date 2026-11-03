@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { botpressMiddleware } from './botpressMiddleware.js';
 import { examMiddleware } from './exam/examMiddleware.js';
+import { aiMiddleware } from './ai/aiMiddleware.js';
 import { applySecurityHeaders } from './securityHeaders.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,14 @@ const server = http.createServer(async (req, res) => {
   // vào SPA fallback và trả về index.html.
   if (req.url?.startsWith('/api/exams')) {
     return examMiddleware(req, res, () => {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ ok: false, code: 'NOT_FOUND', message: 'Endpoint không tồn tại' }));
+    });
+  }
+
+  if (req.url?.startsWith('/api/ai')) {
+    return aiMiddleware(req, res, () => {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ ok: false, code: 'NOT_FOUND', message: 'Endpoint không tồn tại' }));
@@ -112,5 +121,23 @@ server.listen(PORT, async () => {
     layout.warnings.forEach((warning) => console.warn(`[exam] ⚠ ${warning}`));
   } catch (err) {
     console.warn(`[exam] Không kiểm tra được bố cục: ${err.message}`);
+  }
+
+  // Kiểm tra cấu hình đánh giá AI 1 lần lúc khởi động — cảnh báo sớm thay vì
+  // để học viên bấm nút rồi mới biết thiếu khoá.
+  try {
+    const { geminiStatus } = await import('./ai/geminiService.js');
+    const status = geminiStatus();
+    if (status.configured) {
+      console.log(`[ai] Đánh giá AI: bật (model ${status.model})`);
+      if (!status.keyLooksValid) {
+        console.warn('[ai] ⚠ GEMINI_API_KEY trông không giống khoá Gemini (thường bắt đầu bằng AIza).');
+      }
+    } else {
+      console.warn('[ai] ⚠ Chưa có GEMINI_API_KEY — nút "Đánh giá của AI" sẽ báo chưa cấu hình.');
+      console.warn('[ai]   Lấy khoá tại https://aistudio.google.com/apikey rồi thêm vào .env.local.');
+    }
+  } catch (err) {
+    console.warn(`[ai] Không kiểm tra được cấu hình AI: ${err.message}`);
   }
 });

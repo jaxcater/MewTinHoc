@@ -388,7 +388,11 @@ export default function App() {
                       onGoHome={() => navigate('/')}
                     />
                   ) : (
-                    <GenExamTab onRecordExamResult={recordExamResult} />
+                    <GenExamTab
+                      progress={progress}
+                      userId={user?.id}
+                      onRecordExamResult={recordExamResult}
+                    />
                   )}
                 </PageTransition>
               }
