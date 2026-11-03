@@ -8,35 +8,119 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-// Đọc biến môi trường từ .env.local và .env mà không làm lộ ra client
+// Đọc biến môi trường từ .env.local và .env mà không làm lộ ra client.
+// `.evn.local` giữ lại để tương thích với các bản deploy gõ nhầm tên file.
+const ENV_FILES = ['.env.local', '.evn.local', '.env'];
+// Chỉ dùng khi các file trên không khai báo khoá nào — để bản deploy mới
+// (chưa kịp tạo .env.local) không rơi vào `missing_webhook_id`.
+// Giá trị placeholder trong file mẫu vẫn bị isRealValue() loại bỏ.
+const EXAMPLE_ENV_FILE = '.env.example';
+
+// Ghi nhớ file nào đã cung cấp cấu hình Botpress, để chẩn đoán biết ngay
+// server đang đọc file nào (chỉ trả tên file, không trả giá trị bí mật).
+let loadedEnvSources = [];
+
+// Cache cấu hình: tránh đọc đĩa và log cảnh báo lặp lại ở mỗi tin nhắn.
+let envCache = null;
+let envCacheSignature = '';
+let exampleEnvWarned = false;
+
+// Parse nội dung file .env: chịu được BOM (file tạo trên Windows), CRLF,
+// dòng comment, giá trị có dấu nháy và tiền tố `export`.
+function parseEnvContent(content) {
+  const result = {};
+  const text = String(content).replace(/^\uFEFF/, '');
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const normalized = line.startsWith('export ') ? line.slice(7).trim() : line;
+    const eqIdx = normalized.indexOf('=');
+    if (eqIdx <= 0) continue;
+
+    const key = normalized.slice(0, eqIdx).trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+
+    let val = normalized.slice(eqIdx + 1).trim();
+    const quoted = val.match(/^(['"])([\s\S]*)\1$/);
+    val = quoted ? quoted[2] : val.replace(/\s+#.*$/, '').trim();
+    result[key] = val;
+  }
+
+  return result;
+}
+
 function loadBackendEnv() {
   const envVars = { ...process.env };
-  const envFiles = ['.env.local', '.evn.local', '.env'];
+  const sources = [];
 
-  for (const file of envFiles) {
+  const readEnvFile = (file) => {
     const fullPath = path.join(rootDir, file);
-    if (fs.existsSync(fullPath)) {
-      try {
-        const content = fs.readFileSync(fullPath, 'utf8');
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith('#')) continue;
-          const eqIdx = trimmed.indexOf('=');
-          if (eqIdx > 0) {
-            const key = trimmed.slice(0, eqIdx).trim();
-            const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
-            if (!envVars[key]) {
-              envVars[key] = val;
-            }
-          }
+    if (!fs.existsSync(fullPath)) return false;
+
+    try {
+      const fileVars = parseEnvContent(fs.readFileSync(fullPath, 'utf8'));
+      let used = false;
+      for (const [key, val] of Object.entries(fileVars)) {
+        // File đọc sau chỉ bù khoá còn trống, không ghi đè cấu hình đã có.
+        if (!envVars[key]) {
+          envVars[key] = val;
+          used = true;
         }
-      } catch (err) {
-        console.warn(`[Botpress Backend] Không thể đọc file ${file}:`, err.message);
+      }
+      if (used) sources.push(file);
+      return used;
+    } catch (err) {
+      console.warn(`[Botpress Backend] Không thể đọc file ${file}:`, err.message);
+      return false;
+    }
+  };
+
+  for (const file of ENV_FILES) readEnvFile(file);
+
+  // Dự phòng cuối cùng: bản deploy chưa tạo .env.local nhưng repo vẫn có
+  // .env.example. Không có bước này, chat rơi vào `missing_webhook_id`
+  // dù Webhook ID đã được khai báo trong repo.
+  if (!isRealValue(envVars.BOTPRESS_WEBHOOK_ID)) {
+    if (readEnvFile(EXAMPLE_ENV_FILE)) {
+      // Chỉ cảnh báo một lần mỗi tiến trình, tránh spam log theo từng request.
+      if (!exampleEnvWarned) {
+        exampleEnvWarned = true;
+        console.warn(
+          `[Botpress Backend] ⚠ Đang dùng cấu hình từ ${EXAMPLE_ENV_FILE}. ` +
+          'File này nằm trong git nên giá trị bên trong KHÔNG còn là bí mật. ' +
+          'Hãy tạo .env.local trên máy chủ với cùng các khoá rồi khởi động lại.'
+        );
       }
     }
   }
 
+  if (process.env.BOTPRESS_WEBHOOK_ID) sources.unshift('process.env');
+  loadedEnvSources = sources;
+
   return envVars;
+}
+
+// Đọc lại file chỉ khi dấu vết (file + mtime + size) thay đổi: mỗi tin nhắn
+// đều gọi getBotpressConfig() nên không thể đọc đĩa mỗi lần.
+function getBackendEnv() {
+  const signature = [...ENV_FILES, EXAMPLE_ENV_FILE]
+    .map((file) => {
+      const fullPath = path.join(rootDir, file);
+      try {
+        const stat = fs.statSync(fullPath);
+        return `${file}:${stat.mtimeMs}:${stat.size}`;
+      } catch {
+        return `${file}:-`;
+      }
+    })
+    .join('|');
+
+  if (envCache && signature === envCacheSignature) return envCache;
+
+  envCache = loadBackendEnv();
+  envCacheSignature = signature;
+  return envCache;
 }
 
 // Kiểm tra một giá trị env có phải là placeholder chưa điền hay không
@@ -52,7 +136,7 @@ function isRealValue(value) {
 
 // Lấy cấu hình Botpress bí mật từ Backend
 export function getBotpressConfig() {
-  const env = loadBackendEnv();
+  const env = getBackendEnv();
   const token = env.BOTPRESS_TOKEN || env.VITE_BOTPRESS_TOKEN || '';
   const botId = env.BOTPRESS_BOT_ID || env.VITE_BOTPRESS_BOT_ID || '';
   const webhookId = env.BOTPRESS_WEBHOOK_ID || '';
@@ -62,7 +146,10 @@ export function getBotpressConfig() {
   // có bật "Encryption key" trong Botpress Cloud > Chat > Settings.
   const chatConfigured = isRealValue(webhookId);
   const encryptionEnabled = isRealValue(encryptionKey);
-  const isConfigured = chatConfigured && encryptionEnabled;
+  // Chat chạy được hay không chỉ phụ thuộc WEBHOOK_ID; encryption chỉ là
+  // cách ký x-user-key. Trước đây `&& encryptionEnabled` khiến chat bị coi là
+  // "chưa cấu hình" dù webhook đã có.
+  const isConfigured = chatConfigured;
 
   return {
     token,
@@ -72,6 +159,7 @@ export function getBotpressConfig() {
     isConfigured,
     chatConfigured,
     encryptionEnabled,
+    envSources: loadedEnvSources,
     maskedToken: token && token !== '$YOUR_BOTPRESS_TOKEN' ? `${token.slice(0, 7)}...${token.slice(-4)}` : '(Tùy chọn cho Chat)',
     maskedBotId: botId && botId !== '$YOUR_BOT_ID' ? `${botId.slice(0, 6)}...${botId.slice(-4)}` : '(Tùy chọn)',
     maskedWebhookId: webhookId ? `${webhookId.slice(0, 8)}...${webhookId.slice(-6)}` : '(Chưa thiết lập)',
@@ -182,7 +270,9 @@ export async function diagnoseBotpressChat() {
     return {
       ok: false,
       step: 'config',
-      message: 'Chưa có BOTPRESS_WEBHOOK_ID trong .env.local. Chat sẽ chỉ trả lời mẫu.',
+      message:
+        'Máy chủ chưa đọc được BOTPRESS_WEBHOOK_ID. Tạo file .env.local (cùng thư mục package.json) với dòng BOTPRESS_WEBHOOK_ID=... rồi khởi động lại server. Chat sẽ chỉ trả lời mẫu cho tới khi cấu hình xong.',
+      envSources: loadedEnvSources,
       steps
     };
   }
@@ -385,6 +475,27 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
   return session;
 }
 
+// Biến mã lỗi kỹ thuật thành việc cần làm cụ thể cho người quản trị.
+function failureHint(failure) {
+  const code = String(failure || '');
+  if (code === 'missing_webhook_id') {
+    return '→ Máy chủ chưa đọc được `BOTPRESS_WEBHOOK_ID`. Tạo file `.env.local` cùng thư mục với `package.json` rồi khởi động lại server.';
+  }
+  if (code.includes('Invalid user key')) {
+    return '→ Bot đang bật Encryption Key nhưng server thiếu/sai `BOTPRESS_ENCRYPTION_KEY`. Điền đúng key trong `.env.local` (hoặc tắt Encryption Key trong Botpress) rồi khởi động lại.';
+  }
+  if (code === 'webhook_unauthorized') {
+    return '→ Webhook ID không còn hiệu lực. Sao chép lại Webhook ID trong Botpress Cloud → Chat → Chat Configuration.';
+  }
+  if (code.startsWith('cannot_create_conversation')) {
+    return '→ Không tạo được hội thoại trên Botpress. Kiểm tra Webhook ID và Encryption Key trong `.env.local`.';
+  }
+  if (code === 'bot_no_reply') {
+    return '→ Bot nhận tin nhưng không trả lời. Kiểm tra bot đã Published và luồng hội thoại có trigger nhận tin nhắn.';
+  }
+  return '';
+}
+
 // Xử lý gửi tin nhắn Chat qua Botpress Backend có duy trì ngữ cảnh
 export async function processChatMessage({ message, userId = 'student_user', conversationId = null }) {
   const { chatConfigured, webhookId } = getBotpressConfig();
@@ -531,15 +642,18 @@ export async function processChatMessage({ message, userId = 'student_user', con
   } else {
     // Không khớp chủ đề nào: phải nói thật là AI chưa trả lời được,
     // thay vì chào hỏi vòng vo khiến người dùng tưởng bot hoạt động bình thường.
+    // Mã lỗi kỹ thuật KHÔNG nhét vào câu trả lời của học sinh — chỉ trả kèm
+    // trong `failure`/`hint` để giao diện quản trị hiển thị.
     reply = failure
-      ? `CamCam chưa kết nối được tới Botpress Cloud nên hiện chỉ trả lời được các câu hỏi mẫu về Python, CSDL/SQL, Mạng máy tính và cấu trúc đề thi. Bạn thử hỏi một trong các chủ đề đó nhé!\n\nMã lỗi kỹ thuật: \`${failure}\``
+      ? 'CamCam hiện chưa kết nối được với máy chủ AI nên chỉ trả lời được các câu hỏi mẫu về Python, CSDL/SQL, Mạng máy tính và cấu trúc đề thi. Bạn thử hỏi một trong các chủ đề đó nhé, hoặc báo lại cho quản trị viên giúp mình!'
       : `Chào bạn! Mình là CamCam AI 😺. Bạn có câu hỏi nào về môn Tin học THPTQG (Python, CSDL SQL, Mạng máy tính) hãy gửi cho mình nhé!`;
   }
 
   return {
     reply,
     source: 'backend_fallback',
-    failure,
+    failure: failure || undefined,
+    hint: failureHint(failure) || undefined,
     conversationId: currentSession?.conversationId
   };
 }

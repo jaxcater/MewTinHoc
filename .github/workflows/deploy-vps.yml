@@ -11,12 +11,22 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ENV_BOTPRESS_WEBHOOK_ID: ${{ secrets.BOTPRESS_WEBHOOK_ID }}
+          ENV_BOTPRESS_ENCRYPTION_KEY: ${{ secrets.BOTPRESS_ENCRYPTION_KEY }}
+          ENV_BOTPRESS_TOKEN: ${{ secrets.BOTPRESS_TOKEN }}
+          ENV_BOTPRESS_BOT_ID: ${{ secrets.BOTPRESS_BOT_ID }}
+          ENV_BOTPRESS_ALLOWED_ORIGIN: ${{ secrets.BOTPRESS_ALLOWED_ORIGIN }}
+          ENV_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          ENV_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ENV_EXAM_ADMIN_TOKEN: ${{ secrets.EXAM_ADMIN_TOKEN }}
         with:
           host: 31.97.188.238
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script_stop: true
           command_timeout: 20m
+          envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_EXAM_ADMIN_TOKEN
           script: |
             set -e
             cd /www/wwwroot/mewtinhoc
@@ -25,6 +35,44 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
+
+            # .env.local nằm trong .gitignore nên `git reset --hard` không tạo ra nó
+            # trên máy chủ - thiếu file này là chat CamCam rơi vào "missing_webhook_id".
+            # Mỗi khoá chỉ được ghi khi secret tương ứng có giá trị; khoá nào không
+            # có secret thì giữ nguyên dòng cũ đang tồn tại trên máy chủ.
+            umask 077
+            touch .env.local
+            chmod 600 .env.local
+
+            write_env() {
+              key="$1"
+              value="$2"
+              if [ -z "$value" ]; then
+                return 0
+              fi
+              grep -v "^${key}=" .env.local > .env.local.tmp 2>/dev/null || true
+              printf '%s=%s\n' "$key" "$value" >> .env.local.tmp
+              mv .env.local.tmp .env.local
+            }
+
+            write_env BOTPRESS_WEBHOOK_ID "$ENV_BOTPRESS_WEBHOOK_ID"
+            write_env BOTPRESS_ENCRYPTION_KEY "$ENV_BOTPRESS_ENCRYPTION_KEY"
+            write_env BOTPRESS_TOKEN "$ENV_BOTPRESS_TOKEN"
+            write_env BOTPRESS_BOT_ID "$ENV_BOTPRESS_BOT_ID"
+            write_env BOTPRESS_ALLOWED_ORIGIN "$ENV_BOTPRESS_ALLOWED_ORIGIN"
+            write_env SUPABASE_URL "$ENV_SUPABASE_URL"
+            write_env SUPABASE_ANON_KEY "$ENV_SUPABASE_ANON_KEY"
+            write_env EXAM_ADMIN_TOKEN "$ENV_EXAM_ADMIN_TOKEN"
+            # Cố ý KHÔNG ghi EXAM_KEY_SECRET: đổi khoá này sẽ làm toàn bộ đề đã
+            # sinh trong dethicosan/ không đọc được nữa.
+
+            # Cảnh báo sớm thay vì để học viên phát hiện khi bấm gửi tin.
+            if ! grep -q '^BOTPRESS_WEBHOOK_ID=.' .env.local \
+               && ! grep -q '^BOTPRESS_WEBHOOK_ID=.' .env.example; then
+              echo "WARNING: Khong co BOTPRESS_WEBHOOK_ID trong .env.local lan .env.example"
+              echo "WARNING: CamCam se chi tra loi mau cho toi khi them secret BOTPRESS_WEBHOOK_ID."
+            fi
+
             # Vite nằm trong devDependencies nên phải cài đầy đủ dependency để build.
             npm ci --include=dev
             npm run build

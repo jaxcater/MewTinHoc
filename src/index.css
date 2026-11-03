@@ -5694,6 +5694,20 @@ a {
   text-align: right;
 }
 
+/* Ghi chú chẩn đoán kỹ thuật — chỉ admin thấy, không lẫn vào nội dung chat. */
+.botpress-msg-admin-note {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border-left: 3px solid #F59E0B;
+  border-radius: 4px;
+  background: #FFFBEB;
+  color: #92400E;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .botpress-typing-dots {
   display: flex;
   align-items: center;

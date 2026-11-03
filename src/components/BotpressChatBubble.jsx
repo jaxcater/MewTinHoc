@@ -221,6 +221,7 @@ export default function BotpressChatBubble({ user, onRequestUpgrade }) {
   const chatLocked = isLockedForDemo(user, DEMO_FEATURE.CHAT);
 
   // Trạng thái cấu hình từ Backend (được bảo mật, không lộ token)
+  const [backendOnline, setBackendOnline] = useState(true);
   const [backendConfig, setBackendConfig] = useState({
     configured: false,
     chatConfigured: false,
@@ -270,18 +271,25 @@ export default function BotpressChatBubble({ user, onRequestUpgrade }) {
   const checkBackendStatus = useCallback(async () => {
     try {
       const res = await fetchBackend('/status');
-      if (res.ok) {
-        const data = await res.json();
-        setBackendConfig({
-          configured: Boolean(data.configured),
-          chatConfigured: Boolean(data.chatConfigured),
-          encryptionEnabled: Boolean(data.encryptionEnabled),
-          maskedToken: data.maskedToken,
-          maskedBotId: data.maskedBotId,
-          maskedWebhookId: data.maskedWebhookId
-        });
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        // Bản deploy tĩnh không có /api/botpress → đừng báo sai là "thiếu
+        // BOTPRESS_WEBHOOK_ID" khiến admin đi sửa nhầm chỗ.
+        setBackendOnline(false);
+        return;
       }
+      const data = await res.json();
+      setBackendOnline(true);
+      setBackendConfig({
+        configured: Boolean(data.configured),
+        chatConfigured: Boolean(data.chatConfigured),
+        encryptionEnabled: Boolean(data.encryptionEnabled),
+        maskedToken: data.maskedToken,
+        maskedBotId: data.maskedBotId,
+        maskedWebhookId: data.maskedWebhookId
+      });
     } catch (err) {
+      setBackendOnline(false);
       console.warn('[Botpress Frontend] Chưa kết nối được Backend:', err.message);
     }
   }, [fetchBackend]);
@@ -470,8 +478,18 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
         })
       });
 
+      // Bản deploy tĩnh (GitHub Pages) trả index.html với HTTP 200 cho mọi
+      // đường dẫn, nên phải kiểm tra Content-Type trước khi parse JSON.
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && !contentType.includes('application/json')) {
+        throw new Error('Máy chủ API không tồn tại (bản deploy tĩnh)');
+      }
+
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
+        if (!data) {
+          throw new Error('Máy chủ trả về dữ liệu không đọc được');
+        }
         if (data.conversationId) {
           setConversationId(data.conversationId);
         }
@@ -482,7 +500,9 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
             sender: 'bot',
             text: data.reply || 'Đã nhận phản hồi từ CamCam.',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isLive: data.source === 'botpress_live'
+            isLive: data.source === 'botpress_live',
+            // Mã lỗi kỹ thuật chỉ hiện cho admin, không đập vào mắt học sinh.
+            adminNote: user?.isAdmin && data.failure ? (data.hint || data.failure) : null
           }
         ]);
       } else {
@@ -723,10 +743,20 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
               </div>
             ) : (
             <>
-              {!backendConfig.chatConfigured && user?.isAdmin && (
+              {!backendOnline && user?.isAdmin && (
                 <div className="botpress-demo-banner">
                   <span>
-                    CamCam đang chạy chế độ trả lời mẫu: máy chủ chưa có BOTPRESS_WEBHOOK_ID.
+                    Không gọi được <code>/api/botpress</code>: trang đang chạy bản deploy tĩnh (GitHub Pages).
+                    Chat chỉ hoạt động khi mở qua máy chủ Node (<code>npm run server</code> trên VPS).
+                  </span>
+                </div>
+              )}
+
+              {backendOnline && !backendConfig.chatConfigured && user?.isAdmin && (
+                <div className="botpress-demo-banner">
+                  <span>
+                    CamCam đang chạy chế độ trả lời mẫu: máy chủ chưa đọc được BOTPRESS_WEBHOOK_ID.
+                    Tạo file <code>.env.local</code> cạnh <code>package.json</code> rồi khởi động lại server.
                   </span>
                 </div>
               )}
@@ -749,6 +779,11 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
                       <div className="botpress-msg-text">
                         <FormattedMessage text={m.text} isUser={m.sender === 'user'} />
                       </div>
+                      {m.adminNote && (
+                        <div className="botpress-msg-admin-note">
+                          <strong>Chẩn đoán (chỉ admin thấy):</strong> {m.adminNote}
+                        </div>
+                      )}
                       <div className="botpress-msg-time">{m.time}</div>
                     </div>
                   </div>

@@ -94,6 +94,7 @@ export async function botpressMiddleware(req, res, next) {
         configured: config.isConfigured,
         chatConfigured: config.chatConfigured,
         encryptionEnabled: config.encryptionEnabled,
+        envSources: config.envSources,
         maskedToken: config.maskedToken,
         maskedBotId: config.maskedBotId,
         maskedWebhookId: config.maskedWebhookId
@@ -119,6 +120,8 @@ export async function botpressMiddleware(req, res, next) {
       const message = cleanString(body.message || body.text, MAX_MESSAGE_CHARS);
       if (!message) return sendJson(res, 400, { error: 'Tin nhắn không được để trống' });
       const userId = getChatSession(req, res);
+      // conversationId luôn lấy từ phiên phía server (cookie) — không tin giá
+      // trị client gửi lên, tránh việc chèn conversation của người khác.
       const chatRes = await processChatMessage({ message, userId, conversationId: null });
       return sendJson(res, 200, chatRes);
     }
