@@ -93,13 +93,19 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
    */
   const [cooldownLeft, setCooldownLeft] = useState(0);
 
+  /** Đang trong thời gian khoá nút — dùng làm phụ thuộc của effect bên dưới */
+  const cooling = cooldownLeft > 0;
+
   useEffect(() => {
-    if (cooldownLeft <= 0) return undefined;
+    if (!cooling) return undefined;
+    // Một interval cho cả đợt đếm: phụ thuộc là "đang đếm hay không" chứ không
+    // phải số giây, nếu là số giây thì interval bị dựng lại mỗi tick và trôi
+    // dần so với đồng hồ thật.
     const timer = setInterval(() => {
       setCooldownLeft((left) => (left <= 1 ? 0 : left - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [cooldownLeft]);
+  }, [cooling]);
 
   /** Mở báo cáo bài làm lần cuối trong tab mới */
   const [reportBlocked, setReportBlocked] = useState(false);
