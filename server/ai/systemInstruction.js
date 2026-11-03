@@ -5,8 +5,8 @@
 //  quyết định, client không được đổi giọng điệu hay schema bằng cách
 //  sửa prompt gửi lên.
 //
-//  Chỉ dẫn phía client (AI_SYSTEM_INSTRUCTION) dùng cho luồng
-//  "Copy prompt" dán tay vào Google AI Studio, giữ nội dung tương đương.
+//  Chỉ dẫn phía client (AI_SYSTEM_INSTRUCTION trong src/lib/examLog.js) giữ
+//  nội dung tương đương để tài liệu và giao diện nói cùng một giọng.
 // ============================================================
 
 export const AI_SYSTEM_INSTRUCTION = `Bạn là gia sư môn Tin học cho kỳ thi tốt nghiệp THPT (Chương trình Giáo dục phổ thông 2018), dạy học viên người Việt.

@@ -6,15 +6,13 @@
 //    loading   → chờ Gemini trả về
 //    done      → hiện đánh giá đã chuẩn hoá
 //    error     → thông điệp cụ thể + nút thử lại
-//    unavailable → máy chủ chưa có khoá; chỉ còn nút copy prompt dán tay
+//    unavailable → máy chủ chưa có khoá AI, chỉ hiện ghi chú
 // ============================================================
 import React from 'react';
 import {
   Sparkles,
   RefreshCw,
   AlertTriangle,
-  ClipboardCopy,
-  Check,
   Target,
   ListChecks,
   HelpCircle,
@@ -26,14 +24,15 @@ export default function AiReviewPanel({
   status,
   review,
   errorMessage,
-  copied,
   configured,
   generatedAt,
+  cooldownLeft = 0,
   onRun,
-  onCopy,
   onRetry,
 }) {
   const busy = status === 'loading';
+  const cooling = cooldownLeft > 0;
+  const runDisabled = busy || cooling || !configured;
 
   return (
     <section className="gx-ai" aria-labelledby="gx-ai-title">
@@ -58,7 +57,7 @@ export default function AiReviewPanel({
             type="button"
             className="gx-btn gx-btn--primary gx-btn--wide"
             onClick={onRun}
-            disabled={!configured}
+            disabled={runDisabled}
           >
             <Sparkles size={16} />
             Phân tích bài làm bằng AI
@@ -68,8 +67,8 @@ export default function AiReviewPanel({
             <p className="gx-cta-note" style={{ marginTop: '0.7rem' }}>
               <WifiOff size={14} style={{ flex: 'none', marginTop: 2 }} />
               <span>
-                Máy chủ chưa cấu hình khoá AI. Dùng <strong>Copy prompt</strong> ở trên rồi dán vào
-                Google AI Studio là bạn vẫn có đánh giá tương tự.
+                Máy chủ chưa cấu hình khoá AI nên chưa chạy được đánh giá tự động. Bạn vẫn xem
+                được bảng điểm yếu bên dưới để biết cần ôn phần nào.
               </span>
             </p>
           )}
@@ -96,19 +95,9 @@ export default function AiReviewPanel({
             <span>{errorMessage || 'Không lấy được đánh giá. Vui lòng thử lại.'}</span>
           </div>
           <div className="gx-ai__foot" style={{ borderTop: 'none', paddingTop: '0.6rem' }}>
-            <button type="button" className="gx-btn" onClick={onRetry}>
-              <RefreshCw size={14} /> Thử lại
-            </button>
-            <button type="button" className="gx-btn" onClick={onCopy}>
-              {copied ? (
-                <>
-                  <Check size={14} /> Đã copy
-                </>
-              ) : (
-                <>
-                  <ClipboardCopy size={14} /> Copy prompt
-                </>
-              )}
+            <button type="button" className="gx-btn" onClick={onRetry} disabled={runDisabled}>
+              <RefreshCw size={14} />
+              {cooling ? `Thử lại sau ${cooldownLeft}s` : 'Thử lại'}
             </button>
           </div>
         </>
@@ -174,19 +163,9 @@ export default function AiReviewPanel({
           {review.encouragement && <p className="gx-ai__close">{review.encouragement}</p>}
 
           <div className="gx-ai__foot" style={{ marginTop: '0.1rem', borderTop: 'none', paddingTop: 0 }}>
-            <button type="button" className="gx-btn" onClick={onCopy}>
-              {copied ? (
-                <>
-                  <Check size={14} /> Đã copy
-                </>
-              ) : (
-                <>
-                  <ClipboardCopy size={14} /> Copy prompt
-                </>
-              )}
-            </button>
-            <button type="button" className="gx-btn" onClick={onRetry} disabled={busy}>
-              <RefreshCw size={14} /> Đánh giá lại
+            <button type="button" className="gx-btn" onClick={onRetry} disabled={runDisabled}>
+              <RefreshCw size={14} />
+              {cooling ? `Đánh giá lại sau ${cooldownLeft}s` : 'Đánh giá lại'}
             </button>
             {generatedAt && (
               <span className="gx-ai__stamp">

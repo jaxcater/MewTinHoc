@@ -12,9 +12,9 @@ import {
   Check,
   X,
   BookOpen,
-  ClipboardCopy,
-  Download,
+  CircleHelp,
   History,
+  ExternalLink,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { submitExam } from '../../lib/examApi.js';
@@ -25,14 +25,11 @@ import {
   readAiReview,
   saveAiReview,
   buildAiPrompt,
-  AI_SYSTEM_INSTRUCTION,
-  formatExamLogText,
-  examLogFileName,
   formatDateTimeVN,
   percentOf,
   TOPIC_LABELS,
 } from '../../lib/examLog.js';
-import { copyText, downloadTextFile } from '../../lib/clipboard.js';
+import { openExamLogReport } from '../../lib/examLogReport.js';
 import { fetchAiStatus, requestAiReview } from '../../lib/aiReviewApi.js';
 import useCountdown from './useCountdown.js';
 import AiReviewPanel from './AiReviewPanel.jsx';
@@ -77,13 +74,35 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
 
   // Log điểm yếu của lần nộp này
   const [log, setLog] = useState(() => readExamLog(storageUserId));
-  const [copied, setCopied] = useState(false);
+
+  // Dấu hỏi giải thích bảng "Điểm yếu lần này"
+  const [showWeakHelp, setShowWeakHelp] = useState(false);
 
   // Đánh giá AI
   const [aiStatus, setAiStatus] = useState('idle'); // idle | loading | done | error
   const [aiReview, setAiReview] = useState(null);
   const [aiError, setAiError] = useState('');
   const [aiConfigured, setAiConfigured] = useState(true);
+
+  /**
+   * Đếm ngược 60 giây trước khi cho bấm "Đánh giá lại".
+   *
+   * Bấm dồn dập vừa đốt hạn mức miễn phí của Gemini vừa bị máy chủ chặn,
+   * nên khoá nút ngay trên giao diện và nói rõ còn bao nhiêu giây. Máy chủ
+   * vẫn là lớp chặn cuối (15 giây/lần) — đây chỉ là lớp đệm cho dễ hiểu.
+   */
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+
+  useEffect(() => {
+    if (cooldownLeft <= 0) return undefined;
+    const timer = setInterval(() => {
+      setCooldownLeft((left) => (left <= 1 ? 0 : left - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownLeft]);
+
+  /** Mở báo cáo bài làm lần cuối trong tab mới */
+  const [reportBlocked, setReportBlocked] = useState(false);
 
   // Giữ tham chiếu mới nhất để tránh stale closure trong countdown
   const submitRef = useRef(null);
@@ -238,6 +257,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
 
   const handleRunAi = useCallback(async () => {
     if (!currentLog) return;
+    if (cooldownLeft > 0) return;
     setAiStatus('loading');
     setAiError('');
     try {
@@ -248,24 +268,20 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
     } catch (err) {
       setAiStatus('error');
       setAiError(err.message || 'Không lấy được đánh giá từ AI.');
+    } finally {
+      // Khoá nút 60 giây sau MỌI lần gọi (thành công hay lỗi) để không đốt
+      // hạn mức miễn phí và không dội request vào Google khi đang quá tải.
+      setCooldownLeft(60);
     }
-  }, [currentLog, storageUserId]);
+  }, [currentLog, storageUserId, cooldownLeft]);
 
-  const handleCopyPrompt = useCallback(async () => {
+  const handleOpenReport = useCallback(() => {
     if (!currentLog) return;
-    // Prompt dán tay gồm cả chỉ dẫn hệ thống để AI Studio hiểu đúng yêu cầu
-    const text = `${AI_SYSTEM_INSTRUCTION}\n\n${buildAiPrompt(currentLog)}`;
-    const ok = await copyText(text);
-    setCopied(ok);
-    setTimeout(() => setCopied(false), 2400);
-  }, [currentLog]);
-
-  const handleDownloadLog = useCallback(() => {
-    if (!currentLog) return;
-    downloadTextFile(
-      formatExamLogText(currentLog, { detail: true }),
-      examLogFileName(currentLog),
-    );
+    const outcome = openExamLogReport(currentLog);
+    setReportBlocked(outcome === 'blocked');
+    if (outcome === 'blocked') {
+      setTimeout(() => setReportBlocked(false), 6000);
+    }
   }, [currentLog]);
 
   // ---------- Kết quả ----------
@@ -361,13 +377,21 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
           status={aiStatus}
           review={aiReview}
           errorMessage={aiError}
-          copied={copied}
           configured={aiConfigured}
           generatedAt={aiReview?.meta?.generatedAt}
+          cooldownLeft={cooldownLeft}
           onRun={handleRunAi}
           onRetry={handleRunAi}
-          onCopy={handleCopyPrompt}
         />
+
+        {reportBlocked && (
+          <div className="exam-alert" data-tone="info">
+            <Clock size={16} />
+            <span>
+              Trình duyệt đã chặn tab mới. Bạn cho phép popup của mewtinhoc.online rồi bấm lại nhé.
+            </span>
+          </div>
+        )}
 
         {/* ---------- Điểm yếu lần này ---------- */}
         <section className="exam-weak" aria-labelledby="exam-weak-title">
@@ -375,6 +399,30 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
             <h2 className="exam-weak__title" id="exam-weak-title">
               <History size={16} color="#EA580C" />
               Điểm yếu lần này
+              <span className="exam-weak__help">
+                <button
+                  type="button"
+                  className="exam-weak__help-trigger"
+                  aria-label="Bảng điểm yếu thống kê những gì?"
+                  aria-expanded={showWeakHelp}
+                  onClick={() => setShowWeakHelp((open) => !open)}
+                  onMouseEnter={() => setShowWeakHelp(true)}
+                  onMouseLeave={() => setShowWeakHelp(false)}
+                  onFocus={() => setShowWeakHelp(true)}
+                  onBlur={() => setShowWeakHelp(false)}
+                >
+                  <CircleHelp size={14} />
+                </button>
+                {showWeakHelp && (
+                  <span className="exam-weak__help-popover" role="tooltip">
+                    Bảng này thống kê riêng bài bạn vừa nộp: mỗi dòng là một chủ đề, số bên phải
+                    là số câu/ý bạn làm <strong>sai trên tổng số</strong> của chủ đề đó, thanh đỏ
+                    càng dài nghĩa là tỉ lệ sai càng cao. Phần I xếp theo 7 chủ đề C1–C7, phần II
+                    gộp theo nhóm Đúng/Sai chung và Đúng/Sai theo định hướng. Chủ đề đứng đầu là
+                    phần nên ôn trước.
+                  </span>
+                )}
+              </span>
             </h2>
             <span className="exam-weak__stamp">
               {currentLog ? formatDateTimeVN(currentLog.submittedAt) : ''}
@@ -388,8 +436,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
             </p>
           ) : (
             <>
-              <div className="exam-weak__rows">
-                {weakTopics.map((topic) => (
+              <div className="exam-weak__rows">                {weakTopics.map((topic) => (
                   <div className="exam-weak__row" key={topic.code}>
                     <span className="exam-weak__code">{topic.code}</span>
                     <span className="exam-weak__name">
@@ -427,20 +474,18 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
               </div>
 
               <div className="exam-weak__actions">
-                <button type="button" className="gx-btn" onClick={handleCopyPrompt}>
-                  {copied ? (
-                    <>
-                      <Check size={14} /> Đã copy
-                    </>
-                  ) : (
-                    <>
-                      <ClipboardCopy size={14} /> Copy prompt cho AI
-                    </>
-                  )}
+                <button
+                  type="button"
+                  className="gx-btn gx-btn--primary"
+                  onClick={handleOpenReport}
+                >
+                  <ExternalLink size={14} />
+                  Xem lại những câu đã sai
                 </button>
-                <button type="button" className="gx-btn" onClick={handleDownloadLog}>
-                  <Download size={14} /> Tải file log
-                </button>
+                <span className="exam-weak__note">
+                  Mở trong tab mới — đề bài, phương án bạn chọn, đáp án đúng và giải thích của
+                  từng câu.
+                </span>
               </div>
             </>
           )}

@@ -183,7 +183,7 @@ export async function aiMiddleware(req, res, next) {
         return sendJson(res, 413, {
           ok: false,
           code: 'PROMPT_TOO_LONG',
-          message: 'Nội dung gửi cho AI quá dài. Bạn dùng nút "Tải file log" để lấy bản đầy đủ nhé.',
+          message: 'Nội dung gửi cho AI quá dài. Hãy mở tab "Xem câu đã sai" để đọc bản đầy đủ nhé.',
         });
       }
 
@@ -193,7 +193,7 @@ export async function aiMiddleware(req, res, next) {
           ok: false,
           code: 'AI_NOT_CONFIGURED',
           message:
-            'Tính năng đánh giá AI chưa được bật trên máy chủ này. Bạn vẫn dùng được nút "Copy prompt" để dán vào Google AI Studio.',
+            'Tính năng đánh giá AI chưa được bật trên máy chủ này. Bạn xem bảng điểm yếu trong bài để biết cần ôn phần nào.',
         });
       }
 

@@ -756,7 +756,81 @@
 .exam-weak__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.5rem 0.85rem;
+  margin-top: 1.05rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.exam-weak__note {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+/* Dấu tròn có chấm than hỏi — mở ra giải thích bảng thống kê gì */
+.exam-weak__help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.1rem;
+}
+
+.exam-weak__help-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #8C7B71;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.exam-weak__help-trigger:hover,
+.exam-weak__help-trigger:focus-visible,
+.exam-weak__help-trigger[aria-expanded='true'] {
+  color: var(--color-primary-hover);
+  border-color: #FB923C;
+  outline: none;
+}
+
+.exam-weak__help-trigger:active {
+  transform: scale(0.94);
+}
+
+.exam-weak__help-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: min(340px, calc(100vw - 48px));
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  color: var(--color-text-main);
+  box-shadow: 0 12px 28px rgba(124, 45, 18, 0.18);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.55;
+  white-space: normal;
+  text-align: left;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+  .exam-weak__help-popover {
+    left: auto;
+    right: -8px;
+    transform: none;
+  }
 }
 
 /* ---------- Trạng thái chờ / lỗi ---------- */

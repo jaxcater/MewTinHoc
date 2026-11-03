@@ -19,8 +19,6 @@ import {
   Trophy,
   Target,
   FileText,
-  ClipboardCopy,
-  Download,
   History,
   ShieldCheck,
   Check,
@@ -28,18 +26,17 @@ import {
   BookOpen,
   Award,
   TrendingUp,
+  ExternalLink,
 } from 'lucide-react';
 import { claimExam } from '../../lib/examApi.js';
 import {
   TOPIC_LABELS,
-  examLogFileName,
   formatDateTimeVN,
-  formatExamLogText,
   clearExamLog,
   readExamLog,
   readAiReview,
 } from '../../lib/examLog.js';
-import { copyText, downloadTextFile } from '../../lib/clipboard.js';
+import { openExamLogReport } from '../../lib/examLogReport.js';
 import CountUpNumber from '../motion/CountUpNumber.jsx';
 import ExamRoom from './ExamRoom.jsx';
 import '../exam/exam-room.css';
@@ -113,7 +110,17 @@ export default function GenExamTab({ onRecordExamResult, progress, userId }) {
   // Log lần làm gần nhất + đánh giá AI đã lưu (đọc lại mỗi lần vào tab)
   const [log, setLog] = useState(() => readExamLog(storageUserId));
   const [aiSaved, setAiSaved] = useState(() => readAiReview(storageUserId));
-  const [copyState, setCopyState] = useState('idle'); // idle | done | fail
+
+  // Bấm "Xem câu đã sai" mà trình duyệt chặn tab mới → báo để học viên mở khoá
+  const [reportBlocked, setReportBlocked] = useState(false);
+
+  const handleOpenReport = useCallback(() => {
+    const current = readExamLog(storageUserId);
+    if (!current) return;
+    const outcome = openExamLogReport(current);
+    setReportBlocked(outcome === 'blocked');
+    if (outcome === 'blocked') setTimeout(() => setReportBlocked(false), 6000);
+  }, [storageUserId]);
 
   const refreshLog = useCallback(() => {
     setLog(readExamLog(storageUserId));
@@ -159,20 +166,6 @@ export default function GenExamTab({ onRecordExamResult, progress, userId }) {
     setError('');
     setErrorCode('');
     refreshLog();
-  };
-
-  /* ---------------- Copy / tải log (dùng ở cột phụ) ---------------- */
-
-  const handleCopyLog = async () => {
-    if (!log) return;
-    const ok = await copyText(formatExamLogText(log, { detail: true }));
-    setCopyState(ok ? 'done' : 'fail');
-    setTimeout(() => setCopyState('idle'), 2400);
-  };
-
-  const handleDownloadLog = () => {
-    if (!log) return;
-    downloadTextFile(formatExamLogText(log, { detail: true }), examLogFileName(log));
   };
 
   /* ---------------- Chỉ số cộng dồn ---------------- */
@@ -521,32 +514,25 @@ export default function GenExamTab({ onRecordExamResult, progress, userId }) {
                   </p>
                 )}
 
-                <div className="gx-log__actions">
-                  <button type="button" className="gx-btn" onClick={handleCopyLog}>
-                    {copyState === 'done' ? (
-                      <>
-                        <Check size={14} /> Đã copy
-                      </>
-                    ) : copyState === 'fail' ? (
-                      <>
-                        <AlertTriangle size={14} /> Thử lại
-                      </>
-                    ) : (
-                      <>
-                        <ClipboardCopy size={14} /> Copy prompt
-                      </>
-                    )}
-                  </button>
-                  <button type="button" className="gx-btn" onClick={handleDownloadLog}>
-                    <Download size={14} /> Tải .txt
-                  </button>
-                </div>
-
                 {aiSaved?.review && (
                   <p className="gx-cta-note" style={{ marginTop: '0.7rem' }}>
                     <Sparkles size={14} color="#D97706" style={{ flex: 'none', marginTop: 2 }} />
                     <span>
                       Đã có đánh giá AI cho lần làm này. Mở lại bài vừa nộp để xem chi tiết.
+                    </span>
+                  </p>
+                )}
+
+                <div className="gx-log__actions">
+                  <button type="button" className="gx-btn" onClick={handleOpenReport}>
+                    <ExternalLink size={14} /> Xem câu đã sai
+                  </button>
+                </div>
+                {reportBlocked && (
+                  <p className="gx-cta-note" style={{ marginTop: '0.4rem' }}>
+                    <AlertTriangle size={14} color="#B45309" style={{ flex: 'none', marginTop: 2 }} />
+                    <span>
+                      Trình duyệt đã chặn tab mới. Bạn cho phép popup của trang này rồi bấm lại nhé.
                     </span>
                   </p>
                 )}

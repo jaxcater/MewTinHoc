@@ -113,7 +113,7 @@ export async function fetchAiStatus() {
       hint: data?.hint || '',
     };
   } catch {
-    // Mất mạng / dev server chưa chạy → coi như chưa cấu hình, UI vẫn cho copy prompt
+    // Mất mạng / dev server chưa chạy → coi như chưa cấu hình
     return { configured: false, model: '', fallbacks: [], hint: '' };
   }
 }
