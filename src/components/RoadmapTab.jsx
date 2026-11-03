@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import PdfDocumentViewer from './PdfDocumentViewer';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -976,8 +977,9 @@ export default function RoadmapTab({
       </div>
 
       {/* 5. MODAL HỌC LÝ THUYẾT CHI TIẾT TỪNG BÀI (THEORY VIEWER DRAWER/MODAL) */}
-      {selectedStation && (currentLesson || selectedStation.pdfUrl || selectedStation.quiz || getStationQuiz(selectedStation.id)) && (
-        <div className="modal-backdrop" onClick={handleCloseModal}>
+      {/* Render qua portal ra document.body để modal không bị kẹt trong stacking context của .roadmap-container (isolation: isolate) và bị footer đè lên */}
+      {selectedStation && (currentLesson || selectedStation.pdfUrl || selectedStation.quiz || getStationQuiz(selectedStation.id)) && createPortal(
+        <div className="modal-backdrop roadmap-modal-backdrop" onClick={handleCloseModal}>
           <div
             className={`exam-taker-window ${isStudyMode || modalTab === 'pdf' || modalTab === 'quiz' ? 'study-focus-mode' : ''} ${modalTab === 'pdf' ? 'pdf-mode' : ''} ${isFullScreen ? 'full-screen-mode' : ''}`}
             style={{
@@ -1907,7 +1909,8 @@ export default function RoadmapTab({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )}
     </div>
   );

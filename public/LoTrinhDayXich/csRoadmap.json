@@ -523,10 +523,10 @@
       "stepNumber": "07",
       "code": "Chương 7",
       "title": "Lập trình Python cơ bản",
-      "category": "Chuyên sâu Khoa học máy tính",
+      "category": "Kiến thức chung",
       "priority": "Rất cao",
       "priorityBadge": "high",
-      "questionType": "Trắc nghiệm Phần I & Đúng/Sai Phần II",
+      "questionType": "Trắc nghiệm Phần I",
       "bookRef": "Chương 7 — Tài liệu Lập trình Python cơ bản",
       "pdfUrl": "https://vxqvjffssebnuxtslghp.supabase.co/storage/v1/object/sign/KhoTaiLieuTinHocThiThu/Chuong%207/Tai_Lieu_Lap_Trinh_Python_Co_Ban-v2.pdf?token=eyJraWQiOiIzMmIzYzRjYi0yYTZjLTRmYjUtOTJkNS0yNzIwNDk0NzJjOTUiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJLaG9UYWlMaWV1VGluSG9jVGhpVGh1L0NodW9uZyA3L1RhaV9MaWV1X0xhcF9UcmluaF9QeXRob25fQ29fQmFuLXYyLnBkZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTM2NzYxODcsImV4cCI6NDkxNTc0MDE4N30.tVckI469NijgDBumcPbX1kghh0ywZ2QYO7M1PmceIJCxOKfthFsIz4QPUVgp0-ykLNsN8KCA4_edqQ7vGj1beg",
       "description": "Làm quen ngôn ngữ Python từ con số 0: biến và kiểu dữ liệu, nhập xuất dữ liệu với input()/print(), toán tử số học và logic, cấu trúc rẽ nhánh if/elif/else, vòng lặp for/while, hàm tự định nghĩa, xử lý xâu - danh sách và cách sử dụng thư viện chuẩn.",
@@ -542,241 +542,73 @@
         "stationId": "cs_station_10",
         "code": "Chương 7",
         "title": "Lập trình Python cơ bản",
-        "totalMcq": 48,
-        "totalTf": 4,
-        "totalItems": 64,
+        "totalMcq": 16,
+        "totalTf": 0,
+        "totalItems": 16,
         "mcq": [
           {
             "id": "c7_mcq_1",
-            "q": "Trong Python, câu lệnh nào dùng để in xâu ký tự \"Xin chào\" ra màn hình?",
+            "q": "Cho đoạn chương trình Python sau: a = [10, 20, 30, 40, 50, 60]; b = a[1:5:2]; print(b). Kết quả hiển thị ra màn hình là gì?",
             "opts": [
-              "echo \"Xin chào\"",
-              "print(\"Xin chào\")",
-              "console.log(\"Xin chào\")",
-              "cout << \"Xin chào\""
+              "[20, 40]",
+              "[20, 30, 40]",
+              "[10, 30, 50]",
+              "[20, 50]"
             ],
-            "ans": 1,
-            "exp": "Hàm print() là hàm xuất chuẩn của Python, in giá trị truyền vào ra màn hình."
+            "ans": 0,
+            "exp": "Cú pháp lát cắt a[start:stop:step] với start=1 (giá trị 20), stop=5 (không lấy phần tử chỉ số 5), bước nhảy step=2 sẽ duyệt qua các chỉ số 1 và 3, tương ứng với các giá trị [20, 40]."
           },
           {
             "id": "c7_mcq_2",
-            "q": "Câu lệnh gán nào sau đây viết ĐÚNG cú pháp Python để gán giá trị 8.5 cho biến diem_tb?",
+            "q": "Cho đoạn mã nguồn Python sau: a = [1, 2, 3]; b = a; b.append(4); print(len(a), a[-1]). Kết quả in ra màn hình là gì?",
             "opts": [
-              "8.5 = diem_tb",
-              "diem-tb = 8.5",
-              "diem_tb = 8.5",
-              "dim diem_tb as 8.5"
+              "3 3",
+              "4 4",
+              "3 4",
+              "4 3"
             ],
-            "ans": 2,
-            "exp": "Python gán theo dạng ten_bien = gia_tri; tên biến không được chứa dấu gạch ngang."
+            "ans": 1,
+            "exp": "Phép gán b = a trong Python là gán tham chiếu cùng trỏ tới một vùng nhớ danh sách. Khi b.append(4) thay đổi danh sách thì a cũng thay đổi theo, do đó độ dài của a là 4 và phần tử cuối cùng a[-1] là 4."
           },
           {
             "id": "c7_mcq_3",
-            "q": "Giá trị 3.14 trong Python thuộc kiểu dữ liệu nào?",
+            "q": "Cho đoạn chương trình Python sau: matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]; s = 0; for i in range(len(matrix)): s += matrix[i][i]; print(s). Đoạn mã trên thực hiện công việc gì và in ra kết quả bao nhiêu?",
             "opts": [
-              "float",
-              "int",
-              "str",
-              "bool"
+              "Tính tổng các phần tử của hàng đầu tiên; kết quả là 6.",
+              "Tính tổng các phần tử trên đường chéo chính của ma trận; kết quả là 15.",
+              "Tính tổng tất cả các phần tử trong ma trận; kết quả là 45.",
+              "Tính tổng các phần tử trên đường chéo phụ; kết quả là 15."
             ],
-            "ans": 0,
-            "exp": "Số có phần thập phân thuộc kiểu float (số thực); int là số nguyên, str là xâu, bool là logic."
+            "ans": 1,
+            "exp": "Biến i chạy từ 0 đến 2, matrix[i][i] lần lượt truy cập các phần tử trên đường chéo chính: matrix[0][0] = 1, matrix[1][1] = 5, matrix[2][2] = 9. Tổng s = 1 + 5 + 9 = 15."
           },
           {
             "id": "c7_mcq_4",
-            "q": "Hàm nào được dùng để nhập dữ liệu từ bàn phím trong Python?",
+            "q": "Cho đoạn chương trình Python sau cài đặt một thuật toán sắp xếp mảng: def sort_arr(A): n = len(A); for i in range(n - 1): min_idx = i; for j in range(i + 1, n): if A[j] < A[min_idx]: min_idx = j; A[i], A[min_idx] = A[min_idx], A[i]; return A. Thuật toán trên là thuật toán nào và có độ phức tạp thời gian trong trường hợp xấu nhất là bao nhiêu?",
             "opts": [
-              "read()",
-              "scanf()",
-              "input()",
-              "getline()"
+              "Sắp xếp chèn (Insertion Sort); độ phức tạp O(n log n).",
+              "Sắp xếp nổi bọt (Bubble Sort); độ phức tạp O(n^2).",
+              "Sắp xếp chọn (Selection Sort); độ phức tạp O(n^2).",
+              "Sắp xếp nhanh (Quick Sort); độ phức tạp O(n)."
             ],
             "ans": 2,
-            "exp": "input() đọc một dòng người dùng nhập và luôn trả về kiểu xâu (str)."
+            "exp": "Thuật toán tìm vị trí phần tử nhỏ nhất min_idx trong đoạn chưa sắp xếp A[i..n-1] rồi đổi chỗ với A[i] chính là thuật toán Sắp xếp chọn (Selection Sort). Độ phức tạp thời gian luôn là O(n^2) trong mọi trường hợp."
           },
           {
             "id": "c7_mcq_5",
-            "q": "Viết int(input()) thay vì chỉ input() nhằm mục đích gì?",
+            "q": "Cho danh sách A = [5, 2, 4, 6, 1]. Người ta áp dụng thuật toán Sắp xếp chèn (Insertion Sort) theo chiều tăng dần: for i in range(1, len(A)): key = A[i]; j = i - 1; while j >= 0 and A[j] > key: A[j + 1] = A[j]; j -= 1; A[j + 1] = key. Sau khi vòng lặp ngoài thực hiện xong bước i = 1, trạng thái của danh sách A là gì?",
             "opts": [
-              "In ra màn hình số nguyên",
-              "Xóa bộ đệm bàn phím",
-              "Chuyển số nguyên thành xâu ký tự",
-              "Chuyển dữ liệu vừa nhập (dạng xâu) thành số nguyên"
-            ],
-            "ans": 3,
-            "exp": "input() trả về str nên cần int() để ép kiểu sang số nguyên trước khi tính toán."
-          },
-          {
-            "id": "c7_mcq_8",
-            "q": "Cấu trúc nào dùng để rẽ nhánh nhiều trường hợp trong Python?",
-            "opts": [
-              "switch / case",
-              "select / case",
-              "case / of",
-              "if / elif / else"
-            ],
-            "ans": 3,
-            "exp": "Python không có switch/case; dùng if, elif (else if) và else để xét nhiều điều kiện."
-          },
-          {
-            "id": "c7_mcq_9",
-            "q": "Toán tử nào dùng để SO SÁNH BẰNG NHAU trong Python?",
-            "opts": [
-              "=",
-              "==",
-              "===",
-              "eq"
-            ],
-            "ans": 1,
-            "exp": "Dấu = là gán giá trị, còn == là so sánh bằng và trả về True/False."
-          },
-          {
-            "id": "c7_mcq_10",
-            "q": "Hàm range(1, 6) sinh ra dãy giá trị nào?",
-            "opts": [
-              "1, 2, 3, 4, 5, 6",
-              "0, 1, 2, 3, 4, 5",
-              "1, 2, 3, 4, 5",
-              "2, 3, 4, 5, 6"
-            ],
-            "ans": 2,
-            "exp": "range(start, stop) lấy từ start đến stop - 1, nên range(1, 6) sinh 1, 2, 3, 4, 5."
-          },
-          {
-            "id": "c7_mcq_11",
-            "q": "Vòng lặp while hoạt động theo nguyên lý nào?",
-            "opts": [
-              "Lặp lại khối lệnh chừng nào điều kiện còn đúng.",
-              "Luôn lặp đúng 10 lần bất kể điều kiện.",
-              "Chỉ dùng để duyệt các phần tử của danh sách.",
-              "Không thể kết hợp với lệnh break."
+              "[2, 5, 4, 6, 1]",
+              "[1, 2, 4, 5, 6]",
+              "[2, 4, 5, 6, 1]",
+              "[5, 2, 4, 6, 1]"
             ],
             "ans": 0,
-            "exp": "While kiểm tra điều kiện trước mỗi vòng lặp và dừng khi điều kiện sai (hoặc gặp break)."
+            "exp": "Tại bước i = 1, key = A[1] = 2. Vì A[0] = 5 > 2 nên 5 dời sang phải thành A[1] = 5, sau đó chèn key vào A[0]. Trạng thái danh sách trở thành [2, 5, 4, 6, 1]."
           },
           {
-            "id": "c7_mcq_12",
-            "q": "Hàm len([1, 2, 3, 4]) trả về giá trị nào?",
-            "opts": [
-              "3",
-              "5",
-              "4",
-              "Báo lỗi"
-            ],
-            "ans": 2,
-            "exp": "len() trả về số phần tử của danh sách, danh sách này có 4 phần tử."
-          },
-          {
-            "id": "c7_mcq_13",
-            "q": "Cho s = \"Python\". Giá trị của s[1] là gì?",
-            "opts": [
-              "P",
-              "y",
-              "Py",
-              "n"
-            ],
-            "ans": 1,
-            "exp": "Chỉ số xâu bắt đầu từ 0 nên s[0] = \"P\", s[1] = \"y\"."
-          },
-          {
-            "id": "c7_mcq_14",
-            "q": "Cách nào nối hai xâu \"Tin\" và \"hoc\" thành \"Tinhoc\" trong Python?",
-            "opts": [
-              "\"Tin\" + \"hoc\"",
-              "\"Tin\" & \"hoc\"",
-              "\"Tin\" . \"hoc\"",
-              "concat(\"Tin\", \"hoc\")"
-            ],
-            "ans": 0,
-            "exp": "Toán tử + dùng để nối (ghép) hai xâu ký tự trong Python."
-          },
-          {
-            "id": "c7_mcq_15",
-            "q": "Từ khóa def trong Python được dùng để làm gì?",
-            "opts": [
-              "Khai báo biến toàn cục",
-              "Định nghĩa một hàm",
-              "Nhập một thư viện",
-              "Tạo vòng lặp vô hạn"
-            ],
-            "ans": 1,
-            "exp": "Cú pháp def ten_ham(tham_so): dùng để định nghĩa hàm."
-          },
-          {
-            "id": "c7_mcq_16",
-            "q": "Lệnh return trong thân hàm có tác dụng gì?",
-            "opts": [
-              "In giá trị ra màn hình",
-              "Dừng toàn bộ chương trình",
-              "Khai báo tham số cho hàm",
-              "Trả giá trị về nơi gọi hàm và kết thúc hàm"
-            ],
-            "ans": 3,
-            "exp": "return trả kết quả cho nơi gọi và thoát khỏi hàm ngay; print chỉ hiển thị chứ không trả về."
-          },
-          {
-            "id": "c7_mcq_17",
-            "q": "Thụt lề (indentation) trong Python có vai trò gì?",
-            "opts": [
-              "Xác định khối lệnh thuộc cấu trúc điều khiển hoặc thân hàm",
-              "Chỉ để trình bày cho đẹp, không ảnh hưởng chương trình",
-              "Thay thế cho cặp dấu ngoặc nhọn của C++",
-              "Quy định kiểu dữ liệu của biến"
-            ],
-            "ans": 0,
-            "exp": "Python dùng thụt lề để phân khối lệnh; thụt lề sai gây lỗi IndentationError."
-          },
-          {
-            "id": "c7_mcq_18",
-            "q": "Ký hiệu nào dùng để viết chú thích (comment) một dòng trong Python?",
-            "opts": [
-              "//",
-              "<!--",
-              "#",
-              "/* */"
-            ],
-            "ans": 2,
-            "exp": "Mọi ký tự sau dấu # trên cùng dòng được coi là chú thích, không được thực thi."
-          },
-          {
-            "id": "c7_mcq_19",
-            "q": "Câu lệnh nào nạp thư viện toán học math để dùng các hàm như sqrt, pow?",
-            "opts": [
-              "#include <math>",
-              "import math",
-              "using math",
-              "require \"math\""
-            ],
-            "ans": 1,
-            "exp": "Python dùng import ten_thu_vien, sau đó gọi math.sqrt(x), math.pow(a, b)..."
-          },
-          {
-            "id": "c7_mcq_20",
-            "q": "Điều gì xảy ra khi chạy biểu thức 10 / 0 trong Python?",
-            "opts": [
-              "Trả về 0",
-              "Trả về None",
-              "In ra giá trị 10",
-              "Gây lỗi ZeroDivisionError"
-            ],
-            "ans": 3,
-            "exp": "Không thể chia cho 0, Python ném lỗi ZeroDivisionError và dừng chương trình."
-          },
-          {
-            "id": "c7_mcq_21",
-            "q": "Cho đoạn mã Python sau: def alg_x(a): for i in range(1, len(a)): key = a[i]; j = i - 1; while j >= 0 and a[j] > key: a[j + 1] = a[j]; j -= 1; a[j + 1] = key; return a. Đoạn mã trên thực hiện thuật toán nào?",
-            "opts": [
-              "Thuật toán Tìm kiếm nhị phân (Binary Search).",
-              "Thuật toán Sắp xếp chèn (Insertion Sort).",
-              "Thuật toán Sắp xếp chọn (Selection Sort).",
-              "Thuật toán Sắp xếp nổi bọt (Bubble Sort)."
-            ],
-            "ans": 1,
-            "exp": "Lấy từng phần tử chèn lùi vào đoạn mảng đã sắp xếp phía trước là nguyên lý của Thuật toán Sắp xếp chèn (Insertion Sort)."
-          },
-          {
-            "id": "c7_mcq_22",
-            "q": "Cho đoạn mã Python thực hiện Tìm kiếm nhị phân phần tử x = 23 trên dãy a = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]: left = 0; right = len(a) - 1; count = 0; while left <= right: count += 1; mid = (left + right) // 2; if a[mid] == x: break; elif a[mid] < x: left = mid + 1; else: right = mid - 1. Giá trị của biến count sau khi thực thi là bao nhiêu?",
+            "id": "c7_mcq_6",
+            "q": "Cho hàm tìm kiếm nhị phân được cài đặt bằng Python như sau: def binary_search(A, x): left = 0; right = len(A) - 1; count = 0; while left <= right: count += 1; mid = (left + right) // 2; if A[mid] == x: return count; elif A[mid] < x: left = mid + 1; else: right = mid - 1; return count. Cho danh sách đã sắp xếp A = [11, 22, 33, 44, 55, 66, 77, 88]. Khi gọi binary_search(A, 55), giá trị trả về của biến count là bao nhiêu?",
             "opts": [
               "1",
               "2",
@@ -784,451 +616,130 @@
               "4"
             ],
             "ans": 2,
-            "exp": "Lần 1: mid=4 (a[4]=16 < 23) -> left=5, count=1. Lần 2: mid=7 (a[7]=56 > 23) -> right=6, count=2. Lần 3: mid=5 (a[5]=23 == 23) -> break, count=3."
+            "exp": "Ban đầu left=0, right=7: lần 1 (count=1), mid=(0+7)//2=3 (A[3]=44 < 55) -> left=4. Lần 2 (count=2), mid=(4+7)//2=5 (A[5]=66 > 55) -> right=4. Lần 3 (count=3), mid=(4+4)//2=4 (A[4]=55 == 55) -> trả về count = 3."
           },
           {
-            "id": "c7_mcq_23",
-            "q": "Cho đoạn mã Python sau: def alg_y(a): n = len(a); for i in range(n): min_idx = i; for j in range(i + 1, n): if a[j] < a[min_idx]: min_idx = j; a[i], a[min_idx] = a[min_idx], a[i]; return a. Đoạn mã trên thể hiện thuật toán nào?",
+            "id": "c7_mcq_7",
+            "q": "Cho hàm đệ quy Python sau: def f(n): if n <= 1: return 1; return n * f(n - 1); print(f(4)). Khi thực thi, chương trình in ra kết quả là bao nhiêu và sử dụng cấu trúc dữ liệu nào trong bộ nhớ hệ thống để quản lý các lời gọi đệ quy?",
             "opts": [
-              "Sắp xếp chọn (Selection Sort).",
-              "Sắp xếp nổi bọt (Bubble Sort).",
-              "Sắp xếp chèn (Insertion Sort).",
-              "Tìm kiếm tuyến tính (Linear Search)."
+              "24; sử dụng Ngăn xếp hệ thống (Call Stack).",
+              "10; sử dụng Hàng đợi (Queue).",
+              "24; sử dụng Mảng hai chiều (Matrix).",
+              "12; sử dụng Danh sách liên kết (Linked List)."
             ],
             "ans": 0,
-            "exp": "Vòng lặp trong tìm chỉ số phần tử nhỏ nhất (min_idx) rồi tráo đổi với vị trí i là đặc trưng của Thuật toán Sắp xếp chọn (Selection Sort)."
+            "exp": "Hàm tính giai thừa f(4) = 4 * 3 * 2 * 1 = 24. Khi thực thi các lời gọi hàm đệ quy, máy tính sử dụng vùng nhớ Ngăn xếp hệ thống (Call Stack) theo cơ chế LIFO để lưu vết địa chỉ trở về và biến cục bộ."
           },
           {
-            "id": "c7_mcq_24",
-            "q": "Cho hàm đệ quy Python như sau: def func(n): if n <= 1: return 1; return n + func(n - 2). Giá trị trả về của lời gọi hàm func(6) là bao nhiêu?",
+            "id": "c7_mcq_8",
+            "q": "Cho đoạn chương trình Python mô phỏng cấu trúc dữ liệu: stack = []; for x in [3, 7, 2, 9]: stack.append(x); stack.pop(); stack.append(5); top_item = stack[-1]; print(top_item, len(stack)). Kết quả in ra màn hình là gì?",
             "opts": [
-              "13",
-              "12",
-              "15",
-              "9"
-            ],
-            "ans": 0,
-            "exp": "func(6) = 6 + func(4) = 6 + (4 + func(2)) = 6 + 4 + (2 + func(0)) = 6 + 4 + 2 + 1 = 13."
-          },
-          {
-            "id": "c7_mcq_25",
-            "q": "Cho ma trận matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]. s = 0; for i in range(len(matrix)): s += matrix[i][len(matrix) - 1 - i]; print(s). Kết quả in ra màn hình là bao nhiêu?",
-            "opts": [
-              "15",
-              "12",
-              "18",
-              "25"
-            ],
-            "ans": 0,
-            "exp": "Tính tổng các phần tử đường chéo phụ của ma trận: matrix[0][2] = 3, matrix[1][1] = 5, matrix[2][0] = 7. Tổng s = 3 + 5 + 7 = 15."
-          },
-          {
-            "id": "c7_mcq_26",
-            "q": "Cho danh sách Python a = [10, 20, 30, 40, 50, 60, 70]. Kết quả của lát cắt a[1:6:2] là gì?",
-            "opts": [
-              "[20, 40, 60]",
-              "[20, 30, 40, 50, 60]",
-              "[10, 30, 50]",
-              "[20, 50]"
-            ],
-            "ans": 0,
-            "exp": "a[start:stop:step] lấy từ vị trí 1 đến sát vị trí 6 với bước nhảy 2 -> lấy chỉ số 1 (20), 3 (40), 5 (60)."
-          },
-          {
-            "id": "c7_mcq_27",
-            "q": "Cho đoạn mã Python sau: total = 0; for i in range(1, 10): if i % 3 == 0: continue; if i > 7: break; total += i; print(total). Kết quả in ra là bao nhiêu?",
-            "opts": [
-              "19",
-              "16",
-              "22",
-              "15"
-            ],
-            "ans": 0,
-            "exp": "i chạy từ 1->9. i=3,6 bị continue bỏ qua. i=8 bị break ngắt. Các giá trị cộng vào total: 1+2+4+5+7 = 19."
-          },
-          {
-            "id": "c7_mcq_28",
-            "q": "Cho đoạn mã Python sau: def alg_z(a): n = len(a); for i in range(n - 1): for j in range(0, n - i - 1): if a[j] > a[j + 1]: a[j], a[j + 1] = a[j + 1], a[j]; return a. Đoạn mã trên thể hiện thuật toán nào?",
-            "opts": [
-              "Sắp xếp nổi bọt (Bubble Sort).",
-              "Sắp xếp chọn (Selection Sort).",
-              "Sắp xếp chèn (Insertion Sort).",
-              "Tìm kiếm nhị phân (Binary Search)."
-            ],
-            "ans": 0,
-            "exp": "Thuật toán so sánh các cặp phần tử kề nhau a[j] và a[j+1] rồi đổi chỗ để đưa phần tử lớn nhất nổi về cuối mảng là Sắp xếp nổi bọt (Bubble Sort)."
-          },
-          {
-            "id": "c7_mcq_29",
-            "q": "Cho đoạn mã Python sau: s = 'Tin hoc 12 Dinh huong CS'; words = s.split(); res = []; for w in words: if len(w) >= 4: res.append(w.upper()); print('-'.join(res)). Kết quả in ra màn hình là gì?",
-            "opts": [
-              "DINH-HUONG",
-              "TIN-DINH-HUONG",
-              "TIN HOC-DINH-HUONG",
-              "TIN-HOC-DINH-HUONG"
-            ],
-            "ans": 0,
-            "exp": "words = ['Tin', 'hoc', '12', 'Dinh', 'huong', 'CS']. Các từ có len >= 4 là 'Dinh' và 'huong'. Đổi thành hoa và nối bằng '-' thu được 'DINH-HUONG'."
-          },
-          {
-            "id": "c7_mcq_30",
-            "q": "Cho danh sách a = [12, 7, 24, 15, 18, 9, 30]. Đoạn mã sau đếm số lượng phần tử thỏa mãn điều kiện gì? cnt = 0; for x in a: if x % 2 == 0 and x > 15: cnt += 1; print(cnt).",
-            "opts": [
-              "Đếm số lượng số chẵn và lớn hơn 15 (kết quả cnt = 3).",
-              "Đếm số lượng số lẻ và lớn hơn 15 (kết quả cnt = 1).",
-              "Đếm số lượng số chia hết cho 3 (kết quả cnt = 5).",
-              "Đếm số lượng số chẵn nhỏ hơn 15 (kết quả cnt = 1)."
-            ],
-            "ans": 0,
-            "exp": "Đếm số vừa chẵn (x % 2 == 0) vừa lớn hơn 15 (x > 15). Các giá trị thỏa mãn: 24, 18, 30 -> cnt = 3."
-          },
-          {
-            "id": "c7_mcq_31",
-            "q": "Kết quả của câu lệnh print(type(10 / 2)) trong Python 3 là gì?",
-            "opts": [
-              "<class 'int'>",
-              "<class 'float'>",
-              "<class 'double'>",
-              "Báo lỗi TypeError"
+              "9 4",
+              "5 4",
+              "5 5",
+              "2 3"
             ],
             "ans": 1,
-            "exp": "Dễ lầm tưởng 10 chia 2 ra số nguyên 5 (<class 'int'>). Tuy nhiên trong Python 3, toán tử chia / luôn luôn trả về số thực float (5.0)."
+            "exp": "Thêm 3, 7, 2, 9 vào stack -> stack = [3, 7, 2, 9]. Lệnh stack.pop() loại bỏ phần tử đỉnh 9 -> stack = [3, 7, 2]. Tiếp tục stack.append(5) -> stack = [3, 7, 2, 5]. Đỉnh stack là 5 và độ dài danh sách len(stack) = 4."
           },
           {
-            "id": "c7_mcq_32",
-            "q": "Cho đoạn mã Python sau: a = [1, 2, 3]; b = a; b.append(4); print(len(a)). Kết quả in ra màn hình là bao nhiêu?",
+            "id": "c7_mcq_9",
+            "q": "Cho đoạn mã nguồn Python sau: s = \"TinHoc2026\"; res = \"\"; for ch in s: if ch.isdigit(): res += ch; print(res). Đoạn mã trên thực hiện công việc gì và in ra kết quả gì?",
             "opts": [
-              "3",
-              "4",
-              "2",
-              "Báo lỗi AttributeError"
+              "Đếm số ký tự chữ hoa trong chuỗi; in ra 'TH'.",
+              "Trích xuất tất cả các ký tự chữ số trong chuỗi s; in ra '2026'.",
+              "Kiểm tra xem chuỗi có phải toàn số không; in ra 'False'.",
+              "Đảo ngược chuỗi ban đầu; in ra '6202coHniT'."
             ],
             "ans": 1,
-            "exp": "Dễ lầm tưởng b = a tạo bản sao độc lập nên len(a) bằng 3. Thực tế phép gán b = a truyền tham chiếu, sửa b làm a thay đổi theo."
+            "exp": "Phương thức ch.isdigit() kiểm tra ký tự ch có phải là chữ số hay không. Vòng lặp duyệt qua chuỗi và ghép các chữ số lại, kết quả thu được chuỗi \"2026\"."
           },
           {
-            "id": "c7_mcq_33",
-            "q": "Cho chuỗi s = 'PYTHON'. Kết quả của biểu thức s[-1] và lát cắt s[:-1] lần lượt là gì?",
+            "id": "c7_mcq_10",
+            "q": "Cho đoạn chương trình Python sử dụng List Comprehension: nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]; evens_squared = [x**2 for x in nums if x % 2 == 0]; print(evens_squared). Kết quả hiển thị trên màn hình là gì?",
             "opts": [
-              "'N' và 'PYTHO'",
-              "'P' và 'YTHON'",
-              "'N' và 'PYTHON'",
-              "Báo lỗi IndexError"
+              "[1, 4, 9, 16, 25, 36, 49, 64, 81]",
+              "[4, 16, 36, 64]",
+              "[2, 4, 6, 8]",
+              "[4, 8, 12, 16]"
+            ],
+            "ans": 1,
+            "exp": "Điều kiện if x % 2 == 0 lọc các số chẵn trong nums: [2, 4, 6, 8]. Biểu thức x**2 tính bình phương các số đó: 2^2=4, 4^2=16, 6^2=36, 8^2=64. Kết quả là danh sách [4, 16, 36, 64]."
+          },
+          {
+            "id": "c7_mcq_11",
+            "q": "Cho đoạn chương trình Python sau: n = 5; count = 0; for i in range(n): for j in range(i + 1, n): count += 1; print(count). Giá trị in ra của biến count là bao nhiêu và số lần thực hiện lệnh tương đương công thức nào?",
+            "opts": [
+              "10; tương đương công thức n*(n - 1)//2.",
+              "25; tương đương công thức n*n.",
+              "20; tương đương công thức n*(n - 1).",
+              "15; tương đương công thức n*(n + 1)//2."
             ],
             "ans": 0,
-            "exp": "s[-1] lấy ký tự cuối 'N'. Lát cắt s[:-1] lấy từ đầu đến sát ký tự cuối (không gồm s[-1]) là 'PYTHO'."
+            "exp": "Với i=0, j chạy từ 1 đến 4 (4 lần); i=1, j chạy 2..4 (3 lần); i=2 (2 lần); i=3 (1 lần); i=4 (0 lần). Tổng số lần count += 1 là 4 + 3 + 2 + 1 = 10, đúng theo công thức tổ hợp n*(n - 1)//2 = 5*4//2 = 10."
           },
           {
-            "id": "c7_mcq_34",
-            "q": "Chạy câu lệnh print('Tuoi: ' + 18) trong Python sẽ cho kết quả nào?",
+            "id": "c7_mcq_12",
+            "q": "Cho đoạn chương trình Python sau: x = 10; def change(): global x; x = 20; y = 30; change(); print(x). Kết quả in ra màn hình là gì?",
             "opts": [
-              "Tuoi: 18",
-              "Tuoi:18",
-              "Báo lỗi TypeError",
-              "Tuoi:  18"
-            ],
-            "ans": 2,
-            "exp": "Python phân định kiểu dữ liệu nghiêm ngặt, không tự động chuyển int 18 thành chuỗi khi nối bằng + -> báo lỗi TypeError."
-          },
-          {
-            "id": "c7_mcq_35",
-            "q": "Giá trị của biểu thức logic True or False and False trong Python là gì?",
-            "opts": [
-              "False",
-              "True",
-              "Báo lỗi cú pháp",
-              "None"
-            ],
-            "ans": 1,
-            "exp": "Dễ lầm tính từ trái qua phải (True or False = True, True and False = False). Nhưng toán tử and có độ ưu tiên cao hơn or. Tính False and False trước -> False. Sau đó True or False -> True."
-          },
-          {
-            "id": "c7_mcq_36",
-            "q": "Cho đoạn mã Python sau: for i in range(3): i = 10; print(i, end=' '). Kết quả in ra màn hình là gì?",
-            "opts": [
-              "10 10 10",
               "10",
-              "0 1 2",
-              "Báo lỗi vòng lặp vô tận"
-            ],
-            "ans": 0,
-            "exp": "Việc thay đổi biến i = 10 trong thân vòng lặp chỉ có tác dụng ở lần lặp đó. Ở lần lặp tiếp theo, range() vẫn cấp giá trị tiếp theo cho i (lần lượt 0, 1, 2), nhưng trong thân lặp i lại bị đổi thành 10 và in ra -> in 10 10 10."
-          },
-          {
-            "id": "c7_mcq_37",
-            "q": "Cho đoạn mã Python định nghĩa hàm như sau: def add_item(item, lst=[]): lst.append(item); return lst; print(add_item(1)); print(add_item(2)). Kết quả in ra lần lượt là gì?",
-            "opts": [
-              "[1] và [2]",
-              "[1] và [1, 2]",
-              "[1, 2] và [1, 2]",
-              "Báo lỗi TypeError"
+              "20",
+              "30",
+              "Báo lỗi NameError"
             ],
             "ans": 1,
-            "exp": "Tham số mặc định kiểu Mutable (như lst=[]) chỉ được khởi tạo 1 lần duy nhất khi định nghĩa hàm. Các lần gọi hàm không truyền lst sẽ dùng chung 1 danh sách đó."
+            "exp": "Từ khóa 'global x' bên trong hàm change() khai báo cho Python biết hàm đang can thiệp và sửa đổi trực tiếp biến toàn cục x bên ngoài hàm. Khi gán x = 20 thì biến toàn cục x được cập nhật thành 20."
           },
           {
-            "id": "c7_mcq_38",
-            "q": "Thực hiện thuật toán Sắp xếp chọn (Selection Sort) để sắp xếp tăng dần mảng a = [29, 10, 14, 37, 13]. Trạng thái của mảng a sau lượt lặp đầu tiên (i = 0) là gì?",
+            "id": "c7_mcq_13",
+            "q": "Cho đoạn chương trình Python thao tác với kiểu dữ liệu Dictionary: d = {\"Toan\": 8.5, \"Van\": 7.0, \"Anh\": 9.0}; d[\"Tin\"] = 9.5; d[\"Van\"] = 8.0; print(len(d), d[\"Van\"]). Kết quả hiển thị trên màn hình là gì?",
             "opts": [
-              "[10, 29, 14, 37, 13]",
-              "[10, 13, 14, 37, 29]",
-              "[10, 14, 29, 37, 13]",
-              "[13, 10, 14, 37, 29]"
-            ],
-            "ans": 0,
-            "exp": "Ở i = 0, tìm min trong mảng [29, 10, 14, 37, 13] -> min là 10 (chỉ số 1). Hoán đổi a[0] (29) với a[1] (10) -> mảng thành [10, 29, 14, 37, 13]."
-          },
-          {
-            "id": "c7_mcq_39",
-            "q": "Cho hàm đệ quy Python: def f(n): if n <= 0: return 0; return n + f(n - 2). Kết quả của lời gọi f(5) là bao nhiêu?",
-            "opts": [
-              "9",
-              "15",
-              "6",
-              "8"
-            ],
-            "ans": 0,
-            "exp": "f(5) = 5 + f(3) = 5 + (3 + f(1)) = 5 + 3 + (1 + f(-1)) = 5 + 3 + 1 + 0 = 9."
-          },
-          {
-            "id": "c7_mcq_40",
-            "q": "Hàm type(5.0) trong Python trả về kết quả thuộc kiểu dữ liệu nào?",
-            "opts": [
-              "<class 'int'>",
-              "<class 'float'>",
-              "<class 'str'>",
-              "<class 'bool'>"
-            ],
-            "ans": 1,
-            "exp": "Số 5.0 chứa dấu chấm thập phân nên thuộc kiểu số thực float."
-          },
-          {
-            "id": "c7_mcq_41",
-            "q": "Kết quả của phép toán 17 // 5 trong Python là bao nhiêu?",
-            "opts": [
-              "3.4",
-              "3",
-              "2",
-              "3.0"
-            ],
-            "ans": 1,
-            "exp": "Toán tử // thực hiện phép chia lấy phần nguyên, 17 chia 5 lấy nguyên được 3."
-          },
-          {
-            "id": "c7_mcq_42",
-            "q": "Kết quả của phép toán 17 % 5 trong Python là bao nhiêu?",
-            "opts": [
-              "3",
-              "3.4",
-              "2",
-              "1"
+              "4 7.0",
+              "5 8.0",
+              "4 8.0",
+              "3 9.5"
             ],
             "ans": 2,
-            "exp": "Toán tử % thực hiện phép chia lấy phần dư, 17 chia 5 dư 2."
+            "exp": "Lệnh d['Tin'] = 9.5 thêm khóa mới 'Tin' (tổng cộng 4 khóa). Lệnh d['Van'] = 8.0 cập nhật giá trị của khóa đã tồn tại 'Van' từ 7.0 thành 8.0 mà không tăng số lượng phần tử. Do đó len(d) = 4 và d['Van'] = 8.0."
           },
           {
-            "id": "c7_mcq_43",
-            "q": "Biểu thức 2 ** 3 trong Python trả về kết quả bằng bao nhiêu?",
+            "id": "c7_mcq_14",
+            "q": "Cho đoạn chương trình Python sau: A = [12, 45, 19, 82, 33, 82]; max_val = A[0]; max_idx = 0; for i in range(1, len(A)): if A[i] > max_val: max_val = A[i]; max_idx = i; print(max_idx, max_val). Kết quả in ra màn hình là gì?",
             "opts": [
-              "6",
-              "8",
-              "9",
-              "5"
-            ],
-            "ans": 1,
-            "exp": "Toán tử ** thực hiện phép tính lũy thừa, 2^3 = 8."
-          },
-          {
-            "id": "c7_mcq_44",
-            "q": "Hàm range(2, 8, 2) tạo ra dãy các số nguyên nào?",
-            "opts": [
-              "2, 4, 6, 8",
-              "2, 4, 6",
-              "2, 3, 4, 5, 6, 7",
-              "4, 6, 8"
-            ],
-            "ans": 1,
-            "exp": "range(start, stop, step) bắt đầu từ 2, kết thúc trước 8, bước nhảy 2 -> dãy 2, 4, 6."
-          },
-          {
-            "id": "c7_mcq_45",
-            "q": "Để lấy số lượng phần tử của một danh sách (list) trong Python, ta dùng hàm nào?",
-            "opts": [
-              "count()",
-              "size()",
-              "len()",
-              "length()"
-            ],
-            "ans": 2,
-            "exp": "Hàm built-in len() trả về độ dài (số lượng phần tử) của chuỗi, danh sách, tuple..."
-          },
-          {
-            "id": "c7_mcq_46",
-            "q": "Phương thức nào dùng để thêm một phần tử vào cuối danh sách (list) trong Python?",
-            "opts": [
-              "append()",
-              "add()",
-              "insert()",
-              "push()"
+              "3 82",
+              "5 82",
+              "82 3",
+              "4 45"
             ],
             "ans": 0,
-            "exp": "Phương thức append(x) thêm phần tử x vào vị trí cuối cùng của list."
+            "exp": "Điều kiện so sánh nghiêm ngặt A[i] > max_val chỉ cập nhật khi gặp giá trị lớn hơn hẳn max_val hiện tại. Giá trị 82 đầu tiên xuất hiện tại chỉ số i = 3. Khi gặp phần tử 82 thứ hai tại chỉ số i = 5, do 82 không lớn hơn 82 nên max_idx không đổi, vẫn giữ nguyên là 3."
           },
           {
-            "id": "c7_mcq_47",
-            "q": "Từ khóa nào dùng để định nghĩa một hàm tự tạo trong Python?",
+            "id": "c7_mcq_15",
+            "q": "Cho hàm đệ quy sau trong Python: def mystery(a, b): if b == 0: return 0; return a + mystery(a, b - 1); print(mystery(6, 4)). Hàm mystery thực hiện phép toán số học nào và in ra kết quả bao nhiêu?",
             "opts": [
-              "function",
-              "def",
-              "define",
-              "func"
+              "Tính lũy thừa 6^4 = 1296.",
+              "Tính tích của hai số a * b; in ra kết quả 24.",
+              "Tính tổng của hai số a + b; in ra kết quả 10.",
+              "Tìm ước chung lớn nhất của 6 và 4; in ra kết quả 2."
             ],
             "ans": 1,
-            "exp": "Từ khóa def dùng để định nghĩa hàm trong Python."
+            "exp": "Hàm cộng dồn b lần giá trị a với trường hợp cơ sở b=0 trả về 0. Đây chính là định nghĩa phép nhân qua phép cộng: mystery(a, b) = a * b. Kết quả mystery(6, 4) = 6 * 4 = 24."
           },
           {
-            "id": "c7_mcq_48",
-            "q": "Điều kiện tiên quyết để áp dụng thuật toán Tìm kiếm nhị phân (Binary Search) là gì?",
+            "id": "c7_mcq_16",
+            "q": "Cho đoạn chương trình Python sau: A = [1, 2, 3, 4, 5, 6, 7]; A = A[::-1]; b = [x for x in A if x % 2 != 0]; print(b). Kết quả in ra màn hình là gì?",
             "opts": [
-              "Danh sách phải chứa toàn số nguyên",
-              "Danh sách phải được sắp xếp theo thứ tự (tăng hoặc giảm)",
-              "Danh sách phải có độ dài chẵn",
-              "Danh sách phải chứa số không âm"
+              "[1, 3, 5, 7]",
+              "[7, 5, 3, 1]",
+              "[6, 4, 2]",
+              "[7, 6, 5, 4, 3, 2, 1]"
             ],
             "ans": 1,
-            "exp": "Tìm kiếm nhị phân yêu cầu mảng/danh sách đầu vào phải được sắp xếp trước."
-          },
-          {
-            "id": "c7_mcq_49",
-            "q": "Độ phức tạp thời gian trường hợp xấu nhất của thuật toán Tìm kiếm tuyến tính (Linear Search) trên n phần tử là gì?",
-            "opts": [
-              "O(1)",
-              "O(log n)",
-              "O(n)",
-              "O(n^2)"
-            ],
-            "ans": 2,
-            "exp": "Trường hợp xấu nhất tìm kiếm tuyến tính phải duyệt qua n phần tử -> độ phức tạp O(n)."
-          },
-          {
-            "id": "c7_mcq_50",
-            "q": "Từ khóa nào trong Python dùng để lập tức ngắt và thoát khỏi vòng lặp hiện tại?",
-            "opts": [
-              "continue",
-              "exit",
-              "break",
-              "pass"
-            ],
-            "ans": 2,
-            "exp": "Từ khóa break lập tức chấm dứt vòng lặp chứa nó."
+            "exp": "Thao tác lát cắt A[::-1] đảo ngược danh sách ban đầu thành A = [7, 6, 5, 4, 3, 2, 1]. Sau đó List Comprehension duyệt qua A và chỉ chọn các số lẻ (x % 2 != 0), thu được danh sách [7, 5, 3, 1]."
           }
         ],
-        "tf": [
-          {
-            "id": "c7_tf_1",
-            "ctx": "Đoạn chương trình Python tính tổng các số từ 1 đến n với n = 5: tong = 0; for i in range(1, n + 1): tong = tong + i; print(tong).",
-            "items": [
-              {
-                "s": "range(1, n + 1) sinh ra các giá trị 1, 2, 3, 4, 5 khi n = 5.",
-                "ans": true,
-                "exp": "range(1, 6) lấy từ 1 đến 5 (không gồm 6)."
-              },
-              {
-                "s": "Sau khi chạy xong, chương trình in ra giá trị 15.",
-                "ans": true,
-                "exp": "1 + 2 + 3 + 4 + 5 = 15."
-              },
-              {
-                "s": "Nếu thay range(1, n + 1) bằng range(n) thì chương trình vẫn tính đúng tổng từ 1 đến n.",
-                "ans": false,
-                "exp": "range(n) sinh 0, 1, ..., n - 1 nên tổng sẽ thiếu số n và cộng thêm 0."
-              },
-              {
-                "s": "Biến tong cần được khởi tạo giá trị 0 trước vòng lặp, nếu không chương trình sẽ báo lỗi NameError.",
-                "ans": true,
-                "exp": "Biến chưa được gán mà đem dùng sẽ gây lỗi NameError."
-              }
-            ]
-          },
-          {
-            "id": "c7_tf_2",
-            "ctx": "Chương trình xếp loại học lực: if diem >= 8: print(\"Giỏi\") elif diem >= 6.5: print(\"Khá\") elif diem >= 5: print(\"Trung bình\") else: print(\"Yếu\"), với diem = 6.5.",
-            "items": [
-              {
-                "s": "Với diem = 6.5, chương trình in ra \"Khá\".",
-                "ans": true,
-                "exp": "6.5 không thỏa diem >= 8 nhưng thỏa diem >= 6.5 nên vào nhánh elif thứ nhất."
-              },
-              {
-                "s": "Nếu diem = 8.0, chương trình in ra \"Giỏi\".",
-                "ans": true,
-                "exp": "Điều kiện đầu tiên diem >= 8 đúng nên in \"Giỏi\" và bỏ qua các nhánh sau."
-              },
-              {
-                "s": "Khi diem = 4.0, chương trình lần lượt in ra \"Yếu\" rồi \"Trung bình\" vì có hai nhánh else.",
-                "ans": false,
-                "exp": "Cấu trúc if/elif/else chỉ thực hiện đúng một nhánh phù hợp, ở đây là \"Yếu\"."
-              },
-              {
-                "s": "Có thể thay toàn bộ cấu trúc if/elif/else bằng một vòng lặp for mà vẫn giữ nguyên logic xếp loại.",
-                "ans": false,
-                "exp": "Vòng lặp dùng để lặp lại công việc, không thay thế được việc xét điều kiện rẽ nhánh."
-              }
-            ]
-          },
-          {
-            "id": "c7_tf_3",
-            "ctx": "Hàm kiểm tra số nguyên tố: def la_nguyen_to(n): if n < 2: return False; for i in range(2, n): if n % i == 0: return False; return True.",
-            "items": [
-              {
-                "s": "Hàm la_nguyen_to(2) trả về True.",
-                "ans": true,
-                "exp": "n = 2 không nhỏ hơn 2, vòng lặp range(2, 2) rỗng nên hàm trả về True."
-              },
-              {
-                "s": "Hàm la_nguyen_to(9) trả về False vì 9 chia hết cho 3.",
-                "ans": true,
-                "exp": "Khi i = 3, 9 % 3 == 0 nên hàm trả về False ngay."
-              },
-              {
-                "s": "Có thể bỏ hoàn toàn vòng lặp for trong hàm mà kết quả kiểm tra vẫn đúng với mọi số n.",
-                "ans": false,
-                "exp": "Thiếu vòng lặp thì hàm không kiểm tra được ước số, mọi n >= 2 đều bị coi là nguyên tố."
-              },
-              {
-                "s": "Lệnh return False bên trong vòng lặp kết thúc hàm ngay tại thời điểm được gọi.",
-                "ans": true,
-                "exp": "return thoát khỏi hàm ngay, không chạy tiếp các câu lệnh phía sau."
-              }
-            ]
-          },
-          {
-            "id": "c7_tf_4",
-            "ctx": "Đoạn chương trình xử lý xâu: s = \"Python co ban\"; print(len(s)); print(s.upper()).",
-            "items": [
-              {
-                "s": "len(s) cho biết số ký tự của xâu s, bao gồm cả dấu cách.",
-                "ans": true,
-                "exp": "len() đếm toàn bộ ký tự, kể cả ký tự trắng."
-              },
-              {
-                "s": "s.upper() trả về xâu \"PYTHON CO BAN\".",
-                "ans": true,
-                "exp": "Phương thức upper() chuyển toàn bộ ký tự chữ thành chữ in hoa."
-              },
-              {
-                "s": "len(s) trả về 12 vì dấu cách không được tính.",
-                "ans": false,
-                "exp": "\"Python co ban\" có 13 ký tự tính cả 2 dấu cách, nên len(s) = 13."
-              },
-              {
-                "s": "Có thể nối thêm nội dung vào xâu bằng toán tử +, ví dụ s + \" 2026\".",
-                "ans": true,
-                "exp": "Toán tử + ghép hai xâu thành xâu mới mà không làm thay đổi xâu gốc."
-              }
-            ]
-          }
-        ]
+        "tf": []
       }
     },
     {

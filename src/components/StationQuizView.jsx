@@ -202,7 +202,7 @@ export default function StationQuizView({
               {stationTitle}
             </div>
             <div style={{ fontSize: '0.74rem', color: '#94A3B8' }}>
-              Phần I: {mcqList.length} câu trắc nghiệm • Phần II: {tfList.length} câu Đúng/Sai ({totalTfItems} ý) • Tổng {totalItems} ý chấm điểm
+              Phần I: {mcqList.length} câu trắc nghiệm{tfList.length > 0 ? ` • Phần II: ${tfList.length} câu Đúng/Sai (${totalTfItems} ý)` : ''} • Tổng {totalItems} ý chấm điểm
             </div>
           </div>
         </div>
@@ -239,35 +239,37 @@ export default function StationQuizView({
             </span>
           </button>
 
-          <button
-            onClick={() => setActivePart('tf')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.4rem 0.85rem',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: activePart === 'tf' ? '1.5px solid #3B82F6' : '1px solid #374151',
-              background: activePart === 'tf' ? 'rgba(59, 130, 246, 0.2)' : '#1F2937',
-              color: activePart === 'tf' ? '#93C5FD' : '#94A3B8',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <span>Phần II: Đúng / Sai ({tfList.length} câu)</span>
-            <span
+          {tfList.length > 0 && (
+            <button
+              onClick={() => setActivePart('tf')}
               style={{
-                background: '#374151',
-                padding: '0.1rem 0.4rem',
-                borderRadius: '999px',
-                fontSize: '0.7rem'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.4rem 0.85rem',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: activePart === 'tf' ? '1.5px solid #3B82F6' : '1px solid #374151',
+                background: activePart === 'tf' ? 'rgba(59, 130, 246, 0.2)' : '#1F2937',
+                color: activePart === 'tf' ? '#93C5FD' : '#94A3B8',
+                transition: 'all 0.15s ease'
               }}
             >
-              {answeredTfCount}/{totalTfItems}
-            </span>
-          </button>
+              <span>Phần II: Đúng / Sai ({tfList.length} câu)</span>
+              <span
+                style={{
+                  background: '#374151',
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '999px',
+                  fontSize: '0.7rem'
+                }}
+              >
+                {answeredTfCount}/{totalTfItems}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -351,7 +353,7 @@ export default function StationQuizView({
             gap: '1.5rem'
           }}
         >
-          {activePart === 'mcq' ? (
+          {activePart === 'mcq' || tfList.length === 0 ? (
             /* =================== PHẦN I: TRẮC NGHIỆM =================== */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {mcqList.map((q, idx) => {

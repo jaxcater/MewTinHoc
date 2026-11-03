@@ -181,7 +181,7 @@ export const ictRoadmapStations = [
     "category": "Kiến thức chung",
     "priority": "Rất cao",
     "priorityBadge": "high",
-    "questionType": "Trắc nghiệm Phần I & Đúng/Sai Phần II",
+    "questionType": "Trắc nghiệm Phần I",
     "bookRef": "Chương 7 — Tài liệu Lập trình Python cơ bản",
     "pdfUrl": "https://vxqvjffssebnuxtslghp.supabase.co/storage/v1/object/sign/KhoTaiLieuTinHocThiThu/Chuong%207/Tai_Lieu_Lap_Trinh_Python_Co_Ban-v2.pdf?token=eyJraWQiOiIzMmIzYzRjYi0yYTZjLTRmYjUtOTJkNS0yNzIwNDk0NzJjOTUiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJLaG9UYWlMaWV1VGluSG9jVGhpVGh1L0NodW9uZyA3L1RhaV9MaWV1X0xhcF9UcmluaF9QeXRob25fQ29fQmFuLXYyLnBkZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTM2NzYxODcsImV4cCI6NDkxNTc0MDE4N30.tVckI469NijgDBumcPbX1kghh0ywZ2QYO7M1PmceIJCxOKfthFsIz4QPUVgp0-ykLNsN8KCA4_edqQ7vGj1beg",
     "description": "Làm quen ngôn ngữ Python từ con số 0: biến và kiểu dữ liệu, nhập xuất dữ liệu với input()/print(), toán tử số học và logic, cấu trúc rẽ nhánh if/elif/else, vòng lặp for/while, hàm tự định nghĩa, xử lý xâu - danh sách và cách sử dụng thư viện chuẩn.",

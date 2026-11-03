@@ -23,17 +23,17 @@ export const QUESTION_BANKS = {
   ict_station_5: CHUONG_5_QUIZ,
   cs_station_6: CHUONG_6_QUIZ,
   ict_station_6: CHUONG_6_QUIZ,
-  cs_station_7: CHUONG_7_QUIZ,
-  ict_station_7: CHUONG_7_QUIZ,
-  // Chủ đề CS 1 - chỉ có ở định hướng Khoa học máy tính
-  cs_station_8: CHUONG_CS1_QUIZ,
-  // Chủ đề ICT 1 - chỉ có ở định hướng Tin học ứng dụng
-  ict_station_8: CHUONG_ICT1_QUIZ,
-  // Chủ đề ICT 2 - chỉ có ở định hướng Tin học ứng dụng
-  ict_station_9: CHUONG_ICT2_QUIZ,
-  // Chủ đề CS 2 - chỉ có ở định hướng Khoa học máy tính
-  cs_station_89: CHUONG_CS2_QUIZ,
   // Chương 7 - Lập trình Python cơ bản (dùng chung cho cả CS và ICT)
+  cs_station_10: CHUONG_7_QUIZ,
+  ict_station_10: CHUONG_7_QUIZ,
+  // Chủ đề CS 1 - chỉ có ở định hướng Khoa học máy tính
+  cs_station_7: CHUONG_CS1_QUIZ,
+  // Chủ đề CS 2 - chỉ có ở định hướng Khoa học máy tính
+  cs_station_8: CHUONG_CS2_QUIZ,
+  // Chủ đề ICT 1 - chỉ có ở định hướng Tin học ứng dụng
+  ict_station_7: CHUONG_ICT1_QUIZ,
+  // Chủ đề ICT 2 - chỉ có ở định hướng Tin học ứng dụng
+  ict_station_8: CHUONG_ICT2_QUIZ,
   
 };
 

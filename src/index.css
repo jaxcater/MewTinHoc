@@ -8291,10 +8291,14 @@ a {
    ROADMAP POLISH — Learning constellation
    Glow/gradient is reserved for progress and active interactions.
    ============================================================ */
-.roadmap-container {
+.roadmap-container,
+.roadmap-modal-backdrop {
   --roadmap-accent: var(--color-primary, #ea580c);
   --roadmap-accent-soft: color-mix(in srgb, var(--roadmap-accent) 14%, #fff);
   --roadmap-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.roadmap-container {
   position: relative;
   isolation: isolate;
 }
