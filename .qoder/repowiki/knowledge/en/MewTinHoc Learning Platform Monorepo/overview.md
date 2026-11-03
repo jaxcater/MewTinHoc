@@ -1,0 +1,1 @@
+Top-level monorepo wiring a React frontend, a Node proxy server, and static assets into a single Vite-driven project that serves the SPA and proxies Botpress/Supabase traffic.

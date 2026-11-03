@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: frontend_app/quiz_exam_tabs
+title: AI Exam Generator, Exam Document Repository & Station Quiz Runner
+scope:
+    - src/components/AiExamTab.jsx
+    - src/components/ExamRepoTab.jsx
+    - src/components/StationQuizView.jsx
+source_files: []
+depends_on: []
+related_to:
+    - path: frontend_app/admin_panel

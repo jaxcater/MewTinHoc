@@ -1,0 +1,1 @@
+React admin UI for managing Supabase profiles, publishing announcements to learners, and editing lesson theory content with a draft-based editor.

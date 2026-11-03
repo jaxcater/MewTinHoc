@@ -1,0 +1,1 @@
+Requires a pre-built `dist/` directory (static build) and optionally `.env.local` / `.env` files containing `BOTPRESS_TOKEN`, `BOTPRESS_BOT_ID`, `BOTPRESS_WEBHOOK_ID`, `BOTPRESS_ENCRYPTION_KEY`, and `BOTPRESS_ALLOWED_ORIGIN`; starts on port 3001 or `$PORT`.

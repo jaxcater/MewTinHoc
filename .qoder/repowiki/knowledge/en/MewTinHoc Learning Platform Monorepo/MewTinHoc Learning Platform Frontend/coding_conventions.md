@@ -1,0 +1,3 @@
+- Supabase access is centralized in `supabase.js` and re-exported through `lib/` service modules; components import behavior, not the client directly.
+- Static curriculum content (questions per chapter, CS/ICT roadmaps) lives in `data/` as plain JS modules with an `index.js` barrel, imported by the corresponding tabs.
+- Motion effects are encapsulated in small components under `components/motion/` that consume shared design tokens from `variants.ts`.

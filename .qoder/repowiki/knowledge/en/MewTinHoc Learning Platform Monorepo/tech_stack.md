@@ -1,0 +1,1 @@
+Vite + React 19 as the shared build/runtime; oxlint for linting across the repo; Botpress client SDK and Supabase JS SDK used by both frontend and server.

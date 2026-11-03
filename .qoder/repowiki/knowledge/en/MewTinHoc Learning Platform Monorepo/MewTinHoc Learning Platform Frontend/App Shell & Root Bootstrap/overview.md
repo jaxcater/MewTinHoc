@@ -1,0 +1,1 @@
+Bootstraps the MewTinHoc React application: entry point, routing, auth state, tab navigation, and centralized motion design tokens.

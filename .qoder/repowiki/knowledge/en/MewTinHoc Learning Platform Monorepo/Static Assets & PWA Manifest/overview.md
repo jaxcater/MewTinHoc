@@ -1,0 +1,1 @@
+Serves static web assets — favicons, roadmap images, a PWA manifest, and an SPA-friendly 404 redirect page for GitHub Pages deployment.

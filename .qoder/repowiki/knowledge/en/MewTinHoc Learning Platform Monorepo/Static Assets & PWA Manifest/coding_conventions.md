@@ -1,0 +1,2 @@
+- Favicon assets follow a size-naming convention (`favicon-{size}.png`) and are declared together in `site.webmanifest` rather than linked individually in HTML.
+- Roadmap data is stored as JSON files under `LoTrinhDayXich/` and loaded at runtime, keeping content separate from application code.

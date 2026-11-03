@@ -202,7 +202,7 @@ export default function StationQuizView({
               {stationTitle}
             </div>
             <div style={{ fontSize: '0.74rem', color: '#94A3B8' }}>
-              Phần I: 20 câu trắc nghiệm • Phần II: 4 câu Đúng/Sai (16 ý) • Tổng 36 ý chấm điểm
+              Phần I: {mcqList.length} câu trắc nghiệm • Phần II: {tfList.length} câu Đúng/Sai ({totalTfItems} ý) • Tổng {totalItems} ý chấm điểm
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function StationQuizView({
               transition: 'all 0.15s ease'
             }}
           >
-            <span>Phần I: Trắc nghiệm (20 câu)</span>
+            <span>Phần I: Trắc nghiệm ({mcqList.length} câu)</span>
             <span
               style={{
                 background: '#374151',
@@ -235,7 +235,7 @@ export default function StationQuizView({
                 fontSize: '0.7rem'
               }}
             >
-              {answeredMcqCount}/20
+              {answeredMcqCount}/{mcqList.length}
             </span>
           </button>
 
@@ -256,7 +256,7 @@ export default function StationQuizView({
               transition: 'all 0.15s ease'
             }}
           >
-            <span>Phần II: Đúng / Sai (4 câu)</span>
+            <span>Phần II: Đúng / Sai ({tfList.length} câu)</span>
             <span
               style={{
                 background: '#374151',
@@ -706,10 +706,10 @@ export default function StationQuizView({
               Danh sách câu hỏi
             </div>
 
-            {/* MCQ Palette (1-20) */}
+            {/* MCQ Palette (theo số câu thực tế) */}
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginBottom: '0.4rem', fontWeight: 700 }}>
-                Phần I: Trắc nghiệm ({answeredMcqCount}/20)
+                Phần I: Trắc nghiệm ({answeredMcqCount}/{mcqList.length})
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
                 {mcqList.map((_, idx) => {

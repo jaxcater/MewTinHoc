@@ -1,0 +1,5 @@
+- Inline style objects are defined at the top of each component (e.g. `cardStyle`, `inputStyle`, `labelStyle`, `boxStyle`) and reused across elements instead of using a CSS-in-JS library or external stylesheet.
+- Async mutations follow an optimistic-update pattern: the local state is updated immediately, then the Supabase call is made, and on failure the view is either reverted via `load()` or re-fetched.
+- Missing-database states are surfaced by rendering a dark-themed `<pre>` block containing a ready-to-run SQL script, paired with a copy button that uses `navigator.clipboard.writeText` and a transient copied flag.
+- User-facing feedback is rendered as colored status banners whose background/border colors switch based on a boolean success flag (green `#F0FDF4`/`#BBF7D0` vs red `#FEF2F2`/`#FECACA`).
+- The theory editor separates concerns into pure helper functions (`buildLessonDraft`, `applyDraftToLesson`, `toLines`, `fromLines`) that convert between persisted lesson shape and the in-memory draft shape, keeping mutation logic out of the JSX.

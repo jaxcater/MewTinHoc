@@ -1,0 +1,1 @@
+React + `react-router-dom` for routing; `framer-motion` for entrance/hover animations; `lucide-react` for icons; `canvas-confetti` for streak check-in celebration; `pdfjs-dist` with a Vite-bundled worker for PDF rendering; Supabase client (`../supabase`) for Google OAuth authentication.

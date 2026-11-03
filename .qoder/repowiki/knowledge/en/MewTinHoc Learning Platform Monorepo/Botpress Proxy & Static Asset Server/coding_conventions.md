@@ -1,0 +1,4 @@
+- Environment variables are loaded lazily from `.env.local` then `.env` via a custom parser in `loadBackendEnv`, falling back to `process.env`, so secrets never leak into the client bundle.
+- Every API endpoint returns a uniform `{ status, ... }` object through `sendJson`, with error responses carrying a numeric `statusCode` property on the thrown error.
+- Secrets exposed to the client are always masked (e.g. `${token.slice(0,7)}...${token.slice(-4)}`) rather than sent raw.
+- Per-user state (Botpress user UUID, conversation ID, signed user key) is kept in an in-memory `Map` keyed by a cookie-based session identifier, with an explicit `resetSession` entry point.

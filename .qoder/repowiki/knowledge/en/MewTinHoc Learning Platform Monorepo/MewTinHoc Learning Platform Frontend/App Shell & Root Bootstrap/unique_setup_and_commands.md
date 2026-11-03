@@ -1,0 +1,1 @@
+The app reads `import.meta.env.BASE_URL` at runtime to set the router base path, so deployment requires configuring the build tool's `base`/`publicPath` accordingly; otherwise routes resolve relative to `/`.

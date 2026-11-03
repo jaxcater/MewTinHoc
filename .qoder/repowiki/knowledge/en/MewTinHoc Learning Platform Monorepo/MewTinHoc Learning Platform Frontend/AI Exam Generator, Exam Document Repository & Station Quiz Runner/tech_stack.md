@@ -1,0 +1,1 @@
+React functional components with hooks; `lucide-react` icons; `canvas-confetti` for celebration effects; `framer-motion` + `useReducedMotion` for accessible animations; Supabase Storage API accessed through `../lib/examDocsStorage` (bucket/folder model); Office365 Online Viewer embedded via iframe for `.doc/.docx` previews.

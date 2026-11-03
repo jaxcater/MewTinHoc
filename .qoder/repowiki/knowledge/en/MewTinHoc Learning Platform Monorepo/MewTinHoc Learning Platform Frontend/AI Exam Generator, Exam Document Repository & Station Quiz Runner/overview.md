@@ -1,0 +1,1 @@
+Three React tab components that let users generate AI mock exams, browse and manage exam documents in Supabase Storage, and take a two-part station quiz with scoring.

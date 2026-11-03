@@ -1,4 +1,5 @@
 import { CHUONG_1_QUIZ } from '../questions/chuong1.js';
+import { CHUONG_7_QUIZ } from '../questions/chuong7.js';
 /**
  * ==============================================================================
  * DỮ LIỆU LỘ TRÌNH HỌC & BÀI GIẢNG LÝ THUYẾT (CHUẨN 2025)
@@ -173,8 +174,30 @@ export const ictRoadmapStations = [
     "xp": 200
   },
   {
-    "id": "ict_station_7",
+    "id": "ict_station_10",
     "stepNumber": "07",
+    "code": "Chương 7",
+    "title": "Lập trình Python cơ bản",
+    "category": "Kiến thức chung",
+    "priority": "Rất cao",
+    "priorityBadge": "high",
+    "questionType": "Trắc nghiệm Phần I & Đúng/Sai Phần II",
+    "bookRef": "Chương 7 — Tài liệu Lập trình Python cơ bản",
+    "pdfUrl": "https://vxqvjffssebnuxtslghp.supabase.co/storage/v1/object/sign/KhoTaiLieuTinHocThiThu/Chuong%207/Tai_Lieu_Lap_Trinh_Python_Co_Ban-v2.pdf?token=eyJraWQiOiIzMmIzYzRjYi0yYTZjLTRmYjUtOTJkNS0yNzIwNDk0NzJjOTUiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJLaG9UYWlMaWV1VGluSG9jVGhpVGh1L0NodW9uZyA3L1RhaV9MaWV1X0xhcF9UcmluaF9QeXRob25fQ29fQmFuLXYyLnBkZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTM2NzYxODcsImV4cCI6NDkxNTc0MDE4N30.tVckI469NijgDBumcPbX1kghh0ywZ2QYO7M1PmceIJCxOKfthFsIz4QPUVgp0-ykLNsN8KCA4_edqQ7vGj1beg",
+    "description": "Làm quen ngôn ngữ Python từ con số 0: biến và kiểu dữ liệu, nhập xuất dữ liệu với input()/print(), toán tử số học và logic, cấu trúc rẽ nhánh if/elif/else, vòng lặp for/while, hàm tự định nghĩa, xử lý xâu - danh sách và cách sử dụng thư viện chuẩn.",
+    "skills": [
+      "Biến, kiểu dữ liệu & Nhập xuất input()/print()",
+      "Toán tử số học, so sánh & logic",
+      "Cấu trúc rẽ nhánh if/elif/else",
+      "Vòng lặp for/while & Hàm def",
+      "Xử lý xâu, danh sách & Thư viện chuẩn"
+    ],
+    "xp": 340,
+    "quiz": CHUONG_7_QUIZ
+  },
+  {
+    "id": "ict_station_7",
+    "stepNumber": "08",
     "code": "Chủ đề ICT 1",
     "title": "Thực hành tạo và khai thác Cơ sở dữ liệu",
     "category": "Chuyên sâu Tin học ứng dụng",
@@ -194,7 +217,7 @@ export const ictRoadmapStations = [
   },
   {
     "id": "ict_station_8",
-    "stepNumber": "08",
+    "stepNumber": "09",
     "code": "Chủ đề ICT 2",
     "title": "Sử dụng phần mềm tạo trang web",
     "category": "Chuyên sâu Tin học ứng dụng",
@@ -214,7 +237,7 @@ export const ictRoadmapStations = [
   },
   {
     "id": "ict_station_9",
-    "stepNumber": "09",
+    "stepNumber": "10",
     "code": "Phần II",
     "title": "Đề ôn tập & Bảng ma trận năng lực",
     "category": "Luyện đề thi THPTQG",

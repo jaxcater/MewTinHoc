@@ -1,0 +1,1 @@
+React 18 with `react-dom/client` createRoot, `react-router-dom` v6 (`BrowserRouter`, `Routes`, `Route`, `Navigate`, `useNavigate`, `useLocation`), Framer Motion (`AnimatePresence`), Lucide icons, and Supabase client (via `../lib/supabase.js`).

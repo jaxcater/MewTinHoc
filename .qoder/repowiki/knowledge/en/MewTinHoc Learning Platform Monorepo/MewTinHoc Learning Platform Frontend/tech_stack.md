@@ -1,0 +1,1 @@
+React + Vite entry (`main.jsx`), Supabase JS client for auth/profiles/storage, Framer Motion for page transitions and mascot animations, CSS modules alongside inline styles.
