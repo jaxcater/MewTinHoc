@@ -20,21 +20,28 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 /**
  * Model chính — đổi được bằng GEMINI_MODEL trong .env.local
  *
- * Chọn flash-lite vì hạn mức miễn phí tính riêng theo model nhưng model càng
- * "cao cấp" càng mau hết quota: gemini-3.5-flash và gemini-3.6-flash hết
- * 20 lượt/ngày chỉ sau vài lần bấm. flash-lite trả lời nhanh và bền hơn,
- * chất lượng vẫn đủ cho một nhận xét học tập.
+ * Chọn dòng flash-lite vì hạn mức miễn phí tính RIÊNG theo từng model
+ * (20 lượt/ngày/model): các model flash đầy đủ cạn quota chỉ sau vài lần bấm
+ * trong khi flash-lite vẫn chạy. Đo thực tế: flash-lite trả lời 3–5 giây,
+ * đủ tốt cho một nhận xét học tập.
  */
 const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
 
 /**
- * Model thử tiếp khi model chính báo 503/429.
+ * Model thử tiếp khi model chính báo 503 (quá tải) hoặc 429 (hết quota ngày).
  *
- * Hạn mức miễn phí của Google tính RIÊNG theo từng model (20 lượt/ngày/model),
- * nên một model hết quota vẫn còn model khác chạy được — đây là lý do danh sách
- * này tồn tại. Xếp theo mức độ sẵn sàng đo được, model mau hết quota để sau.
+ * Hạn mức miễn phí tính riêng theo từng model, nên một model cạn quota vẫn
+ * còn model khác cứu được — đây là lý do danh sách này tồn tại. Xếp theo thứ
+ * tự đo được là còn sống khi các model flash đầy đủ đã cạn quota:
+ *   - gemini-flash-lite-latest  : luôn trỏ flash-lite mới nhất, ~2.5s
+ *   - gemini-3.5-flash-lite      : ~1s
+ *   - gemini-3-flash-preview     : ~1.2s
  */
-const FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.6-flash'];
+const FALLBACK_MODELS = [
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash-lite',
+  'gemini-3-flash-preview',
+];
 
 /** Mỗi lần gọi tối đa 24 giây; cả request tối đa ~52 giây */
 const ATTEMPT_TIMEOUT_MS = 24_000;
@@ -104,12 +111,23 @@ const cleanList = (value, max, itemMax) =>
     .filter(Boolean)
     .slice(0, max);
 
+/**
+ * Chuẩn hoá mã chủ đề về đúng một mã C1–C7 (hoặc TF).
+ * Model hay trả "C1-C3" hay "C1, C2" khi một lỗ hổng trải nhiều chủ đề;
+ * UI chỉ chỗ chứa một mã nên lấy mã đầu tiên thay vì hiện chuỗi lạ.
+ */
+function normalizeTopicCode(value) {
+  const raw = String(value || '').toUpperCase();
+  const match = raw.match(/(C[1-7]|TF)/);
+  return match ? match[1] : 'C?';
+}
+
 function normalizeReview(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
 
   const priorities = (Array.isArray(source.priorities) ? source.priorities : [])
     .map((item) => ({
-      topicCode: clip(item?.topicCode, 12) || 'C?',
+      topicCode: normalizeTopicCode(item?.topicCode),
       topicName: clip(item?.topicName, 120),
       why: clip(item?.why, 320),
       actions: cleanList(item?.actions, 4, 200),
@@ -378,7 +396,7 @@ export async function requestAiReview({ system, prompt }) {
    * miễn phí mỗi ngày chỉ sau vài lượt dùng. Lỗi hết quota thì Google trả
    * trong <1 giây, nên vòng lặp vẫn nhảy sang model kế rất nhanh.
    */
-  const HEDGE_DELAY_MS = 15_000;
+  const HEDGE_DELAY_MS = 8_000;
 
   const tried = [];
   const exhausted = new Set(); // model đã hết quota NGÀY → bỏ qua hẳn
@@ -430,7 +448,7 @@ export async function requestAiReview({ system, prompt }) {
     for (let round = 0; round < 2; round += 1) {
       const plan = [status.model, ...status.fallbacks].filter((m) => !exhausted.has(m));
       if (!plan.length) break;
-      if (round > 0) await new Promise((r) => setTimeout(r, 1_200));
+      if (round > 0) await new Promise((r) => setTimeout(r, 3_000));
 
       const pending = new Map();
 
