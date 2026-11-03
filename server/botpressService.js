@@ -39,6 +39,17 @@ function loadBackendEnv() {
   return envVars;
 }
 
+// Kiểm tra một giá trị env có phải là placeholder chưa điền hay không
+function isRealValue(value) {
+  if (!value) return false;
+  const trimmed = String(value).trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('$')) return false;
+  if (/^(your|placeholder|changeme|todo)/i.test(trimmed)) return false;
+  if (trimmed === 'your_default_webhook_url') return false;
+  return true;
+}
+
 // Lấy cấu hình Botpress bí mật từ Backend
 export function getBotpressConfig() {
   const env = loadBackendEnv();
@@ -47,13 +58,11 @@ export function getBotpressConfig() {
   const webhookId = env.BOTPRESS_WEBHOOK_ID || '';
   const encryptionKey = env.BOTPRESS_ENCRYPTION_KEY || '';
 
-  const isConfigured = Boolean(
-    webhookId &&
-    encryptionKey &&
-    webhookId !== 'your_default_webhook_url' &&
-    !webhookId.startsWith('$') &&
-    !encryptionKey.startsWith('$')
-  );
+  // Chat Botpress chỉ cần WEBHOOK_ID. ENCRYPTION_KEY chỉ bắt buộc khi bot
+  // có bật "Encryption key" trong Botpress Cloud > Chat > Settings.
+  const chatConfigured = isRealValue(webhookId);
+  const encryptionEnabled = isRealValue(encryptionKey);
+  const isConfigured = chatConfigured && encryptionEnabled;
 
   return {
     token,
@@ -61,6 +70,8 @@ export function getBotpressConfig() {
     webhookId,
     encryptionKey,
     isConfigured,
+    chatConfigured,
+    encryptionEnabled,
     maskedToken: token && token !== '$YOUR_BOTPRESS_TOKEN' ? `${token.slice(0, 7)}...${token.slice(-4)}` : '(Tùy chọn cho Chat)',
     maskedBotId: botId && botId !== '$YOUR_BOT_ID' ? `${botId.slice(0, 6)}...${botId.slice(-4)}` : '(Tùy chọn)',
     maskedWebhookId: webhookId ? `${webhookId.slice(0, 8)}...${webhookId.slice(-6)}` : '(Chưa thiết lập)',
@@ -132,7 +143,163 @@ export async function listBotpressFiles() {
   }
 }
 
-// Quản lý phiên hội thoại duy trì ngữ cảnh theo từng học sinh (Session Memory)
+// Botpress Chat API trả HTTP 200 kèm body lỗi dạng
+// { id: "err_...", code: 404, type: "ResourceNotFound", message: "..." }
+// Nếu chỉ kiểm tra res.ok thì lỗi bị nuốt hoàn toàn — phải kiểm tra cả body.
+function isBotpressErrorBody(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (typeof data.id === 'string' && data.id.startsWith('err_')) return true;
+  if (typeof data.type === 'string' && /Error|NotFound|Unauthorized|Forbidden/i.test(data.type)) return true;
+  return false;
+}
+
+// Gọi Botpress Chat API và coi body lỗi là thất bại thật sự.
+async function botpressFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+
+  if (!res.ok) {
+    return { ok: false, status: res.status, data, error: data?.message || `HTTP ${res.status}` };
+  }
+  if (isBotpressErrorBody(data)) {
+    return { ok: false, status: res.status, data, error: data?.message || 'Botpress trả lỗi không rõ lý do' };
+  }
+  return { ok: true, status: res.status, data };
+}
+
+// Chẩn đoán kết nối Botpress Chat theo từng bước để biết chính xác tắc ở đâu.
+// Trả về bước nào fail + HTTP status + thông báo lỗi thật từ Botpress.
+export async function diagnoseBotpressChat() {
+  const { chatConfigured, webhookId, encryptionEnabled, encryptionKey } = getBotpressConfig();
+  const steps = [];
+
+  if (!chatConfigured) {
+    return {
+      ok: false,
+      step: 'config',
+      message: 'Chưa có BOTPRESS_WEBHOOK_ID trong .env.local. Chat sẽ chỉ trả lời mẫu.',
+      steps
+    };
+  }
+
+  const bpUserUuid = crypto.randomUUID();
+  const userKey = encryptionEnabled && encryptionKey ? signUserKey(bpUserUuid, encryptionKey) : bpUserUuid;
+
+  // Bước 1 — get-or-create user
+  try {
+    const r = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/users/get-or-create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-key': userKey },
+      body: JSON.stringify({ name: 'diagnose_user' })
+    });
+    steps.push({ step: 'createUser', ok: r.ok, status: r.status, detail: r.ok ? undefined : r.error });
+    if (!r.ok) {
+      return {
+        ok: false,
+        step: 'createUser',
+        message: `Không tạo được user trên Botpress: ${r.error}`,
+        steps
+      };
+    }
+  } catch (err) {
+    steps.push({ step: 'createUser', ok: false, detail: err.message });
+    return {
+      ok: false,
+      step: 'createUser',
+      message: `Không gọi được chat.botpress.cloud: ${err.message}`,
+      steps
+    };
+  }
+
+  // Bước 2 — tạo conversation
+  let conversationId = null;
+  try {
+    const r = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/conversations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-key': userKey },
+      body: JSON.stringify({})
+    });
+    conversationId = r.data?.conversation?.id || null;
+    steps.push({ step: 'createConversation', ok: r.ok && Boolean(conversationId), status: r.status, detail: r.ok ? undefined : r.error });
+    if (!r.ok || !conversationId) {
+      return {
+        ok: false,
+        step: 'createConversation',
+        message: `Không tạo được conversation: ${r.error || 'Botpress không trả về conversation.id'}`,
+        steps
+      };
+    }
+  } catch (err) {
+    steps.push({ step: 'createConversation', ok: false, detail: err.message });
+    return { ok: false, step: 'createConversation', message: err.message, steps };
+  }
+
+  // Bước 3 — gửi message thử
+  try {
+    const r = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-key': userKey },
+      body: JSON.stringify({ conversationId, payload: { type: 'text', text: 'ping' } })
+    });
+    steps.push({ step: 'sendMessage', ok: r.ok, status: r.status, detail: r.ok ? undefined : r.error });
+    if (!r.ok) {
+      return {
+        ok: false,
+        step: 'sendMessage',
+        message: `Gửi tin nhắn thất bại: ${r.error}`,
+        conversationId,
+        steps
+      };
+    }
+  } catch (err) {
+    steps.push({ step: 'sendMessage', ok: false, detail: err.message });
+    return { ok: false, step: 'sendMessage', message: err.message, steps };
+  }
+
+  // Bước 4 — chờ bot trả lời (tối đa ~18s)
+  for (let attempt = 0; attempt < 15; attempt++) {
+    await new Promise((r) => setTimeout(r, 1200));
+    try {
+      const r = await botpressFetch(
+        `https://chat.botpress.cloud/${webhookId}/conversations/${conversationId}/messages`,
+        { method: 'GET', headers: { 'x-user-key': userKey } }
+      );
+      if (!r.ok) continue;
+      const botMsgs = (r.data?.messages || []).filter(
+        (m) => m.userId !== bpUserUuid && typeof m.payload?.text === 'string' && m.payload.text.trim()
+      );
+      if (botMsgs.length > 0) {
+        const reply = botMsgs[botMsgs.length - 1].payload.text;
+        steps.push({ step: 'awaitReply', ok: true, reply: reply.slice(0, 200) });
+        return {
+          ok: true,
+          message: 'Botpress Chat hoạt động bình thường.',
+          reply,
+          conversationId,
+          steps
+        };
+      }
+    } catch {
+      // tiếp tục poll
+    }
+  }
+
+  steps.push({ step: 'awaitReply', ok: false });
+  return {
+    ok: false,
+    step: 'awaitReply',
+    message:
+      'Gửi tin thành công nhưng bot không phản hồi. Kiểm tra: (1) bot CamCam đã được public/Published, (2) luồng hội thoại có trigger "Conversation Started"/"User Message", (3) Integration Chat đã bật cho bot.',
+    conversationId,
+    steps
+  };
+}
+
 // Cấu trúc: userId -> { bpUserUuid, userKey, botpressUserId, conversationId }
 const userSessions = new Map();
 
@@ -144,14 +311,15 @@ export function resetSession(userId = 'student_user') {
 
 // Lấy hoặc tạo mới phiên hội thoại (Đảm bảo giữ nguyên conversationId trong suốt cuộc trò chuyện)
 async function getOrCreateSession({ userId = 'student_user', conversationId = null, forceNew = false }) {
-  const { webhookId, encryptionKey } = getBotpressConfig();
-  if (!webhookId) return null;
+  const { chatConfigured, webhookId, encryptionKey, encryptionEnabled } = getBotpressConfig();
+  if (!chatConfigured) return null;
 
   if (forceNew) {
     userSessions.delete(userId);
   }
 
   let session = userSessions.get(userId);
+  let lastBotpressError = null;
 
   // 1. Tạo UUID ổn định cho User (Botpress yêu cầu tối thiểu 28 ký tự)
   let bpUserUuid = session?.bpUserUuid;
@@ -159,13 +327,15 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
     bpUserUuid = crypto.randomUUID();
   }
 
-  const userKey = signUserKey(bpUserUuid, encryptionKey);
+  const userKey = encryptionEnabled && encryptionKey
+    ? signUserKey(bpUserUuid, encryptionKey)
+    : bpUserUuid;
 
   // 2. Đăng ký người dùng trên Botpress Cloud qua get-or-create
   let botpressUserId = session?.botpressUserId;
   if (!botpressUserId) {
     try {
-      const userRes = await fetch(`https://chat.botpress.cloud/${webhookId}/users/get-or-create`, {
+      const r = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/users/get-or-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,12 +343,8 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
         },
         body: JSON.stringify({ name: userId || 'HocVien' })
       });
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        botpressUserId = userData?.user?.id || bpUserUuid;
-      } else {
-        botpressUserId = bpUserUuid;
-      }
+      botpressUserId = r.ok ? (r.data?.user?.id || bpUserUuid) : bpUserUuid;
+      if (!r.ok) console.warn('[Botpress getOrCreateUser Failed]:', r.error);
     } catch (err) {
       console.warn('[Botpress getOrCreateUser Warning]:', err.message);
       botpressUserId = bpUserUuid;
@@ -189,7 +355,7 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
   let activeConvId = conversationId || session?.conversationId;
   if (!activeConvId) {
     try {
-      const convRes = await fetch(`https://chat.botpress.cloud/${webhookId}/conversations`, {
+      const r = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,12 +363,14 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
         },
         body: JSON.stringify({})
       });
-      if (convRes.ok) {
-        const convData = await convRes.json();
-        activeConvId = convData?.conversation?.id;
+      activeConvId = r.ok ? (r.data?.conversation?.id || null) : null;
+      if (!r.ok) {
+        console.warn('[Botpress createConversation Failed]:', r.error);
+        lastBotpressError = r.error;
       }
     } catch (err) {
       console.warn('[Botpress createConversation Warning]:', err.message);
+      lastBotpressError = err.message;
     }
   }
 
@@ -210,7 +378,8 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
     bpUserUuid,
     userKey,
     botpressUserId,
-    conversationId: activeConvId
+    conversationId: activeConvId,
+    lastError: lastBotpressError
   };
   userSessions.set(userId, session);
   return session;
@@ -218,7 +387,7 @@ async function getOrCreateSession({ userId = 'student_user', conversationId = nu
 
 // Xử lý gửi tin nhắn Chat qua Botpress Backend có duy trì ngữ cảnh
 export async function processChatMessage({ message, userId = 'student_user', conversationId = null }) {
-  const { webhookId } = getBotpressConfig();
+  const { chatConfigured, webhookId } = getBotpressConfig();
   const text = (message || '').trim();
 
   if (!text) {
@@ -226,15 +395,38 @@ export async function processChatMessage({ message, userId = 'student_user', con
   }
 
   let currentSession = null;
+  // Lý do cụ thể khiến Botpress không trả lời, để前端/Admin thấy ngay
+  let failure = chatConfigured ? null : 'missing_webhook_id';
 
-  // 1. Gọi trực tiếp Botpress Chat API với Webhook ID và Encryption Key đã ký
-  if (webhookId) {
+  // 1. Gọi trực tiếp Botpress Chat API với Webhook ID và x-user-key
+  if (chatConfigured) {
     try {
       currentSession = await getOrCreateSession({ userId, conversationId });
 
-      if (currentSession && currentSession.conversationId) {
+      if (!currentSession?.conversationId) {
+        failure = currentSession?.lastError
+          ? `cannot_create_conversation: ${currentSession.lastError}`
+          : 'cannot_create_conversation';
+        failure = failure.slice(0, 200);
+      } else {
+        // Chụp lại danh sách message hiện có trước khi gửi, để không nhận nhầm
+        // câu trả lời cũ còn nằm trong conversation.
+        const baselineIds = new Set();
+        try {
+          const baseRes = await fetch(
+            `https://chat.botpress.cloud/${webhookId}/conversations/${currentSession.conversationId}/messages`,
+            { method: 'GET', headers: { 'x-user-key': currentSession.userKey } }
+          );
+          if (baseRes.ok) {
+            const baseData = await baseRes.json();
+            for (const m of baseData?.messages || []) baselineIds.add(m.id);
+          }
+        } catch {
+          // Không chặn luồng gửi tin chỉ vì bước chụp baseline lỗi
+        }
+
         // Gửi tin nhắn của học sinh (createMessage)
-        const sendRes = await fetch(`https://chat.botpress.cloud/${webhookId}/messages`, {
+        const sendResult = await botpressFetch(`https://chat.botpress.cloud/${webhookId}/messages`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -249,16 +441,21 @@ export async function processChatMessage({ message, userId = 'student_user', con
           })
         });
 
-        if (sendRes.ok) {
-          const sendData = await sendRes.json();
-          const myMsgId = sendData?.message?.id;
-          const startTime = Date.now();
+        if (!sendResult.ok) {
+          console.warn('[Botpress sendMessage Failed]:', sendResult.status, sendResult.error);
+          failure = sendResult.status === 401 || sendResult.status === 403
+            ? 'webhook_unauthorized'
+            : `send_failed: ${sendResult.error}`.slice(0, 160);
+        } else {
+          const myMsgId = sendResult.data?.message?.id;
+          if (myMsgId) baselineIds.add(myMsgId);
 
-          // Thăm dò (polling) nhận câu trả lời thực tế từ bot CamCam (tối đa ~26s)
-          for (let attempt = 0; attempt < 22; attempt++) {
+          // Thăm dò (polling) nhận câu trả lời thực tế từ bot CamCam (tối đa ~24s)
+          let lastPollError = null;
+          for (let attempt = 0; attempt < 20; attempt++) {
             await new Promise((r) => setTimeout(r, 1200));
 
-            const listRes = await fetch(
+            const listResult = await botpressFetch(
               `https://chat.botpress.cloud/${webhookId}/conversations/${currentSession.conversationId}/messages`,
               {
                 method: 'GET',
@@ -266,33 +463,44 @@ export async function processChatMessage({ message, userId = 'student_user', con
               }
             );
 
-            if (listRes.ok) {
-              const listData = await listRes.json();
-              const msgs = listData?.messages || [];
+            if (!listResult.ok) {
+              lastPollError = `poll_failed: ${listResult.error}`.slice(0, 160);
+              continue;
+            }
 
-              // Tìm tin nhắn từ CamCam sinh ra sau thời điểm gửi tin nhắn này
-              const botMsg = msgs.find(
+            const msgs = listResult.data?.messages || [];
+
+            // Chỉ lấy tin nhắn MỚI (không nằm trong baseline) và không phải của chính user.
+            // Lấy tin mới nhất để không dính câu trả lời cũ.
+            const botMsgs = msgs
+              .filter(
                 (m) =>
+                  !baselineIds.has(m.id) &&
                   m.id !== myMsgId &&
                   m.userId !== currentSession.botpressUserId &&
                   m.userId !== currentSession.bpUserUuid &&
-                  new Date(m.createdAt).getTime() >= startTime - 3000
-              );
+                  typeof m.payload?.text === 'string' &&
+                  m.payload.text.trim()
+              )
+              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-              if (botMsg?.payload?.text) {
-                return {
-                  reply: botMsg.payload.text,
-                  source: 'botpress_live',
-                  botName: 'CamCam',
-                  conversationId: currentSession.conversationId
-                };
-              }
+            const botMsg = botMsgs[botMsgs.length - 1];
+            if (botMsg) {
+              return {
+                reply: botMsg.payload.text,
+                source: 'botpress_live',
+                botName: 'CamCam',
+                conversationId: currentSession.conversationId
+              };
             }
           }
+
+          failure = lastPollError || 'bot_no_reply';
         }
       }
     } catch (err) {
       console.warn('[Botpress Chat API Warning]:', err.message);
+      failure = `exception_${err?.message || 'unknown'}`.slice(0, 120);
     }
   }
 
@@ -321,12 +529,17 @@ export async function processChatMessage({ message, userId = 'student_user', con
 - Giao thức HTTP (cổng 80), HTTPS (cổng 443 mã hóa SSL/TLS).
 - Phân biệt thiết bị: Switch (tầng 2 - MAC), Router (tầng 3 - IP).`;
   } else {
-    reply = `Chào bạn! Mình là CamCam AI 😺. Bạn có câu hỏi nào về môn Tin học THPTQG (Python, CSDL SQL, Mạng máy tính) hãy gửi cho mình nhé!`;
+    // Không khớp chủ đề nào: phải nói thật là AI chưa trả lời được,
+    // thay vì chào hỏi vòng vo khiến người dùng tưởng bot hoạt động bình thường.
+    reply = failure
+      ? `CamCam chưa kết nối được tới Botpress Cloud nên hiện chỉ trả lời được các câu hỏi mẫu về Python, CSDL/SQL, Mạng máy tính và cấu trúc đề thi. Bạn thử hỏi một trong các chủ đề đó nhé!\n\nMã lỗi kỹ thuật: \`${failure}\``
+      : `Chào bạn! Mình là CamCam AI 😺. Bạn có câu hỏi nào về môn Tin học THPTQG (Python, CSDL SQL, Mạng máy tính) hãy gửi cho mình nhé!`;
   }
 
   return {
     reply,
     source: 'backend_fallback',
+    failure,
     conversationId: currentSession?.conversationId
   };
 }

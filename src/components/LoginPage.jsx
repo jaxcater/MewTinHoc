@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldCheck, BookOpen, Brain, ArrowRight, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ShieldCheck, BookOpen, Brain, ArrowRight, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail } from 'lucide-react';
 import { supabase } from '../supabase';
 import logoMeoCam from '../../img/logomeocam.png';
+import LandingPage from './landing/LandingPage';
 
 const FEATURES = [
   { icon: BookOpen, label: 'Kho đề thi chuẩn cấu trúc mới của Bộ GD&ĐT', color: '#EA580C' },
@@ -295,16 +296,46 @@ function PrivacyContent() {
   );
 }
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage({ onLogin, initialStage = 'landing' }) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [floatAnim, setFloatAnim] = useState(false);
   const [termsModal, setTermsModal] = useState({ open: false, tab: 'terms' });
 
+  /**
+   * Hai chặng của trang khi chưa đăng nhập:
+   *   'landing' — trang giới thiệu, học viên cuộn và đọc
+   *   'auth'    — màn hình đăng nhập, hiện sau khi bấm "Bắt đầu học ngay"
+   * Giữ trong cùng component để không mất state lỗi OAuth khi quay lại.
+   */
+  const [stage, setStage] = useState(initialStage);
+
+  // Ao vào màn hình đăng nhập: reset rồi bật lại để hiệu ứng chạy mỗi lần mở.
   useEffect(() => {
-    const t = setTimeout(() => setFloatAnim(true), 100);
+    if (stage !== 'auth') {
+      setFloatAnim(false);
+      return;
+    }
+    const t = setTimeout(() => setFloatAnim(true), 80);
     return () => clearTimeout(t);
+  }, [stage]);
+
+  // Đưa tiêu điểm bàn phím vào màn hình đăng nhập ngay khi nó xuất hiện, để
+  // người dùng bàn phím không bị mắc kẹt ở landing đã bị gỡ khỏi DOM.
+  const authRootRef = useRef(null);
+  useEffect(() => {
+    if (stage === 'auth') authRootRef.current?.focus();
+  }, [stage]);
+
+  const openAuth = useCallback(() => {
+    setStage('auth');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+
+  const backToLanding = useCallback(() => {
+    setStage('landing');
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, []);
 
   // Kiểm tra lỗi OAuth trả về từ URL nếu có
@@ -364,11 +395,25 @@ export default function LoginPage({ onLogin }) {
     setTermsModal({ open: true, tab: 'privacy' });
   };
 
+  // Chặng 1 — trang giới thiệu. Chỉ render khi chưa bấm bắt đầu.
+  if (stage === 'landing') {
+    return <LandingPage onStart={openAuth} />;
+  }
+
   return (
-    <div className="login-page-root">
+    <div className="login-page-root" ref={authRootRef} tabIndex={-1}>
       <div className="login-blob login-blob-1" />
       <div className="login-blob login-blob-2" />
       <div className="login-blob login-blob-3" />
+
+      {/* Quay lại landing — ghim ở góc trên bên trái của cả trang, không nằm
+          trong panel thương hiệu (panel này bị ẩn dưới 768px). */}
+      <button type="button" className="login-back-btn" onClick={backToLanding}>
+        <span className="login-back-btn__icon" aria-hidden="true">
+          <ArrowLeft size={16} />
+        </span>
+        <span className="login-back-btn__label">Về trang giới thiệu</span>
+      </button>
 
       <div className={`login-split-layout ${floatAnim ? 'login-float-in' : ''}`}>
         {/* LEFT — Branding */}
@@ -544,6 +589,31 @@ export default function LoginPage({ onLogin }) {
               >
                 <span>⚡ Vào nhanh trải nghiệm (Học viên mẫu)</span>
               </button>
+
+              {/* Nói rõ giới hạn của tài khoản Demo NGAY TRƯỚC khi học viên bấm vào,
+                  để họ không bất ngờ khi các chức năng bị khoá bên trong. */}
+              <p
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.4rem',
+                  margin: 0,
+                  fontSize: '0.72rem',
+                  lineHeight: 1.5,
+                  color: '#92400E',
+                  background: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  borderRadius: '6px',
+                  padding: '6px 9px'
+                }}
+              >
+                <Lock size={13} color="#B45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>
+                  Tài khoản Demo chỉ xem được <strong>Trang chủ</strong> và{' '}
+                  <strong>Lộ trình</strong>. Kho đề thi, tạo bài thi thử và CamCam cần
+                  đăng nhập bằng Google.
+                </span>
+              </p>
 
               <div style={{
 

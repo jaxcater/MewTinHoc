@@ -11,6 +11,8 @@ import {
   Lock
 } from 'lucide-react';
 import bubbleChatImg from '../../img/BubbleChat.png';
+import DemoLockedView from './demo/DemoLockedView';
+import { isLockedForDemo, DEMO_FEATURE } from '../lib/demoAccess';
 
 // Hàm render inline markdown: **bold**, *italic*, `code`
 function renderInlineMarkdown(text, isUser = false) {
@@ -56,6 +58,7 @@ function renderInlineMarkdown(text, isUser = false) {
 }
 
 // Cấu trúc lại tin nhắn! TAO CODE CẤM ĐỤNG!
+// (Đã bổ sung code block ``` và ordered list — bot trả markdown thật nên cần.)
 function FormattedMessage({ text, isUser = false }) {
   if (!text) return null;
   if (isUser) {
@@ -65,27 +68,91 @@ function FormattedMessage({ text, isUser = false }) {
   const lines = text.split('\n');
   const elements = [];
   let currentList = [];
+  let currentListType = 'none';
+  let listStart = 1;
   let elKey = 0;
 
   const flushList = () => {
-    if (currentList.length > 0) {
-      elements.push(
-        <ul key={elKey++} className="chat-bullet-list">
-          {currentList.map((item, idx) => (
-            <li key={idx} className="chat-bullet-item">
-              <span className="chat-bullet-icon">•</span>
-              <span className="chat-bullet-text">{renderInlineMarkdown(item, isUser)}</span>
-            </li>
-          ))}
-        </ul>
-      );
-      currentList = [];
-    }
+    if (currentList.length === 0) return;
+    const items = currentList.map((item, idx) => (
+      <li key={idx} className="chat-bullet-item">
+        <span className="chat-bullet-icon">{currentListType === 'ol' ? `${listStart + idx}.` : '•'}</span>
+        <span className="chat-bullet-text">{renderInlineMarkdown(item, isUser)}</span>
+      </li>
+    ));
+    elements.push(
+      <ul key={elKey++} className={currentListType === 'ol' ? 'chat-bullet-list chat-ordered-list' : 'chat-bullet-list'}>
+        {items}
+      </ul>
+    );
+    currentList = [];
+    // Reset kiểu list: nếu không, list bị ngắt bởi code block sẽ dùng lại
+    // listStart cũ và mọi mục đều hiện "1.".
+    currentListType = 'none';
   };
+
+  // Gom nhiều dòng code thành 1 khối <pre> duy nhất, giữ nguyên khoảng trắng.
+  // Botpress thường thụt lề cả khối theo fence, nên phải bỏ phần thụt lề chung
+  // (dedent) — nếu không code sẽ bị lệch sang phải.
+  const pushCodeBlock = (codeLines, lang) => {
+    const nonEmpty = codeLines.filter((l) => l.trim());
+    const commonIndent = nonEmpty.length
+      ? Math.min(...nonEmpty.map((l) => l.match(/^[ \t]*/)[0].length))
+      : 0;
+    const dedented = commonIndent > 0
+      ? codeLines.map((l) => (l.trim() ? l.slice(commonIndent) : ''))
+      : codeLines.map((l) => (l.trim() ? l : ''));
+
+    // Bỏ dòng trống ở đầu/cuối khối code
+    while (dedented.length && !dedented[0].trim()) dedented.shift();
+    while (dedented.length && !dedented[dedented.length - 1].trim()) dedented.pop();
+
+    elements.push(
+      <div key={elKey++} className="chat-code-block">
+        {lang ? <div className="chat-code-lang">{lang}</div> : null}
+        <pre className="chat-code-pre">
+          <code>{dedented.join('\n')}</code>
+        </pre>
+      </div>
+    );
+  };
+
+  let inCodeBlock = false;
+  let codeLang = '';
+  let codeLines = [];
 
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i];
     const trimmed = rawLine.trim();
+
+    // --- Bên trong code block: giữ nguyên từng dòng, không xử lý markdown ---
+    if (inCodeBlock) {
+      if (trimmed.startsWith('```')) {
+        inCodeBlock = false;
+        pushCodeBlock(codeLines, codeLang);
+        codeLines = [];
+        codeLang = '';
+      } else {
+        codeLines.push(rawLine);
+      }
+      continue;
+    }
+
+    // --- Mở code block: ``` hoặc ```lang ---
+    if (trimmed.startsWith('```')) {
+      flushList();
+      const afterFence = trimmed.slice(3).trim();
+      // Trường hợp ```code``` nằm gọn trên một dòng
+      if (afterFence.endsWith('```')) {
+        const inlineCode = afterFence.slice(0, -3);
+        pushCodeBlock(inlineCode.split('\n'), '');
+        continue;
+      }
+      inCodeBlock = true;
+      codeLang = afterFence;
+      codeLines = [];
+      continue;
+    }
 
     if (!trimmed) {
       flushList();
@@ -94,8 +161,22 @@ function FormattedMessage({ text, isUser = false }) {
 
     // Gạch đầu dòng: - hoặc * hoặc •
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+      if (currentListType !== 'ul') flushList();
+      currentListType = 'ul';
       const itemContent = trimmed.replace(/^[-*•]\s+/, '');
       currentList.push(itemContent);
+      continue;
+    }
+
+    // Danh sách đánh số: 1. hoặc 1)
+    const orderedMatch = trimmed.match(/^(\d+)[.)]\s+(.*)$/);
+    if (orderedMatch) {
+      if (currentListType !== 'ol') {
+        flushList();
+        currentListType = 'ol';
+        listStart = Number(orderedMatch[1]) || 1;
+      }
+      currentList.push(orderedMatch[2]);
       continue;
     }
 
@@ -120,22 +201,33 @@ function FormattedMessage({ text, isUser = false }) {
     );
   }
 
+  // Code block chưa đóng ở cuối tin nhắn — vẫn hiển thị để không mất nội dung
+  if (inCodeBlock && codeLines.length > 0) {
+    pushCodeBlock(codeLines, codeLang);
+  }
+
   flushList();
 
   return <div className="botpress-formatted-text">{elements}</div>;
 }
 
-export default function BotpressChatBubble({ user }) {
+export default function BotpressChatBubble({ user, onRequestUpgrade }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedCurl, setCopiedCurl] = useState(false);
   const [conversationId, setConversationId] = useState(null);
 
+  // Tài khoản Demo không được chat với CamCam.
+  const chatLocked = isLockedForDemo(user, DEMO_FEATURE.CHAT);
+
   // Trạng thái cấu hình từ Backend (được bảo mật, không lộ token)
   const [backendConfig, setBackendConfig] = useState({
     configured: false,
+    chatConfigured: false,
+    encryptionEnabled: false,
     maskedToken: '(Đang kiểm tra...)',
-    maskedBotId: '(Đang kiểm tra...)'
+    maskedBotId: '(Đang kiểm tra...)',
+    maskedWebhookId: '(Đang kiểm tra...)'
   });
 
   // State kiểm tra API /files từ Backend
@@ -181,9 +273,12 @@ export default function BotpressChatBubble({ user }) {
       if (res.ok) {
         const data = await res.json();
         setBackendConfig({
-          configured: data.configured,
+          configured: Boolean(data.configured),
+          chatConfigured: Boolean(data.chatConfigured),
+          encryptionEnabled: Boolean(data.encryptionEnabled),
           maskedToken: data.maskedToken,
-          maskedBotId: data.maskedBotId
+          maskedBotId: data.maskedBotId,
+          maskedWebhookId: data.maskedWebhookId
         });
       }
     } catch (err) {
@@ -223,6 +318,42 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
     navigator.clipboard.writeText(curlExample);
     setCopiedCurl(true);
     setTimeout(() => setCopiedCurl(false), 2000);
+  };
+
+  // Chẩn đoán từng bước kết nối Chat Botpress (config → user → conversation → message → reply)
+  const handleDiagnoseChat = async () => {
+    setApiTesting(true);
+    setApiResult(null);
+
+    try {
+      const res = await fetchBackend('/diagnose');
+      const data = await res.json().catch(() => null);
+
+      if (!data) {
+        setApiResult({ status: 'error', message: `Máy chủ trả về dữ liệu không đọc được (HTTP ${res.status}).` });
+      } else if (data.ok) {
+        setApiResult({
+          status: 'success',
+          message: data.message,
+          detail: data.reply ? `Bot trả lời: "${data.reply}"` : undefined
+        });
+      } else {
+        setApiResult({
+          status: 'error',
+          message: `Tắc ở bước "${data.step}": ${data.message}`,
+          detail: Array.isArray(data.steps) && data.steps.length
+            ? data.steps
+                .map((s) => `${s.ok ? '✅' : '❌'} ${s.step}${s.status ? ` (HTTP ${s.status})` : ''}${s.detail ? ` — ${s.detail}` : ''}`)
+                .join('\n')
+            : undefined
+        });
+      }
+    } catch (err) {
+      setApiResult({ status: 'error', message: err.message || 'Không thể kết nối tới máy chủ.' });
+    } finally {
+      setApiTesting(false);
+      checkBackendStatus();
+    }
   };
 
   // Kiểm tra gọi API Botpress Cloud Files thông qua Backend an toàn
@@ -312,6 +443,8 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
 
   // Xử lý gửi tin nhắn Chat thông qua Backend an toàn và duy trì conversationId
   const handleSendMessage = async (textToSend) => {
+    // Chặn tuyệt đối: tài khoản Demo không gửi được tin nhắn cho CamCam.
+    if (chatLocked) return;
     const text = (textToSend || inputMessage).trim();
     if (!text || isTyping) return;
 
@@ -353,17 +486,18 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
           }
         ]);
       } else {
-        throw new Error('Không nhận được phản hồi');
+        // Giữ lại status + body để báo đúng nguyên nhân, không nuốt lỗi.
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || `Máy chủ trả về HTTP ${res.status}`);
       }
     } catch (err) {
       console.warn('[Assistant Chat Error]:', err.message);
-      // Fallback phản hồi nếu trợ lý tạm thời bận
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           sender: 'bot',
-          text: `Mình đã nhận được câu hỏi "${text}". Trợ lý đang tạm bận, bạn thử lại sau ít phút nhé.`,
+          text: `Mình chưa gửi được câu hỏi "${text}" tới CamCam.\n\nLý do: ${err.message}\n\nNếu bạn đang chạy bản deploy tĩnh (GitHub Pages) thì sẽ không có máy chủ \`/api/botpress\`, cần chạy \`npm run dev\` hoặc \`npm run server\` trên VPS.`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -390,10 +524,15 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
                 className="botpress-mascot-img"
               />
               <span className="botpress-mascot-ping"></span>
+              {chatLocked && (
+                <span className="botpress-mascot-lock" title="CamCam bị khoá với tài khoản Demo">
+                  <Lock size={12} />
+                </span>
+              )}
             </div>
             {/* Tooltip bong bóng nhỏ nhắn mời chat */}
             <div className="botpress-mascot-tooltip">
-              <span>Hỏi CamCam nè! 😺</span>
+              <span>{chatLocked ? 'CamCam khoá với tài khoản Demo 🔒' : 'Hỏi CamCam nè! 😺'}</span>
             </div>
           </button>
         )}
@@ -411,24 +550,27 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
                 </div>
                 <span className="botpress-status-dot"></span>
               </div>
-              <div className="botpress-header-info">
-                <div className="botpress-title">
-                  <span>CamCam giải đáp</span>
+                <div className="botpress-header-info">
+                  <div className="botpress-title">
+                    <span>{chatLocked ? 'CamCam bị khoá' : 'CamCam giải đáp'}</span>
+                  </div>
+                  <div className="botpress-subtitle">
+                    {chatLocked ? 'Chỉ dành cho tài khoản thật' : 'Trợ lý học tập MewTinHoc'}
+                  </div>
                 </div>
-                <div className="botpress-subtitle">
-                  Trợ lý học tập MewTinHoc
-                </div>
-              </div>
             </div>
 
             <div className="botpress-header-actions">
-              <button
-                className="botpress-header-btn"
-                onClick={handleResetChat}
-                title="Bắt đầu đoạn chat mới (xóa ngữ cảnh cũ)"
-              >
-                <RotateCcw size={15} />
-              </button>
+              {/* Nút làm mới đoạn chat vô nghĩa khi CamCam bị khoá */}
+              {!chatLocked && (
+                <button
+                  className="botpress-header-btn"
+                  onClick={handleResetChat}
+                  title="Bắt đầu đoạn chat mới (xóa ngữ cảnh cũ)"
+                >
+                  <RotateCcw size={15} />
+                </button>
+              )}
               {user?.isAdmin && (
                 <button
                   className={`botpress-header-btn ${activeTab === 'backend_status' ? 'active' : ''}`}
@@ -466,26 +608,42 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
               {/* Thông tin cấu hình hiện tại ở Backend */}
               <div style={{ background: '#FFF', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Trạng thái kết nối:</span>
-                  <span style={{ fontWeight: 700, color: backendConfig.configured ? '#059669' : '#D97706' }}>
-                    {backendConfig.configured ? '🟢 Đã cấu hình trên Backend' : '🟡 Chờ Token trong .env.local'}
+                  <span style={{ color: 'var(--color-text-muted)' }}>Chat Botpress:</span>
+                  <span style={{ fontWeight: 700, color: backendConfig.chatConfigured ? '#059669' : '#D97706' }}>
+                    {backendConfig.chatConfigured
+                      ? '🟢 Đã có Webhook ID'
+                      : '🟡 Thiếu BOTPRESS_WEBHOOK_ID'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Token (đã mã hóa):</span>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Encryption Key:</span>
+                  <span style={{ fontWeight: 700, color: backendConfig.encryptionEnabled ? '#059669' : '#6B7280' }}>
+                    {backendConfig.encryptionEnabled ? 'Đã bật' : 'Không dùng'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Webhook ID:</span>
+                  <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: '4px' }}>{backendConfig.maskedWebhookId || '(Chưa thiết lập)'}</code>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Token Files API:</span>
                   <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: '4px' }}>{backendConfig.maskedToken}</code>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Bot ID (đã mã hóa):</span>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Bot ID:</span>
                   <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: '4px' }}>{backendConfig.maskedBotId}</code>
                 </div>
               </div>
 
               {/* Hướng dẫn cấu hình Backend */}
               <div style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-                Để cập nhật Token thật, chỉnh sửa file <strong>.env.local</strong> trên server:
+                Chat với CamCam chỉ cần <strong>BOTPRESS_WEBHOOK_ID</strong> trong file <strong>.env.local</strong> trên server:
                 <pre style={{ background: '#1E1E2E', color: '#A5B4FC', padding: '0.5rem 0.75rem', borderRadius: '6px', marginTop: '0.35rem', fontFamily: 'var(--font-code)', fontSize: '0.7rem' }}>
-                  {`BOTPRESS_TOKEN=bp_pat_your_token_here
+                  {`BOTPRESS_WEBHOOK_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# Tùy chọn — chỉ khi bot bật Encryption Key:
+BOTPRESS_ENCRYPTION_KEY=your_encryption_key
+# Tùy chọn — chỉ dùng cho công cụ /files:
+BOTPRESS_TOKEN=bp_pat_your_token_here
 BOTPRESS_BOT_ID=your_bot_id_here`}
                 </pre>
               </div>
@@ -503,7 +661,16 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
               </div>
 
               {/* Nút kiểm tra API từ Backend */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  className="botpress-btn-test"
+                  onClick={handleDiagnoseChat}
+                  disabled={apiTesting}
+                >
+                  <RefreshCw size={14} className={apiTesting ? 'spin-icon' : ''} />
+                  <span>{apiTesting ? 'Đang kiểm tra...' : 'Chẩn đoán Chat Botpress'}</span>
+                </button>
+
                 <button
                   className="botpress-btn-test"
                   onClick={handleTestBotpressFilesApi}
@@ -528,6 +695,11 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
                     {apiResult.status === 'success' ? '✅ Thành công' : (apiResult.status === 'demo' ? '💡 Chế độ Demo' : '⚠️ Thông báo:')}
                   </div>
                   <div>{apiResult.message}</div>
+                  {apiResult.detail && (
+                    <pre style={{ marginTop: '0.4rem', whiteSpace: 'pre-wrap', fontSize: '0.7rem', fontFamily: 'var(--font-code)', background: 'rgba(0,0,0,0.04)', padding: '0.4rem', borderRadius: '4px' }}>
+                      {apiResult.detail}
+                    </pre>
+                  )}
                   {apiResult.files && (
                     <div style={{ fontSize: '0.72rem', marginTop: '0.35rem' }}>
                       Số lượng files tìm thấy trên Botpress: {Array.isArray(apiResult.files) ? apiResult.files.length : 0}
@@ -540,10 +712,22 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
 
           {/* Tab 2: Chat Messages */}
           {activeTab === 'chat' && (
+            chatLocked ? (
+              <div className="botpress-locked-wrap">
+                <DemoLockedView
+                  feature="chat"
+                  variant="compact"
+                  onUpgrade={onRequestUpgrade}
+                  upgradeLabel="Đăng nhập Google để chat"
+                />
+              </div>
+            ) : (
             <>
-              {!backendConfig.configured && user?.isAdmin && (
+              {!backendConfig.chatConfigured && user?.isAdmin && (
                 <div className="botpress-demo-banner">
-                  <span>Trợ lý đang chạy ở chế độ mô phỏng an toàn.</span>
+                  <span>
+                    CamCam đang chạy chế độ trả lời mẫu: máy chủ chưa có BOTPRESS_WEBHOOK_ID.
+                  </span>
                 </div>
               )}
 
@@ -608,6 +792,7 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
                 </button>
               </div>
             </>
+            )
           )}
         </div>
       )}

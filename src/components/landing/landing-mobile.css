@@ -1,0 +1,904 @@
+/* ============================================================
+   MewTinHoc - Landing page: mobile typesetting pass.
+
+   Loaded after landing.css, so these rules win on equal specificity
+   without touching the desktop layout.
+   Goals, in order:
+     1. One consistent side edge (--mtl-gutter) for every block.
+     2. A readable type scale: Vietnamese diacritics need more
+        leading than the desktop display sizes can afford.
+     3. Row and column rhythm: one spacing step per breakpoint
+        instead of eight different clamp values fighting each other.
+     4. Touch targets >= 44px and no horizontal scroll at 320px.
+
+   Only layout, spacing and type. No new motion, no new colour.
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .mtl-root {
+    /* One edge for the whole page. */
+    --mtl-gutter: 20px;
+
+    /* The page is taller on a phone, so each chapter breathes less. */
+    --mtl-section: 62px;
+
+    /* Body copy drops one step: 16px reads better at arm's length,
+       and the long paragraphs stop looking like a wall. */
+    --mtl-body: 1rem;
+    --mtl-lead: 1.0625rem;
+    --mtl-head: clamp(1.75rem, 1.28rem + 3.9vw, 2.125rem);
+    --mtl-display: clamp(2.5rem, 1.55rem + 5vw, 3.05rem);
+
+    --mtl-radius: 18px;
+    --mtl-radius-sm: 13px;
+  }
+
+  /* ---------- Type: line alignment and leading ---------- */
+
+  .mtl-root h1,
+  .mtl-root h2,
+  .mtl-root h3 {
+    /* Vietnamese stacks two marks on one vowel; -0.048em at 40px
+       collides them. Loosen the tracking, not the size. */
+    letter-spacing: -0.028em;
+  }
+
+  .mtl-root .mtl-h1 {
+    line-height: 1.02;
+    max-width: 100%;
+  }
+
+  /* landing.css sets leading 0.98 on `.mtl-root h1/h2/h3` (specificity
+     0,1,1), which beats the class rules below (0,1,0). On a phone that
+     leading is too tight for stacked Vietnamese diacritics, so the
+     class selectors are anchored to `.mtl-root` to win. */
+  .mtl-root .mtl-h2,
+  .mtl-root .mtl-cta__title {
+    font-size: var(--mtl-head);
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+    max-width: 100%;
+  }
+
+  .mtl-root .mtl-leg__title {
+    font-size: 1.0625rem;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    max-width: 100%;
+  }
+
+  .mtl-root .mtl-stage__title {
+    font-size: 1rem;
+    line-height: 1.32;
+  }
+
+  .mtl-root .mtl-explain__label,
+  .mtl-root .mtl-ai-note__head {
+    line-height: 1.3;
+  }
+
+  .mtl-lead {
+    line-height: 1.55;
+    max-width: 100%;
+  }
+
+  .mtl-p {
+    line-height: 1.62;
+    max-width: 100%;
+  }
+
+  .mtl-small {
+    line-height: 1.55;
+  }
+
+  /* The mask line clips a 110% offset; with taller leading the
+     descenders of "đúng", "cách" need the extra room. */
+  .mtl-mask-line {
+    padding-bottom: 0.18em;
+    margin-bottom: -0.14em;
+  }
+
+  /* Long tokens (MewTinHoc, THPTQG, 24 + 4) never push the page wide. */
+  .mtl-root {
+    overflow-wrap: break-word;
+  }
+
+  .mtl-root h1,
+  .mtl-root h2,
+  .mtl-root h3,
+  .mtl-brand__name,
+  .mtl-fact__value {
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  /* ---------- Navigation ---------- */
+
+  .mtl-nav {
+    padding-top: 12px;
+  }
+
+  .mtl-nav__inner {
+    gap: 0.7rem;
+  }
+
+  .mtl-brand {
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  /* The halo is a nice touch on a desktop but costs repaint budget on a
+     phone; the tile gradient and the coloured wordmark carry the
+     liveliness on their own. */
+  .mtl-brand__logo::after { display: none; }
+
+  .mtl-brand__logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    padding: 1.5px;
+    box-shadow: 0 6px 14px -8px rgba(234, 88, 12, 0.7); /* taste-skill-ignore brand mark lift */
+  }
+
+  .mtl-brand__mark {
+    border-radius: 10.5px;
+  }
+
+  .mtl-brand__name {
+    font-size: 1.0625rem;
+    line-height: 1.1;
+  }
+
+  .mtl-brand__tag {
+    font-size: 0.6875rem;
+    line-height: 1.25;
+    gap: 0.3rem;
+  }
+
+  .mtl-brand__dot {
+    width: 4.5px;
+    height: 4.5px;
+  }
+
+  /* landing.css sets .mtl-btn { width: 100% } at 520px for the hero
+     actions; the login pill in the nav must stay its own width. */
+  .mtl-nav__cta {
+    width: auto;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    font-size: 0.875rem;
+    flex: none;
+  }
+
+  /* ---------- Section heads ---------- */
+
+  .mtl-section__head {
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  .mtl-section__head .mtl-p {
+    max-width: 100%;
+  }
+
+  .mtl-section--demo {
+    padding-block: 40px var(--mtl-section);
+  }
+
+  .mtl-section--tight {
+    padding-block: 44px;
+  }
+
+  /* Anchor jumps land just under the fold line, not tight on the title. */
+  #lo-trinh,
+  #kho-de,
+  #de-ai,
+  #dinh-huong {
+    scroll-margin-top: 8px;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .mtl-hero {
+    padding-top: 18px;
+    padding-bottom: 44px;
+  }
+
+  .mtl-hero__grid {
+    gap: 24px;
+  }
+
+  .mtl-hero__copy {
+    gap: 16px;
+  }
+
+  .mtl-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .mtl-hero__actions .mtl-btn {
+    width: 100%;
+    min-height: 56px;
+    justify-content: space-between;
+    padding-left: 1.45rem;
+    padding-right: 0.72rem;
+  }
+
+  .mtl-hero__actions .mtl-link {
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  /* Three facts, one per line, read as a sentence: the number in ink,
+     the qualifier in muted text right after it. No table lines, no
+     justify-between, so nothing is pushed against the screen edge and
+     nothing can be clipped or wrapped into a ragged column. */
+  .mtl-hero__facts {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding-top: 4px;
+  }
+
+  .mtl-fact {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 7px;
+    padding: 0;
+    border: 0;
+  }
+
+  .mtl-fact__value {
+    font-size: 1.0625rem;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    flex: none;
+  }
+
+  .mtl-fact__label {
+    font-size: 0.875rem;
+    line-height: 1.35;
+    color: var(--mtl-muted);
+    text-align: left;
+    min-width: 0;
+  }
+
+  /* Stage: one square, generous margin, smaller satellites. */
+  .mtl-hero__stage {
+    max-width: min(100%, 340px);
+    margin-top: 4px;
+  }
+
+  .mtl-cat {
+    width: min(92%, 320px);
+  }
+
+  .mtl-cat__bubble {
+    top: -1%;
+    right: 1%;
+    font-size: 0.75rem;
+    padding: 0.42rem 0.68rem;
+    border-radius: 13px 13px 13px 4px;
+  }
+
+  .mtl-preview {
+    width: min(62%, 200px);
+    padding: 0.62rem 0.7rem;
+    border-radius: 12px;
+    bottom: 2%;
+  }
+
+  .mtl-preview__head {
+    margin-bottom: 0.42rem;
+  }
+
+  .mtl-preview__title,
+  .mtl-preview__pct,
+  .mtl-preview__meta {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .mtl-preview__meta {
+    margin-top: 0.4rem;
+  }
+
+  .mtl-chip {
+    left: 0;
+    top: 11%;
+    font-size: 0.75rem;
+    padding: 0.38rem 0.62rem;
+  }
+
+  /* ---------- Route ---------- */
+
+  .mtl-route {
+    padding-left: 22px;
+    gap: 0;
+  }
+
+  .mtl-route__rail {
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 2.5px;
+  }
+
+  .mtl-leg {
+    padding: 0 0 22px calc(22px + 0.15rem);
+    gap: 8px;
+  }
+
+  .mtl-leg:last-child {
+    padding-bottom: 4px;
+  }
+
+  .mtl-leg__body {
+    gap: 6px;
+  }
+
+  .mtl-leg__note {
+    line-height: 1.55;
+    max-width: 100%;
+  }
+
+  .mtl-leg__stations {
+    line-height: 1.55;
+    max-width: 100%;
+  }
+
+  .mtl-leg__station {
+    left: calc(22px * -1 - 5px);
+    top: 3px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .mtl-leg__ruler {
+    max-width: none;
+    gap: 4px;
+    margin: 4px 0 2px;
+  }
+
+  .mtl-leg__tick {
+    height: 5px;
+  }
+
+  .mtl-leg__mark {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px 10px;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-top: 2px;
+  }
+
+  .mtl-leg__name {
+    font-size: 0.75rem;
+  }
+
+  .mtl-leg__weeks {
+    font-size: 0.8125rem;
+  }
+
+  .mtl-leg__target {
+    font-size: 1.5rem;
+    margin-top: 0;
+    letter-spacing: -0.035em;
+  }
+
+  .mtl-leg__unit {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  /* ---------- Demo quiz ---------- */
+
+  .mtl-demo__grid {
+    gap: 22px;
+  }
+
+  .mtl-quiz {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .mtl-quiz__top {
+    gap: 6px 10px;
+    margin-bottom: 12px;
+  }
+
+  .mtl-quiz__station {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .mtl-quiz__count {
+    font-size: 0.75rem;
+    flex: none;
+  }
+
+  .mtl-quiz__prompt {
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: -0.012em;
+    margin-bottom: 14px;
+    max-width: 100%;
+  }
+
+  .mtl-quiz__options {
+    gap: 9px;
+  }
+
+  /* Min 50px tall: a thumb can hit it without aiming. */
+  .mtl-option {
+    min-height: 50px;
+    padding: 0.72rem 0.8rem;
+    gap: 0.6rem;
+    line-height: 1.48;
+    border-radius: 12px;
+  }
+
+  .mtl-option__key {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+  }
+
+  .mtl-explain {
+    margin-top: 14px;
+    padding: 0.85rem 0.9rem;
+    border-radius: 12px;
+  }
+
+  .mtl-explain__text {
+    line-height: 1.55;
+    max-width: 100%;
+  }
+
+  .mtl-demo__side {
+    gap: 18px;
+  }
+
+  .mtl-ai-note {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .mtl-ai-note__text {
+    line-height: 1.58;
+  }
+
+  .mtl-caps {
+    gap: 14px;
+  }
+
+  .mtl-cap__detail {
+    line-height: 1.58;
+  }
+
+  /* ---------- Exam bank ---------- */
+
+  .mtl-bank {
+    gap: 24px;
+  }
+
+  .mtl-bank__copy {
+    gap: 14px;
+  }
+
+  .mtl-bank__types {
+    gap: 12px;
+  }
+
+  .mtl-bank__type-label {
+    font-size: 1rem;
+  }
+
+  .mtl-bank__type-detail {
+    line-height: 1.58;
+  }
+
+  .mtl-bank__ui {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 18px;
+  }
+
+  .mtl-bank__bar {
+    gap: 7px;
+  }
+
+  .mtl-bank__search,
+  .mtl-bank__filter {
+    min-height: 36px;
+    padding: 0 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  .mtl-bank__rows {
+    gap: 5px;
+  }
+
+  .mtl-bank__row {
+    gap: 8px;
+    padding: 0.55rem 0.55rem;
+    border-radius: 9px;
+  }
+
+  .mtl-bank__ext {
+    min-width: 36px;
+    font-size: 0.625rem;
+  }
+
+  .mtl-bank__name {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .mtl-bank__tag {
+    font-size: 0.6875rem;
+  }
+
+  .mtl-bank__foot {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mtl-bank__foot span {
+    min-height: 32px;
+    padding: 0 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  /* ---------- AI exam ---------- */
+
+  .mtl-exam {
+    gap: 24px;
+  }
+
+  .mtl-exam__copy {
+    gap: 14px;
+  }
+
+  /* Four numbers as a two-by-two grid: one baseline per row. */
+  .mtl-exam__outputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    width: 100%;
+    padding-top: 2px;
+  }
+
+  .mtl-exam__output-value {
+    font-size: 1.0625rem;
+    line-height: 1.2;
+  }
+
+  .mtl-exam__output-label {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .mtl-exam__steps {
+    padding: 18px;
+    gap: 0.6rem;
+    border-radius: 18px;
+  }
+
+  .mtl-exam__step {
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .mtl-exam__step-mark {
+    width: 8px;
+    height: 8px;
+    margin-top: 0.4em;
+  }
+
+  /* ---------- Tracks ---------- */
+
+  .mtl-tracks {
+    gap: 12px;
+  }
+
+  .mtl-track {
+    padding: 18px;
+    gap: 6px;
+  }
+
+  .mtl-track__top {
+    gap: 6px;
+  }
+
+  .mtl-track__code {
+    font-size: 1.125rem;
+  }
+
+  .mtl-track__focus {
+    line-height: 1.55;
+  }
+
+  .mtl-track__foot {
+    padding-top: 10px;
+  }
+
+  .mtl-track__toggle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .mtl-major {
+    margin-top: 12px;
+  }
+
+  .mtl-major__panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .mtl-major__body {
+    gap: 20px;
+  }
+
+  .mtl-major__lead {
+    font-size: 1rem;
+    line-height: 1.55;
+    letter-spacing: -0.012em;
+    max-width: 100%;
+  }
+
+  .mtl-stages {
+    gap: 20px;
+  }
+
+  .mtl-stage {
+    gap: 5px;
+  }
+
+  .mtl-stage__note {
+    line-height: 1.55;
+    margin-bottom: 2px;
+  }
+
+  .mtl-stage__list {
+    gap: 5px;
+  }
+
+  .mtl-stage__list li {
+    padding-left: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .mtl-stage__list li::before {
+    top: 0.45em;
+  }
+
+  .mtl-major__foot {
+    margin-top: 14px;
+  }
+
+  /* ---------- Closing card ---------- */
+
+  .mtl-cta {
+    gap: 18px;
+    padding: 24px 20px 26px;
+    border-radius: 22px;
+  }
+
+  .mtl-cta__copy {
+    gap: 12px;
+  }
+
+  .mtl-cta__text {
+    line-height: 1.58;
+    max-width: 100%;
+  }
+
+  .mtl-cta__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .mtl-cta__actions .mtl-btn {
+    width: 100%;
+    min-height: 56px;
+    justify-content: space-between;
+    padding-left: 1.45rem;
+    padding-right: 0.72rem;
+  }
+
+  .mtl-cta__link {
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .mtl-cta__cat {
+    width: min(56%, 190px);
+  }
+
+  /* ---------- Footer: same edge as the content ---------- */
+
+  .site-footer {
+    padding: 1.75rem var(--mtl-gutter) 1.25rem;
+  }
+
+  .site-footer-inner {
+    gap: 0.85rem;
+  }
+
+  .site-footer-desc {
+    line-height: 1.6;
+  }
+
+  .site-footer-highlight {
+    line-height: 1.4;
+  }
+
+  .site-footer-bottom {
+    line-height: 1.5;
+  }
+}
+
+/* ============================================================
+   Narrow phones (iPhone SE, 320-390): shave the last few pixels
+   so nothing wraps into a ragged third line.
+   ============================================================ */
+
+@media (max-width: 390px) {
+  .mtl-root {
+    --mtl-gutter: 16px;
+    --mtl-section: 56px;
+    --mtl-head: 1.6875rem;
+  }
+
+  /* The tagline fits at 390px: there is ~90px of slack before the login
+     pill, so it stays legible instead of shrinking to a hairline. It
+     only tightens up in the 340px block below. */
+  .mtl-brand__tag {
+    font-size: 0.75rem;
+    letter-spacing: 0.008em;
+  }
+
+  .mtl-nav__cta {
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .mtl-hero__stage {
+    max-width: min(100%, 310px);
+  }
+
+  .mtl-cat {
+    width: min(94%, 300px);
+  }
+
+  .mtl-cat__bubble {
+    font-size: 0.6875rem;
+    padding: 0.38rem 0.58rem;
+  }
+
+  .mtl-preview {
+    width: min(64%, 186px);
+  }
+
+  .mtl-chip {
+    font-size: 0.6875rem;
+    padding: 0.34rem 0.55rem;
+  }
+
+  .mtl-quiz,
+  .mtl-ai-note,
+  .mtl-major__panel,
+  .mtl-exam__steps,
+  .mtl-track {
+    padding: 16px;
+  }
+
+  .mtl-option {
+    padding: 0.68rem 0.7rem;
+    gap: 0.55rem;
+  }
+
+  .mtl-option__key {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mtl-bank__ui {
+    padding: 10px;
+  }
+
+  .mtl-bank__name {
+    font-size: 0.6875rem;
+  }
+
+  /* The format tag still fits at 390px; it is dropped only in the
+     340px block below. */
+  .mtl-bank__tag {
+    font-size: 0.6875rem;
+  }
+
+  .mtl-bank__row {
+    padding: 0.5rem 0.5rem;
+    gap: 7px;
+  }
+
+  .mtl-cta {
+    padding: 22px 16px 24px;
+  }
+
+  .site-footer {
+    padding: 1.5rem var(--mtl-gutter) 1.1rem;
+  }
+}
+
+/* 320px: the smallest screen we promise. Everything must still fit
+   inside one column and one gutter. */
+@media (max-width: 340px) {
+  .mtl-root {
+    --mtl-gutter: 14px;
+    --mtl-display: 2.25rem;
+  }
+
+  .mtl-brand__logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .mtl-brand__mark {
+    border-radius: 9.5px;
+  }
+
+  .mtl-brand__name {
+    font-size: 1rem;
+  }
+
+  .mtl-brand__tag {
+    font-size: 0.6563rem;
+    letter-spacing: 0.004em;
+  }
+
+  .mtl-nav__cta {
+    min-height: 44px;
+    padding: 0 0.65rem;
+  }
+
+  .mtl-fact__value {
+    font-size: 1rem;
+  }
+
+  .mtl-fact__label {
+    font-size: 0.75rem;
+  }
+
+  .mtl-leg__mark {
+    gap: 3px 8px;
+  }
+
+  .mtl-leg__target {
+    font-size: 1.375rem;
+  }
+
+  .mtl-bank__search {
+    padding: 0 0.55rem;
+  }
+
+  /* At 340px the format tag and the filename cannot share the row
+     without truncating one of them; the format also repeats in the
+     "Nhận PDF, DOC..." line just above. */
+  .mtl-bank__tag {
+    display: none;
+  }
+}

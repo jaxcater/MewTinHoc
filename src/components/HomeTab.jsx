@@ -494,7 +494,7 @@ export default function HomeTab({
               ) : (
                 <>
                   <Flame size={20} />
-                  <span>Điểm Danh Ngay (+1 Streak)</span>
+                  <span>Điểm Danh Ngay</span>
                 </>
               )}
             </motion.button>

@@ -9,10 +9,12 @@ import {
   Sparkles,
   LogOut,
   Layers,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import logoMeoCam from '../../img/logomeocam.png';
 import { headerMotionVariants, reducedMotionVariants, SPRINGS } from '../variants';
+import { isDemoUser, isLockedForDemo, DEMO_FEATURE } from '../lib/demoAccess';
 
 export const TABS = {
   HOME: 'home',
@@ -28,7 +30,8 @@ export default function Navbar({
   streak,
   onOpenGoogleLogin,
   onLogout,
-  onOpenStreakDetails
+  onOpenStreakDetails,
+  onNavigate
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,9 +43,26 @@ export default function Navbar({
   const isExamsActive = location.pathname.startsWith('/exams');
   const isAiExamActive = location.pathname.startsWith('/ai-exam');
 
-  const handleNav = (path, tabKey) => {
+  // Tài khoản Demo chỉ đi được Trang chủ và Lộ trình; hai tab còn lại
+  // vẫn hiện ra nhưng được đánh dấu khoá để học viên biết trước.
+  const isDemo = isDemoUser(user);
+  const examsLocked = isLockedForDemo(user, DEMO_FEATURE.EXAMS);
+  const aiExamLocked = isLockedForDemo(user, DEMO_FEATURE.AI_EXAM);
+
+  // Ưu tiên handler do App truyền vào (đã có kiểm tra quyền tài khoản Demo).
+  const go = (tabKey) => {
+    if (onNavigate) {
+      onNavigate(tabKey);
+      return;
+    }
     if (setActiveTab) setActiveTab(tabKey);
-    navigate(path);
+    const fallbackPaths = {
+      [TABS.HOME]: '/',
+      [TABS.ROADMAP]: '/roadmap',
+      [TABS.EXAMS]: '/exams',
+      [TABS.AI_EXAM]: '/ai-exam'
+    };
+    navigate(fallbackPaths[tabKey] || '/');
   };
 
   const navHeaderVariants = prefersReducedMotion ? reducedMotionVariants : headerMotionVariants;
@@ -59,7 +79,7 @@ export default function Navbar({
         {/* Left: Brand Logo */}
         <div
           className="brand-section"
-          onClick={() => handleNav('/', TABS.HOME)}
+          onClick={() => go(TABS.HOME)}
           style={{ cursor: 'pointer' }}
           title="Về Trang chủ"
         >
@@ -111,6 +131,11 @@ export default function Navbar({
                   }}
                 />
                 <span className="student-name">{user.name}</span>
+                {isDemo && (
+                  <span className="student-demo-tag" title="Bạn đang dùng tài khoản Demo — chưa phải tài khoản thật">
+                    Demo
+                  </span>
+                )}
               </div>
 
               {/* Nút Admin chỉ hiển thị riêng cho người công ty (isAdmin === true) */}
@@ -194,7 +219,7 @@ export default function Navbar({
               role="tab"
               aria-selected={isHomeActive}
               className={`nav-tab-btn ${isHomeActive ? 'active' : ''}`}
-              onClick={() => handleNav('/', TABS.HOME)}
+              onClick={() => go(TABS.HOME)}
               id="tab-home"
             >
               {isHomeActive && (
@@ -216,7 +241,7 @@ export default function Navbar({
               role="tab"
               aria-selected={isRoadmapActive}
               className={`nav-tab-btn ${isRoadmapActive ? 'active' : ''}`}
-              onClick={() => handleNav('/roadmap', TABS.ROADMAP)}
+              onClick={() => go(TABS.ROADMAP)}
               id="tab-roadmap"
             >
               {isRoadmapActive && (
@@ -235,13 +260,15 @@ export default function Navbar({
               </span>
             </button>
 
-            {/* Tab: Kho đề thi */}
+            {/* Tab: Kho đề thi — khoá với tài khoản Demo */}
             <button
               role="tab"
               aria-selected={isExamsActive}
-              className={`nav-tab-btn ${isExamsActive ? 'active' : ''}`}
-              onClick={() => handleNav('/exams', TABS.EXAMS)}
+              aria-disabled={examsLocked || undefined}
+              className={`nav-tab-btn ${isExamsActive ? 'active' : ''} ${examsLocked ? 'is-demo-locked' : ''}`}
+              onClick={() => go(TABS.EXAMS)}
               id="tab-exams"
+              title={examsLocked ? 'Kho đề thi thử chưa mở cho tài khoản Demo' : 'Kho đề thi'}
             >
               {isExamsActive && (
                 <motion.div
@@ -254,16 +281,23 @@ export default function Navbar({
               <span className="nav-tab-inner">
                 <BookOpen size={17} />
                 <span className="nav-tab-label">Kho đề thi</span>
+                {examsLocked && (
+                  <span className="nav-tab-lock" aria-label="Bị khoá với tài khoản Demo">
+                    <Lock size={13} />
+                  </span>
+                )}
               </span>
             </button>
 
-            {/* Tab: Đề thi AI */}
+            {/* Tab: Đề thi AI — khoá với tài khoản Demo */}
             <button
               role="tab"
               aria-selected={isAiExamActive}
-              className={`nav-tab-btn ${isAiExamActive ? 'active' : ''}`}
-              onClick={() => handleNav('/ai-exam', TABS.AI_EXAM)}
+              aria-disabled={aiExamLocked || undefined}
+              className={`nav-tab-btn ${isAiExamActive ? 'active' : ''} ${aiExamLocked ? 'is-demo-locked' : ''}`}
+              onClick={() => go(TABS.AI_EXAM)}
               id="tab-ai-exam"
+              title={aiExamLocked ? 'Tạo bài thi thử chưa mở cho tài khoản Demo' : 'Tạo bài thi thử bằng AI'}
             >
               {isAiExamActive && (
                 <motion.div
@@ -277,7 +311,13 @@ export default function Navbar({
                 <Sparkles size={17} />
                 <span className="tab-label-full">Tạo bài thi thử & Đánh giá bằng AI</span>
                 <span className="tab-label-short nav-tab-label">Đề thi AI</span>
-                <span className="tab-badge-hot">AI</span>
+                {aiExamLocked ? (
+                  <span className="nav-tab-lock" aria-label="Bị khoá với tài khoản Demo">
+                    <Lock size={13} />
+                  </span>
+                ) : (
+                  <span className="tab-badge-hot">AI</span>
+                )}
               </span>
             </button>
           </nav>

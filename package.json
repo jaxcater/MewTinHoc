@@ -9,6 +9,11 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "server": "node server/server.js",
+    "exam:check": "node server/exam/worker.js --check",
+    "exam:refill": "node server/exam/worker.js",
+    "exam:reset": "node server/exam/worker.js --reset",
+    "exam:simulate": "node server/exam/worker.js --simulate",
+    "exam:loop": "node server/exam/worker.js --loop",
     "export:roadmap": "node scripts/exportRoadmaps.js"
   },
   "dependencies": {

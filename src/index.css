@@ -4199,6 +4199,82 @@ a {
   z-index: 1;
 }
 
+/* Nút quay lại trang giới thiệu — ghim ở góc trên bên trái của cả trang đăng
+   nhập, không nằm trong panel thương hiệu (panel bị ẩn dưới 768px). */
+.login-back-btn {
+  position: fixed;
+  top: clamp(14px, 2.4vw, 26px);
+  left: clamp(14px, 2.4vw, 26px);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0.3rem 0.95rem 0.3rem 0.35rem;
+  border: 1px solid rgba(194, 65, 12, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.92);
+  color: #7C2D12;
+  font-family: var(--font-main);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 18px -8px rgba(124, 45, 18, 0.35);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 160ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+
+.login-back-btn__icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(234, 88, 12, 0.12);
+  color: #C2410C;
+  flex: none;
+  transition: background-color 180ms ease, transform 200ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .login-back-btn:hover {
+    background: #ffffff;
+    border-color: rgba(194, 65, 12, 0.4);
+  }
+
+  .login-back-btn:hover .login-back-btn__icon {
+    background: rgba(234, 88, 12, 0.2);
+    transform: translateX(-2px);
+  }
+}
+
+.login-back-btn:active {
+  transform: scale(0.97);
+}
+
+.login-back-btn:focus-visible {
+  outline: 3px solid #C2410C;
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .login-back-btn__label { display: none; }
+  .login-back-btn {
+    padding: 0.28rem;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    border-radius: 999px;
+  }
+}
+
 /* Logo */
 .login-logo-group {
   display: flex;
@@ -4506,20 +4582,7 @@ a {
   color: var(--color-primary);
 }
 
-/* Back button */
-.login-back-btn {
-  align-self: flex-start;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: var(--font-main);
-  padding: 4px 0;
-  transition: color var(--transition-fast);
-}
-.login-back-btn:hover {
-  color: var(--color-primary);
-}
+/* Back button: xem khối .login-back-btn ở phần đầu trang đăng nhập. */
 
 /* Custom form */
 .login-custom-form {
@@ -5563,6 +5626,59 @@ a {
   border: 1px solid rgba(234, 88, 12, 0.2);
   padding: 1px 5px;
   border-radius: 4px;
+}
+
+/* Khối code (```) do bot trả về — giữ nguyên xuống dòng và khoảng trắng. */
+.chat-code-block {
+  margin: 0.15rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2A2A3C;
+  background: #1E1E2E;
+}
+
+.chat-code-lang {
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #A5B4FC;
+  background: #262636;
+  padding: 0.22rem 0.6rem;
+  border-bottom: 1px solid #2A2A3C;
+}
+
+.chat-code-pre {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  overflow-x: auto;
+  font-family: var(--font-code);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: #E2E8F0;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.chat-code-pre code {
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  white-space: pre;
+}
+
+/* Danh sách đánh số: số thay cho dấu chấm, canh cột đều nhau. */
+.chat-ordered-list .chat-bullet-icon {
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  min-width: 0.95rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .user-msg .chat-inline-code {
@@ -9207,4 +9323,114 @@ a {
   }
 }
 
+/* ============================================================
+   MOBILE-ONLY AMBIENT RHYTHM
+   Trên điện thoại không có con trỏ nên toàn bộ hiệu ứng hover
+   (nâng thẻ 4px, vạch nhấn bung ra, icon nghiêng) không bao giờ chạy.
+   Khối này thay thế bằng một nhịp "thở" đều đặn, chỉ bật khi:
+     - màn hình <= 768px  (bố cục mobile)
+     - (hover: none)      (thiết bị cảm ứng, không có chuột)
+     - người dùng không yêu cầu giảm chuyển động
+   => PC/desktop giữ nguyên 100% hành vi cũ.
 
+   Ghi chú kỹ thuật: dùng thuộc tính `scale` thay vì `transform` vì
+   Framer Motion ghi `transform` inline cho animation vào khung nhìn
+   (translateY + fade). `scale` là thuộc tính riêng, cộng dồn với
+   `transform` nên hai hệ không đè lên nhau.
+   ============================================================ */
+
+@keyframes mobileBreathBox {
+  0%, 100% { scale: 1; }
+  50%      { scale: 1.03; }
+}
+
+@keyframes mobileBreathTile {
+  0%, 100% { scale: 1; }
+  50%      { scale: 1.022; }
+}
+
+/* Vạch nhấn trên đỉnh thẻ chỉ số: dài ra rồi thu vào */
+@keyframes mobileAccentGrow {
+  0%, 100% { transform: scaleX(0.22); }
+  55%      { transform: scaleX(1); }
+}
+
+/* Thanh tiến độ: một dải màu dài ra rồi thu vào theo cùng nhịp.
+   Dải nằm DƯỚI lớp tiến độ thật, chỉ dài tối đa 70% và nhạt dần về phía
+   phải, nên đọc như nhịp thở chứ không phải số liệu đã đạt. */
+@keyframes mobileBarSweep {
+  0%   { transform: scaleX(0.08); opacity: 0; }
+  18%  { opacity: 0.75; }
+  58%  { transform: scaleX(0.7);  opacity: 0.75; }
+  100% { transform: scaleX(0.08); opacity: 0; }
+}
+
+@media (max-width: 768px) and (hover: none) and (prefers-reduced-motion: no-preference) {
+  /* Nhịp chung: mọi khối dùng cùng chu kỳ, chỉ lệch pha để tạo sóng chạy */
+  .metrics-row,
+  .knowledge-matrix-grid {
+    --breath-dur: 4.4s;
+    --breath-ease: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  /* --- 4 thẻ chỉ số làm đề --- */
+  .metric-card {
+    animation: mobileBreathBox var(--breath-dur) var(--breath-ease) infinite;
+  }
+
+  .metric-card:nth-child(2) { animation-delay: -0.55s; }
+  .metric-card:nth-child(3) { animation-delay: -1.1s; }
+  .metric-card:nth-child(4) { animation-delay: -1.65s; }
+
+  /* Vạch màu trên đỉnh thẻ: bỏ transition hover (không có hover),
+     chạy vòng dài ra / thu vào, lệch pha theo cùng quy luật. */
+  .metric-card::before {
+    transition: none;
+    animation: mobileAccentGrow var(--breath-dur) var(--breath-ease) infinite;
+  }
+
+  .metric-card:nth-child(2)::before { animation-delay: -0.55s; }
+  .metric-card:nth-child(3)::before { animation-delay: -1.1s; }
+  .metric-card:nth-child(4)::before { animation-delay: -1.65s; }
+
+  /* --- 4 khối kiến thức --- */
+  .matrix-card {
+    animation: mobileBreathTile var(--breath-dur) var(--breath-ease) infinite;
+  }
+
+  .matrix-card:nth-child(2) { animation-delay: -0.55s; }
+  .matrix-card:nth-child(3) { animation-delay: -1.1s; }
+  .matrix-card:nth-child(4) { animation-delay: -1.65s; }
+
+  /* Thanh tiến độ trong khối: lớp màu nằm dưới phần đã đạt nên khi
+     tiến độ thật > 0 thì phần đã đạt vẫn đọc đúng, lớp nhịp chỉ
+     lấp phần trống và nhô ra khỏi đó. */
+  .matrix-card .progress-bar-shell {
+    position: relative;
+  }
+
+  .matrix-card .progress-bar-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transform-origin: left center;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--card-accent) 72%, transparent) 0%,
+      color-mix(in srgb, var(--card-accent) 46%, transparent) 55%,
+      transparent 100%
+    );
+    animation: mobileBarSweep var(--breath-dur) var(--breath-ease) infinite;
+    pointer-events: none;
+  }
+
+  .matrix-card:nth-child(2) .progress-bar-shell::before { animation-delay: -0.55s; }
+  .matrix-card:nth-child(3) .progress-bar-shell::before { animation-delay: -1.1s; }
+  .matrix-card:nth-child(4) .progress-bar-shell::before { animation-delay: -1.65s; }
+}
+
+/* Khi người dùng chọn "giảm chuyển động", khối trên tự không áp dụng
+   (điều kiện `prefers-reduced-motion: no-preference`) nên các khối trở về
+   đúng trạng thái nghỉ của bản desktop: vạch nhấn đứng ở 28%, thanh tiến
+   độ chỉ hiển thị số liệu thật. */

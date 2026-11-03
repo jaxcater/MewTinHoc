@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Biến môi trường — không bao giờ commit (chứa khoá Supabase, EXAM_KEY_SECRET)
+.env
+.env.local
+.env.*.local
+
+# Kho đề đã sinh — dữ liệu dẫn xuất, sinh lại được từ sourcedethi/
+# (đặt ngoài repo trên production, nhưng chặn luôn cho an toàn)
+dethicosan/
+sourcedethi/
+server/exam/.key-secret
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

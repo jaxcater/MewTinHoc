@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar, { TABS } from './components/Navbar';
 import HomeTab from './components/HomeTab';
 import RoadmapTab from './components/RoadmapTab';
 import ExamRepoTab from './components/ExamRepoTab';
-import AiExamTab from './components/AiExamTab';
+import GenExamTab from './components/exam/GenExamTab';
 import LoginPage from './components/LoginPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageTransition from './components/motion/PageTransition';
@@ -17,11 +17,18 @@ import { useUserProgress } from './lib/userProgress';
 import { resolveUserRole, syncUserRoleToSupabase } from './lib/roleService';
 import BotpressChatBubble from './components/BotpressChatBubble';
 import AnnouncementBanner from './components/AnnouncementBanner';
+import DemoLockedView, { DEMO_LOCKED_CONTENT } from './components/demo/DemoLockedView';
+import { isDemoUser, isLockedForDemo, featureFromPath } from './lib/demoAccess';
 import logoMeoCam from '../img/logomeocam.png';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS.HOME);
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastTone, setToastTone] = useState('default');
+
+  // Khi tài khoản Demo bấm "mở khoá", đưa thẳng tới form đăng nhập Google
+  // thay vì bắt học viên đọc lại trang giới thiệu.
+  const [loginStage, setLoginStage] = useState('landing');
 
   // Màn hình Loading lúc khởi động app (lần đầu mở web / refresh)
   // Hiển thị tối thiểu ~700ms để tránh "flash" gây khó chịu, đồng thời mask quá trình rehydrate state.
@@ -68,10 +75,12 @@ export default function App() {
   } = useUserProgress(user);
 
   // Helper to show toasts
-  const showToast = (msg) => {
+  const showToast = (msg, tone = 'default') => {
     setToastMessage(msg);
+    setToastTone(tone);
     setTimeout(() => {
       setToastMessage(null);
+      setToastTone('default');
     }, 4000);
   };
 
@@ -168,7 +177,8 @@ export default function App() {
   };
 
   // Handle logout → back to Login page
-  const handleLogout = async () => {
+  const handleLogout = async ({ silent = false } = {}) => {
+    const wasDemo = isDemoUser(user);
     try {
       await supabase.auth.signOut();
     } catch (e) {
@@ -176,8 +186,55 @@ export default function App() {
     }
     setUser(null);
     localStorage.removeItem('tinhoc_user');
-    showToast('Đã đăng xuất tài khoản Google.');
+    sessionStorage.removeItem('tinhoc_demo_user');
+    if (silent) return;
+    setLoginStage('landing');
+    showToast(
+      wasDemo
+        ? 'Đã thoát tài khoản Demo. Đăng nhập bằng Google để mở khoá toàn bộ chức năng nhé!'
+        : 'Đã đăng xuất tài khoản Google.'
+    );
   };
+
+  /* ------------------------------------------------------------------
+     TÀI KHOẢN DEMO — chặn các chức năng chỉ dành cho tài khoản thật
+     ------------------------------------------------------------------ */
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Bấm vào chức năng bị khoá → không điều hướng, chỉ hiện thông báo.
+  const handleDemoBlocked = useCallback((feature) => {
+    const text = DEMO_LOCKED_CONTENT[feature]?.toast;
+    if (text) showToast(text, 'demo');
+  }, []);
+
+  // Muốn mở khoá: thoát phiên Demo rồi quay về màn hình đăng nhập Google.
+  const handleRequestUpgrade = useCallback(async () => {
+    setLoginStage('auth');
+    await handleLogout({ silent: true });
+  }, [user]);
+
+  // Điều hướng theo tab (dùng chung cho Navbar và các nút CTA trong nội dung).
+  // Với chức năng bị khoá, vẫn mở đúng route để học viên thấy trang thông báo
+  // đầy đủ (giải thích + nút đăng nhập), kèm toast để không bị bỏ lỡ.
+  const goToTab = useCallback((tabKey) => {
+    const path = tabKey === TABS.ROADMAP
+      ? '/roadmap'
+      : tabKey === TABS.EXAMS
+        ? '/exams'
+        : tabKey === TABS.AI_EXAM
+          ? '/ai-exam'
+          : '/';
+
+    if (tabKey) setActiveTab(tabKey);
+    navigate(path);
+
+    const feature = featureFromPath(path);
+    if (isLockedForDemo(user, feature)) handleDemoBlocked(feature);
+  }, [user, handleDemoBlocked]);
+
+  const handleContentNavigate = goToTab;
+
   // Streak Check-in: +1 streak với Supabase Realtime
   const handleCheckIn = async () => {
     const res = await checkIn();
@@ -203,9 +260,6 @@ export default function App() {
     showToast(resetSimulation());
   };
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
   // Đồng bộ tab state với URL khi điều hướng bằng nút trong nội dung trang.
   useEffect(() => {
     if (location.pathname.startsWith('/roadmap')) setActiveTab(TABS.ROADMAP);
@@ -224,7 +278,7 @@ export default function App() {
   if (!user) {
     return (
       <>
-        <LoginPage onLogin={handleLogin} />
+        <LoginPage onLogin={handleLogin} initialStage={loginStage} />
         {toastMessage && (
           <div className="toast-notice">
             <Flame size={18} color="var(--color-amber)" />
@@ -248,6 +302,7 @@ export default function App() {
         user={user}
         streak={streak}
         onLogout={handleLogout}
+        onNavigate={goToTab}
         onOpenStreakDetails={() => {
           setActiveTab(TABS.HOME);
           navigate('/');
@@ -276,12 +331,7 @@ export default function App() {
                     onSimulateNextDay={handleSimulateNextDay}
                     onSimulateMissedDays={handleSimulateMissedDays}
                     onResetSimulation={handleResetSimulation}
-                    onNavigateTab={(tabKey) => {
-                      if (tabKey === TABS.ROADMAP) navigate('/roadmap');
-                      else if (tabKey === TABS.EXAMS) navigate('/exams');
-                      else if (tabKey === TABS.AI_EXAM) navigate('/ai-exam');
-                      else navigate('/');
-                    }}
+                    onNavigateTab={handleContentNavigate}
                   />
                 </PageTransition>
               }
@@ -315,7 +365,15 @@ export default function App() {
               path="/exams"
               element={
                 <PageTransition>
-                  <ExamRepoTab user={user} onRecordExamResult={recordExamResult} />
+                  {isLockedForDemo(user, 'exams') ? (
+                    <DemoLockedView
+                      feature="exams"
+                      onUpgrade={handleRequestUpgrade}
+                      onGoHome={() => navigate('/')}
+                    />
+                  ) : (
+                    <ExamRepoTab user={user} onRecordExamResult={recordExamResult} />
+                  )}
                 </PageTransition>
               }
             />
@@ -323,7 +381,15 @@ export default function App() {
               path="/ai-exam"
               element={
                 <PageTransition>
-                  <AiExamTab user={user} progress={progress} onRecordExamResult={recordExamResult} />
+                  {isLockedForDemo(user, 'aiExam') ? (
+                    <DemoLockedView
+                      feature="aiExam"
+                      onUpgrade={handleRequestUpgrade}
+                      onGoHome={() => navigate('/')}
+                    />
+                  ) : (
+                    <GenExamTab onRecordExamResult={recordExamResult} />
+                  )}
                 </PageTransition>
               }
             />
@@ -388,14 +454,14 @@ export default function App() {
       </footer>
 
       {/* Botpress Cloud Floating AI Chat Bubble */}
-      <BotpressChatBubble user={user} />
+      <BotpressChatBubble user={user} onRequestUpgrade={handleRequestUpgrade} />
 
       {/* Thông báo từ Admin gửi tới mọi người truy cập */}
       <AnnouncementBanner />
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="toast-notice">
+        <div className={`toast-notice${toastTone === 'demo' ? ' toast-notice--demo' : ''}`}>
           <Flame size={18} color="var(--color-amber)" />
           <span>{toastMessage}</span>
         </div>

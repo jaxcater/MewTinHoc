@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { botpressMiddleware } from './botpressMiddleware.js';
+import { examMiddleware } from './exam/examMiddleware.js';
 import { applySecurityHeaders } from './securityHeaders.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,16 @@ function safeDistPath(requestUrl) {
 const server = http.createServer(async (req, res) => {
   applySecurityHeaders(res, req);
 
+  // API gen đề phải đứng TRƯỚC static handler, nếu không POST sẽ rơi
+  // vào SPA fallback và trả về index.html.
+  if (req.url?.startsWith('/api/exams')) {
+    return examMiddleware(req, res, () => {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ ok: false, code: 'NOT_FOUND', message: 'Endpoint không tồn tại' }));
+    });
+  }
+
   if (req.url?.startsWith('/api/botpress')) {
     const originalUrl = req.url;
     req.url = originalUrl.replace(/^\/api\/botpress/, '') || '/';
@@ -58,6 +69,20 @@ const server = http.createServer(async (req, res) => {
 
   let filePath = requestedPath;
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    // SPA fallback CHỈ cho route không có đuôi file.
+    // Nếu URL trông như file cụ thể (.txt, .json, .dat, .js...) mà không
+    // tồn tại trong dist/ thì trả 404 — không được trả index.html, vì
+    // làm vậy che mất lỗi cấu hình và gây nhầm lẫn khi kiểm tra bảo mật
+    // (một request tới /dethicosan/pool/x.dat sẽ ra 200 dù không tồn tại).
+    const requestedExt = path.extname(requestedPath).toLowerCase();
+    // File cấu hình / bí mật không bao giờ được trả index.html
+    const baseName = path.basename(requestedPath).toLowerCase();
+    const isDotfile = baseName.startsWith('.');
+    if (requestedExt || isDotfile) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not found');
+      return;
+    }
     filePath = path.join(distDir, 'index.html');
   }
 
@@ -74,6 +99,18 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Static build chưa sẵn sàng' }));
 });
 
-server.listen(PORT, () => {
-  console.log(`Botpress backend server listening on port ${PORT}`);
+server.listen(PORT, async () => {
+  console.log(`MewTinHoc server listening on port ${PORT}`);
+
+  // Kiểm tra bố cục dữ liệu đề 1 lần lúc khởi động — cảnh báo sớm nếu
+  // EXAM_DATA_ROOT trỏ sai, để không phải đợi học viên bấm mới phát hiện.
+  try {
+    const { describeLayout } = await import('./exam/config.js');
+    const layout = describeLayout();
+    console.log(`[exam] Nguồn câu hỏi : ${layout.sourceDir}`);
+    console.log(`[exam] Kho đề        : ${layout.examRoot}`);
+    layout.warnings.forEach((warning) => console.warn(`[exam] ⚠ ${warning}`));
+  } catch (err) {
+    console.warn(`[exam] Không kiểm tra được bố cục: ${err.message}`);
+  }
 });

@@ -1,0 +1,2009 @@
+{
+ "url": "http://localhost:5174/",
+ "at": "2026-11-03T07:29:07.831Z",
+ "allow": [
+  "gradient",
+  "gradient-text",
+  "shadow",
+  "button-fx",
+  "palette-cream"
+ ],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 5,
+   "filled": [
+    0.92,
+    1,
+    0.97,
+    0.99,
+    0.98
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 14,
+    "transitions": 19,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 4337,
+     "screens": 4.8,
+     "words": 776,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 4,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "mew-mascot.webp",
+      "la-tache-noire-ou-la-lecon-de.jpg",
+      "abacus-museum.jpg",
+      "mew-mascot.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "chars": 20,
+     "lines": 2,
+     "size": 104,
+     "vw": 7.2,
+     "font": "Bricolage Grotesque",
+     "weight": 700,
+     "tracking": -0.038,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.42,
+     "top": 142,
+     "gradientText": true,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "lines": 2,
+     "size": 104,
+     "font": "Bricolage Grotesque"
+    },
+    "headings": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "words": 5,
+      "chars": 20,
+      "lines": 2,
+      "size": 104,
+      "vw": 7.2,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 142,
+      "gradientText": true,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Mười hai tuần, ba bậc",
+      "words": 5,
+      "chars": 21,
+      "lines": 1,
+      "size": 52,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 839,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "4,5 – 5,0",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.13,
+      "top": 988,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "7,5 – 8,5",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.13,
+      "top": 1210,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "9,0 – 10",
+      "words": 3,
+      "chars": 8,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.13,
+      "top": 1437,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Thử một câu thật",
+      "words": 4,
+      "chars": 16,
+      "lines": 1,
+      "size": 52,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 1779,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "0 / 8,5",
+      "words": 3,
+      "chars": 7,
+      "lines": 1,
+      "size": 52,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.26,
+      "top": 1919,
+      "tag": "div",
+      "kind": "heading"
+     },
+     {
+      "text": "Một môn, hai hướng",
+      "words": 4,
+      "chars": 18,
+      "lines": 1,
+      "size": 52,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.45,
+      "top": 2651,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+      "words": 7,
+      "chars": 31,
+      "lines": 2,
+      "size": 52,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.41,
+      "top": 3702,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Bricolage Grotesque",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      15,
+      17,
+      22,
+      40,
+      52,
+      104
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Bricolage Grotesque",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 13.8
+     },
+     "measureChars": 65,
+     "max": {
+      "size": 104,
+      "vw": 7.2,
+      "font": "Bricolage Grotesque",
+      "text": "Ôn Tin học"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fffcf7",
+     "bodyBgHsl": {
+      "h": 38,
+      "s": 1,
+      "l": 0.98
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fffaf3",
+       "top": 0,
+       "hsl": {
+        "h": 35,
+        "s": 1,
+        "l": 0.98
+       }
+      },
+      {
+       "color": "#2b1a11",
+       "top": 3645,
+       "hsl": {
+        "h": 21,
+        "s": 0.43,
+        "l": 0.12
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#3d2417",
+       "share": 0.37
+      },
+      {
+       "color": "#6b4e3d",
+       "share": 0.31
+      },
+      {
+       "color": "#2b1a11",
+       "share": 0.11
+      },
+      {
+       "color": "#f0cfb8",
+       "share": 0.08
+      },
+      {
+       "color": "#b8410a",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#fdf5ea",
+      "hsl": {
+       "h": 35,
+       "s": 0.83,
+       "l": 0.95
+      },
+      "fg": "#3d2417"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 7,
+     "inHero": 2,
+     "radius": 14,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Bắt đầu học ngay"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.mtl-mesh__layer.mtl-mesh__layer--a → radial-gradient(46% 38% at 22% 18%, rgba(251, 191, 36, 0.5) 0%, rgba(251, 191, 36, 0) 68%), radial-gradient(40",
+      "div.mtl-mesh__layer.mtl-mesh__layer--b → radial-gradient(44% 40% at 74% 74%, rgba(234, 88, 12, 0.18) 0%, rgba(234, 88, 12, 0) 70%), radial-gradient(38%",
+      "div.mtl-mesh__layer.mtl-mesh__layer--c → radial-gradient(38% 30% at 50% 46%, rgba(255, 237, 213, 0.8) 0%, rgba(255, 237, 213, 0) 74%)",
+      "div.mtl-glow → radial-gradient(circle at 50% 48%, rgba(251, 191, 36, 0.78) 0%, rgba(249, 115, 22, 0.42) 34%, rgba(234, 88, 12"
+     ],
+     "gradientText": 1,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 11,
+     "boxRadius": 22,
+     "squareMedia": 1,
+     "roundedMedia": 3,
+     "mediaRadius": 22,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 3,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 954
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.11
+     }
+    ],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 66,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "bricolage grotesque"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 4337,
+    "margins": {
+     "left": 100,
+     "right": 102
+    },
+    "sections": [
+     {
+      "sel": "div.mtl-shell",
+      "tag": "div",
+      "top": 66,
+      "height": 673,
+      "words": 74,
+      "media": 1,
+      "middle": 211,
+      "heading": {
+       "text": "Ôn Tin học",
+       "size": 104,
+       "tag": "h1"
+      },
+      "left": 100,
+      "right": 126,
+      "textLeft": 100,
+      "textRight": 126,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#lo-trinh",
+      "tag": "div",
+      "top": 738,
+      "height": 940,
+      "words": 186,
+      "media": 0,
+      "middle": 146,
+      "heading": {
+       "text": "Mười hai tuần, ba bậc",
+       "size": 52,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 107,
+      "textLeft": 100,
+      "textRight": 107,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#thu-mot-cau",
+      "tag": "div",
+      "top": 1678,
+      "height": 875,
+      "words": 249,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Thử một câu thật",
+       "size": 52,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 106,
+      "textLeft": 100,
+      "textRight": 106,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#dinh-huong",
+      "tag": "div",
+      "top": 2552,
+      "height": 1020,
+      "words": 109,
+      "media": 2,
+      "middle": 49,
+      "heading": {
+       "text": "Một môn, hai hướng",
+       "size": 52,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 140,
+      "textLeft": 100,
+      "textRight": 140,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.mtl-section.mtl-section--tight",
+      "tag": "section",
+      "top": 3573,
+      "height": 511,
+      "words": 35,
+      "media": 1,
+      "middle": 292,
+      "heading": {
+       "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+       "size": 52,
+       "tag": "h2"
+      },
+      "left": 158,
+      "right": 232,
+      "textLeft": 158,
+      "textRight": 828,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.mtl-footer",
+      "tag": "footer",
+      "top": 4084,
+      "height": 253,
+      "words": 69,
+      "media": 0,
+      "middle": 483,
+      "heading": null,
+      "left": 100,
+      "right": 100,
+      "textLeft": 100,
+      "textRight": 100,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "size": 104,
+      "top": 142,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 178,
+      "n": 6
+     },
+     {
+      "x": 100,
+      "n": 5
+     },
+     {
+      "x": 158,
+      "n": 2
+     },
+     {
+      "x": 685,
+      "n": 2
+     },
+     {
+      "x": 855,
+      "n": 2
+     },
+     {
+      "x": 134,
+      "n": 1
+     },
+     {
+      "x": 937,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 19,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.13,
+    "voidBox": {
+     "x": 0,
+     "y": 660,
+     "w": 1440,
+     "h": 120
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 6,
+   "filled": [
+    0.86,
+    0.68,
+    0.91,
+    0.92,
+    0.85,
+    0.99
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 14,
+    "transitions": 19,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 5798,
+     "screens": 5.7,
+     "words": 770,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 4,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "mew-mascot.webp",
+      "la-tache-noire-ou-la-lecon-de.jpg",
+      "abacus-museum.jpg",
+      "mew-mascot.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "chars": 20,
+     "lines": 2,
+     "size": 66,
+     "vw": 8.6,
+     "font": "Bricolage Grotesque",
+     "weight": 700,
+     "tracking": -0.038,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.85,
+     "top": 115,
+     "gradientText": true,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "lines": 2,
+     "size": 66,
+     "font": "Bricolage Grotesque"
+    },
+    "headings": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "words": 5,
+      "chars": 20,
+      "lines": 2,
+      "size": 66,
+      "vw": 8.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.85,
+      "top": 115,
+      "gradientText": true,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Mười hai tuần, ba bậc",
+      "words": 5,
+      "chars": 21,
+      "lines": 1,
+      "size": 39.2,
+      "vw": 5.1,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 1156,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "4,5 – 5,0",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 1445,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "7,5 – 8,5",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 1662,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "9,0 – 10",
+      "words": 3,
+      "chars": 8,
+      "lines": 1,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 1853,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Thử một câu thật",
+      "words": 4,
+      "chars": 16,
+      "lines": 1,
+      "size": 39.2,
+      "vw": 5.1,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 2130,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "0 / 8,5",
+      "words": 3,
+      "chars": 7,
+      "lines": 1,
+      "size": 39.2,
+      "vw": 5.1,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.87,
+      "top": 2726,
+      "tag": "div",
+      "kind": "heading"
+     },
+     {
+      "text": "Một môn, hai hướng",
+      "words": 4,
+      "chars": 18,
+      "lines": 1,
+      "size": 39.2,
+      "vw": 5.1,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 4500,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+      "words": 7,
+      "chars": 31,
+      "lines": 2,
+      "size": 39.2,
+      "vw": 5.1,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.59,
+      "top": 5188,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Bricolage Grotesque",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      15,
+      17,
+      20,
+      28,
+      39,
+      66
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Bricolage Grotesque",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 13.8
+     },
+     "measureChars": 65,
+     "max": {
+      "size": 66,
+      "vw": 8.6,
+      "font": "Bricolage Grotesque",
+      "text": "Ôn Tin học"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fffcf7",
+     "bodyBgHsl": {
+      "h": 38,
+      "s": 1,
+      "l": 0.98
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fffaf3",
+       "top": 0,
+       "hsl": {
+        "h": 35,
+        "s": 1,
+        "l": 0.98
+       }
+      },
+      {
+       "color": "#ffffff",
+       "top": 2274,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      },
+      {
+       "color": "#2b1a11",
+       "top": 4971,
+       "hsl": {
+        "h": 21,
+        "s": 0.43,
+        "l": 0.12
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#3d2417",
+       "share": 0.39
+      },
+      {
+       "color": "#6b4e3d",
+       "share": 0.33
+      },
+      {
+       "color": "#2b1a11",
+       "share": 0.12
+      },
+      {
+       "color": "#f0cfb8",
+       "share": 0.06
+      },
+      {
+       "color": "#b8410a",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fdf5ea",
+      "hsl": {
+       "h": 35,
+       "s": 0.83,
+       "l": 0.95
+      },
+      "fg": "#3d2417"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 7,
+     "inHero": 2,
+     "radius": 14,
+     "height": 54,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Bắt đầu học ngay"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.mtl-mesh__layer.mtl-mesh__layer--a → radial-gradient(46% 38% at 22% 18%, rgba(251, 191, 36, 0.5) 0%, rgba(251, 191, 36, 0) 68%), radial-gradient(40",
+      "div.mtl-mesh__layer.mtl-mesh__layer--b → radial-gradient(44% 40% at 74% 74%, rgba(234, 88, 12, 0.18) 0%, rgba(234, 88, 12, 0) 70%), radial-gradient(38%",
+      "div.mtl-mesh__layer.mtl-mesh__layer--c → radial-gradient(38% 30% at 50% 46%, rgba(255, 237, 213, 0.8) 0%, rgba(255, 237, 213, 0) 74%)",
+      "div.mtl-glow → radial-gradient(circle at 50% 48%, rgba(251, 191, 36, 0.78) 0%, rgba(249, 115, 22, 0.42) 34%, rgba(234, 88, 12"
+     ],
+     "gradientText": 1,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 8,
+     "boxRadius": 14,
+     "squareMedia": 1,
+     "roundedMedia": 3,
+     "mediaRadius": 22,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.1
+     }
+    ],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 69,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "bricolage grotesque"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 5798,
+    "margins": {
+     "left": 31,
+     "right": 31
+    },
+    "sections": [
+     {
+      "sel": "div.mtl-shell",
+      "tag": "div",
+      "top": 69,
+      "height": 975,
+      "words": 74,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Ôn Tin học",
+       "size": 66,
+       "tag": "h1"
+      },
+      "left": 31,
+      "right": 188,
+      "textLeft": 31,
+      "textRight": 188,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#lo-trinh",
+      "tag": "div",
+      "top": 1043,
+      "height": 974,
+      "words": 186,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Mười hai tuần, ba bậc",
+       "size": 39,
+       "tag": "h2"
+      },
+      "left": 31,
+      "right": 139,
+      "textLeft": 31,
+      "textRight": 139,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#thu-mot-cau",
+      "tag": "div",
+      "top": 2018,
+      "height": 1314,
+      "words": 249,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Thử một câu thật",
+       "size": 39,
+       "tag": "h2"
+      },
+      "left": 31,
+      "right": 31,
+      "textLeft": 31,
+      "textRight": 31,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#dinh-huong",
+      "tag": "div",
+      "top": 3332,
+      "height": 1557,
+      "words": 109,
+      "media": 2,
+      "middle": 0,
+      "heading": null,
+      "left": 31,
+      "right": 31,
+      "textLeft": 31,
+      "textRight": 36,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.mtl-section.mtl-section--tight",
+      "tag": "section",
+      "top": 4889,
+      "height": 627,
+      "words": 35,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+       "size": 39,
+       "tag": "h2"
+      },
+      "left": 61,
+      "right": 252,
+      "textLeft": 61,
+      "textRight": 252,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.mtl-footer",
+      "tag": "footer",
+      "top": 5515,
+      "height": 282,
+      "words": 69,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 31,
+      "right": 33,
+      "textLeft": 31,
+      "textRight": 33,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "size": 66,
+      "top": 115,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 31,
+      "n": 9
+     },
+     {
+      "x": 98,
+      "n": 6
+     },
+     {
+      "x": 47,
+      "n": 2
+     },
+     {
+      "x": 61,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 19,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    0.89,
+    0.84,
+    0.89,
+    0.96,
+    0.93,
+    0.87,
+    0.98
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 14,
+    "transitions": 19,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 5843,
+     "screens": 6.9,
+     "words": 770,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 4,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "mew-mascot.webp",
+      "la-tache-noire-ou-la-lecon-de.jpg",
+      "abacus-museum.jpg",
+      "mew-mascot.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "chars": 20,
+     "lines": 2,
+     "size": 44,
+     "vw": 11.3,
+     "font": "Bricolage Grotesque",
+     "weight": 700,
+     "tracking": -0.038,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.91,
+     "top": 102,
+     "gradientText": true,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Ôn Tin học đúng cách",
+     "words": 5,
+     "lines": 2,
+     "size": 44,
+     "font": "Bricolage Grotesque"
+    },
+    "headings": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "words": 5,
+      "chars": 20,
+      "lines": 2,
+      "size": 44,
+      "vw": 11.3,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.91,
+      "top": 102,
+      "gradientText": true,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Mười hai tuần, ba bậc",
+      "words": 5,
+      "chars": 21,
+      "lines": 1,
+      "size": 30.3,
+      "vw": 7.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.91,
+      "top": 1014,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "4,5 – 5,0",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.25,
+      "top": 1339,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "7,5 – 8,5",
+      "words": 3,
+      "chars": 9,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.25,
+      "top": 1602,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "9,0 – 10",
+      "words": 3,
+      "chars": 8,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.23,
+      "top": 1856,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Thử một câu thật",
+      "words": 4,
+      "chars": 16,
+      "lines": 1,
+      "size": 30.3,
+      "vw": 7.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.91,
+      "top": 2094,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "0 / 8,5",
+      "words": 3,
+      "chars": 7,
+      "lines": 1,
+      "size": 30.3,
+      "vw": 7.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.82,
+      "top": 2866,
+      "tag": "div",
+      "kind": "heading"
+     },
+     {
+      "text": "Một môn, hai hướng",
+      "words": 4,
+      "chars": 18,
+      "lines": 1,
+      "size": 30.3,
+      "vw": 7.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.91,
+      "top": 4337,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+      "words": 7,
+      "chars": 31,
+      "lines": 2,
+      "size": 30.3,
+      "vw": 7.8,
+      "font": "Bricolage Grotesque",
+      "weight": 700,
+      "tracking": -0.038,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.76,
+      "top": 5123,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Bricolage Grotesque",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      15,
+      17,
+      18,
+      28,
+      30,
+      44
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Bricolage Grotesque",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 13.8
+     },
+     "measureChars": 36,
+     "max": {
+      "size": 44,
+      "vw": 11.3,
+      "font": "Bricolage Grotesque",
+      "text": "Ôn Tin học"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fffcf7",
+     "bodyBgHsl": {
+      "h": 38,
+      "s": 1,
+      "l": 0.98
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fffaf3",
+       "top": 0,
+       "hsl": {
+        "h": 35,
+        "s": 1,
+        "l": 0.98
+       }
+      },
+      {
+       "color": "#ffffff",
+       "top": 2248,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      },
+      {
+       "color": "#2b1a11",
+       "top": 4935,
+       "hsl": {
+        "h": 21,
+        "s": 0.43,
+        "l": 0.12
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#3d2417",
+       "share": 0.39
+      },
+      {
+       "color": "#6b4e3d",
+       "share": 0.33
+      },
+      {
+       "color": "#2b1a11",
+       "share": 0.12
+      },
+      {
+       "color": "#f0cfb8",
+       "share": 0.06
+      },
+      {
+       "color": "#b8410a",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#c2410c",
+      "hsl": {
+       "h": 17,
+       "s": 0.88,
+       "l": 0.4
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 2,
+     "radius": 14,
+     "height": 54,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Bắt đầu học ngay"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.mtl-mesh__layer.mtl-mesh__layer--a → radial-gradient(46% 38% at 22% 18%, rgba(251, 191, 36, 0.5) 0%, rgba(251, 191, 36, 0) 68%), radial-gradient(40",
+      "div.mtl-mesh__layer.mtl-mesh__layer--b → radial-gradient(44% 40% at 74% 74%, rgba(234, 88, 12, 0.18) 0%, rgba(234, 88, 12, 0) 70%), radial-gradient(38%",
+      "div.mtl-mesh__layer.mtl-mesh__layer--c → radial-gradient(38% 30% at 50% 46%, rgba(255, 237, 213, 0.8) 0%, rgba(255, 237, 213, 0) 74%)",
+      "div.mtl-glow → radial-gradient(circle at 50% 48%, rgba(251, 191, 36, 0.78) 0%, rgba(249, 115, 22, 0.42) 34%, rgba(234, 88, 12"
+     ],
+     "gradientText": 1,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 12,
+     "boxRadius": 14,
+     "squareMedia": 1,
+     "roundedMedia": 2,
+     "mediaRadius": 22,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 2398
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.16
+     }
+    ],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "bricolage grotesque"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 5843,
+    "margins": {
+     "left": 18,
+     "right": 18
+    },
+    "sections": [
+     {
+      "sel": "div.mtl-shell",
+      "tag": "div",
+      "top": 64,
+      "height": 857,
+      "words": 74,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Ôn Tin học",
+       "size": 44,
+       "tag": "h1"
+      },
+      "left": 18,
+      "right": 18,
+      "textLeft": 18,
+      "textRight": 24,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#lo-trinh",
+      "tag": "div",
+      "top": 921,
+      "height": 1080,
+      "words": 186,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Mười hai tuần, ba bậc",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 18,
+      "right": 20,
+      "textLeft": 18,
+      "textRight": 20,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#thu-mot-cau",
+      "tag": "div",
+      "top": 2001,
+      "height": 1636,
+      "words": 249,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Thử một câu thật",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 18,
+      "right": 19,
+      "textLeft": 18,
+      "textRight": 19,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div#dinh-huong",
+      "tag": "div",
+      "top": 3637,
+      "height": 1230,
+      "words": 109,
+      "media": 2,
+      "middle": 0,
+      "heading": null,
+      "left": 18,
+      "right": 18,
+      "textLeft": 18,
+      "textRight": 22,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.mtl-section.mtl-section--tight",
+      "tag": "section",
+      "top": 4867,
+      "height": 630,
+      "words": 35,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Sẵn sàng bắt đầu tuần đầu tiên?",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 46,
+      "right": 46,
+      "textLeft": 46,
+      "textRight": 67,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.mtl-footer",
+      "tag": "footer",
+      "top": 5497,
+      "height": 346,
+      "words": 69,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 18,
+      "right": 26,
+      "textLeft": 18,
+      "textRight": 26,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Ôn Tin học đúng cách",
+      "size": 44,
+      "top": 102,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 18,
+      "n": 9
+     },
+     {
+      "x": 69,
+      "n": 6
+     },
+     {
+      "x": 34,
+      "n": 2
+     },
+     {
+      "x": 46,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 19,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "WARN",
+   "id": "dev-server",
+   "width": 1440,
+   "message": "This page is served by a development server (Vite, webpack or Next in dev mode).",
+   "fix": "Run the last gate on the production build too (vite build && vite preview, next build && next start, or the built index.html): minifiers and bundlers change the CSS a visitor receives.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\desktop-fold.jpg",
+   "pages": [
+    "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\desktop-page-01.jpg",
+    "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\desktop-page-02.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\tablet-fold.jpg",
+   "pages": [
+    "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\Jax\\Documents\\MewTinHoc\\.taste-skill\\after\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

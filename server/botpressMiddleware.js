@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession } from './botpressService.js';
+import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession, diagnoseBotpressChat } from './botpressService.js';
 import { applySecurityHeaders } from './securityHeaders.js';
 
 const MAX_BODY_BYTES = 16 * 1024;
@@ -92,8 +92,11 @@ export async function botpressMiddleware(req, res, next) {
       return sendJson(res, 200, {
         success: true,
         configured: config.isConfigured,
+        chatConfigured: config.chatConfigured,
+        encryptionEnabled: config.encryptionEnabled,
         maskedToken: config.maskedToken,
-        maskedBotId: config.maskedBotId
+        maskedBotId: config.maskedBotId,
+        maskedWebhookId: config.maskedWebhookId
       });
     }
 
@@ -101,6 +104,13 @@ export async function botpressMiddleware(req, res, next) {
       if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
       const result = await listBotpressFiles();
       return sendJson(res, result.status === 'error' ? 500 : 200, result);
+    }
+
+    // Chẩn đoán từng bước kết nối Botpress Chat (chỉ trả thông tin đã che bí mật)
+    if (url === '/diagnose' || url === '/api/botpress/diagnose') {
+      if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      const result = await diagnoseBotpressChat();
+      return sendJson(res, 200, result);
     }
 
     if (url === '/chat' || url === '/api/botpress/chat') {
