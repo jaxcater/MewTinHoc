@@ -241,7 +241,7 @@ export async function aiMiddleware(req, res, next) {
     if (statusCode >= 500) console.error('[ai] Lỗi xử lý API:', err);
 
     // Lỗi 502/503/504 do upstream: trả nguyên câu đã viết cho người học
-    const isKnownUpstream = ['AI_NOT_CONFIGURED', 'AI_TIMEOUT', 'AI_NETWORK', 'AI_BAD_KEY', 'AI_BAD_MODEL', 'AI_BUSY', 'AI_UPSTREAM_ERROR', 'AI_EMPTY', 'AI_BAD_JSON', 'AI_INCOMPLETE', 'AI_BLOCKED', 'AI_RATE_LIMITED'].includes(err?.code);
+    const isKnownUpstream = ['AI_NOT_CONFIGURED', 'AI_TIMEOUT', 'AI_NETWORK', 'AI_BAD_KEY', 'AI_BAD_MODEL', 'AI_BUSY', 'AI_QUOTA_DAY', 'AI_RATE_LIMITED', 'AI_UPSTREAM_ERROR', 'AI_EMPTY', 'AI_BAD_JSON', 'AI_INCOMPLETE', 'AI_BLOCKED'].includes(err?.code);
 
     return sendJson(res, statusCode, {
       ok: false,

@@ -12,6 +12,8 @@ export const AI_ERROR = Object.freeze({
   TOO_FAST: 'TOO_FAST',
   HOURLY_LIMIT: 'HOURLY_LIMIT',
   BUSY: 'AI_BUSY',
+  QUOTA_DAY: 'AI_QUOTA_DAY',
+  RATE_LIMITED: 'AI_RATE_LIMITED',
   NETWORK: 'AI_NETWORK',
   SERVER: 'AI_SERVER',
 });
@@ -37,28 +39,49 @@ async function postJson(path, body) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  // Server tự bỏ cuộc sau ~52s; client chờ thêm một nhịp rồi mới cắt.
+  // Không có timeout thì khi nginx giữ kết nối, nút quay mãi không bao giờ báo lỗi.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 75_000);
+
   let response;
   try {
     response = await fetch(`${BASE}${path}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
-  } catch {
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      throw createError(
+        'AI phản hồi quá lâu nên đã dừng chờ. Bạn bấm "Thử lại" nhé — log vẫn còn nguyên.',
+        AI_ERROR.NETWORK,
+        0,
+      );
+    }
     throw createError(
       'Không kết nối được máy chủ. Kiểm tra đường truyền rồi thử lại.',
       AI_ERROR.NETWORK,
       0,
     );
+  } finally {
+    clearTimeout(timer);
   }
+
+  const raw = await response.text().catch(() => '');
 
   let data = null;
   try {
-    data = await response.json();
+    data = raw ? JSON.parse(raw) : null;
   } catch {
+    // Không phải JSON = trang lỗi HTML của nginx/Cloudflare (thường gặp đúng lúc
+    // máy chủ đang khởi động lại sau deploy). Báo đúng bản chất thay vì
+    // "dữ liệu không hợp lệ" khiến học viên tưởng log của mình hỏng.
     throw createError(
-      'Máy chủ trả về dữ liệu không hợp lệ. Vui lòng thử lại.',
-      AI_ERROR.SERVER,
+      response.status === 502 || response.status === 503 || response.status === 504
+        ? 'Máy chủ đang khởi động lại. Bạn đợi khoảng 30 giây rồi bấm "Thử lại" nhé.'
+        : `Máy chủ trả về trang lỗi (mã ${response.status}). Bạn bấm "Thử lại" giúp mình nhé.`,      AI_ERROR.SERVER,
       response.status,
     );
   }

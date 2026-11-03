@@ -33,3 +33,6 @@ server/exam/.key-secret
 *.njsproj
 *.sln
 *.sw?
+
+# Artifact tam cua taste-skill inspector
+.taste-skill/

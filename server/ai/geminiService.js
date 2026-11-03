@@ -17,11 +17,24 @@ import { readEnv, hasEnv } from '../envLoader.js';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/** Model chính — đổi được bằng GEMINI_MODEL trong .env.local */
-const DEFAULT_MODEL = 'gemini-3.5-flash';
+/**
+ * Model chính — đổi được bằng GEMINI_MODEL trong .env.local
+ *
+ * Chọn flash-lite vì hạn mức miễn phí tính riêng theo model nhưng model càng
+ * "cao cấp" càng mau hết quota: gemini-3.5-flash và gemini-3.6-flash hết
+ * 20 lượt/ngày chỉ sau vài lần bấm. flash-lite trả lời nhanh và bền hơn,
+ * chất lượng vẫn đủ cho một nhận xét học tập.
+ */
+const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
 
-/** Model thử tiếp khi model chính báo 503/429 (Google quá tải theo từng model) */
-const FALLBACK_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+/**
+ * Model thử tiếp khi model chính báo 503/429.
+ *
+ * Hạn mức miễn phí của Google tính RIÊNG theo từng model (20 lượt/ngày/model),
+ * nên một model hết quota vẫn còn model khác chạy được — đây là lý do danh sách
+ * này tồn tại. Xếp theo mức độ sẵn sàng đo được, model mau hết quota để sau.
+ */
+const FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.6-flash'];
 
 /** Mỗi lần gọi tối đa 24 giây; cả request tối đa ~52 giây */
 const ATTEMPT_TIMEOUT_MS = 24_000;
@@ -217,6 +230,21 @@ async function generateOnce({ model, apiKey, system, prompt, deadline, signal })
 
   const apiMessage = data?.error?.message || '';
   const apiStatus = data?.error?.status || '';
+  const apiDetails = data?.error?.details || [];
+
+  /** Google ghi rõ quota nào bị vượt trong details — dùng để biết là hạn mức NGÀY */
+  const isDailyQuota = apiDetails.some((detail) =>
+    JSON.stringify(detail).includes('per_day'),
+  ) || /per day limit exceeded/i.test(apiMessage);
+  const isPerMinuteQuota = /per minute/i.test(apiMessage);
+
+  /** Google trả sẵn số giây phải chờ, ví dụ "Please retry in 15h38m30s" */
+  const retrySeconds = (() => {
+    const match = apiMessage.match(/retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/i);
+    if (!match) return 0;
+    const [, h, m, s] = match;
+    return (Number(h || 0) * 3600) + (Number(m || 0) * 60) + Math.ceil(Number(s || 0));
+  })();
 
   if (!response.ok) {
     if (response.status === 400 && /API key not valid/i.test(apiMessage)) {
@@ -225,6 +253,14 @@ async function generateOnce({ model, apiKey, system, prompt, deadline, signal })
     if (response.status === 404) {
       // Model đã bị gỡ với khoá này → đổi model khác là xong
       return { kind: 'busy', model, code: 'AI_BAD_MODEL', apiMessage };
+    }
+    // Hết hạn mức NGÀY: đổi model vẫn cứu được, nhưng đừng hứa "30 giây nữa thử lại".
+    // Chỉ khi MỌI model đều hết quota mới báo cho học viên biết là hết lượt hôm nay.
+    if (response.status === 429 && isDailyQuota) {
+      return { kind: 'quota', model, code: 'AI_QUOTA_DAY', apiMessage, retrySeconds };
+    }
+    if (response.status === 429 && isPerMinuteQuota) {
+      return { kind: 'busy', model, code: 'AI_RATE_LIMITED', apiMessage, retrySeconds };
     }
     if (response.status === 503 || response.status === 429 || response.status === 500) {
       return { kind: 'busy', model, code: 'AI_UPSTREAM_ERROR', apiMessage };
@@ -286,6 +322,10 @@ const MESSAGES = {
     'Không model nào trong danh sách còn dùng được với khoá này. Để trống GEMINI_MODEL trong .env.local (mặc định gemini-3.5-flash).',
   AI_BUSY:
     'Google đang quá tải model này. Bạn bấm "Đánh giá lại" sau khoảng 30 giây nhé — log vẫn còn nguyên và bạn không mất lượt nào.',
+  AI_QUOTA_DAY:
+    'Hạn mức miễn phí của AI đã dùng hết cho hôm nay. Bạn xem bảng "Điểm yếu lần này" bên dưới để biết cần ôn phần nào trước.',
+  AI_RATE_LIMITED:
+    'AI đang bị gọi quá nhanh. Bạn đợi khoảng 1 phút rồi bấm "Đánh giá lại" nhé — bạn không mất lượt nào.',
   AI_TIMEOUT: 'AI phản hồi quá lâu. Bạn thử lại sau ít giây nhé.',
   AI_NETWORK: 'Không kết nối được tới máy chủ AI. Kiểm tra đường truyền rồi thử lại.',
   AI_BLOCKED: 'AI từ chối nội dung này. Bạn thử tạo đề khác rồi đánh giá lại nhé.',
@@ -299,6 +339,8 @@ const STATUS_FOR = {
   AI_BAD_KEY: 502,
   AI_BAD_MODEL: 502,
   AI_BUSY: 503,
+  AI_QUOTA_DAY: 503,
+  AI_RATE_LIMITED: 429,
   AI_TIMEOUT: 504,
   AI_NETWORK: 502,
   AI_BLOCKED: 422,
@@ -307,10 +349,14 @@ const STATUS_FOR = {
 /**
  * Gọi Gemini, chạy song song có nhịp (hedged requests).
  *
- * Model mới của Google hay trả 503 khi quá tải, và chờ lần lượt từng model
- * sẽ khiến học viên đợi gần 1 phút. Vì vậy: bắn model chính ngay, sau 6 giây
- * không có kết quả thì bắn thêm model kế tiếp, lấy phản hồi thành công đầu
- * tiên rồi huỷ các nhánh còn lại.
+ * Google trả hai loại lỗi rất khác nhau và cần xử lý khác nhau:
+ *   - 503 / 429-per-minute: quá tải tạm thời → thử model khác là được
+ *   - 429-per-day: hết hạn mức MIỄN PHÍ của model đó trong ngày → model đó
+ *     coi như chết tới mai, thử lại vô ích
+ *
+ * Hạn mức miễn phí tính riêng theo từng model (20 lượt/ngày), nên khi model
+ * chính hết quota thì model dự phòng vẫn cứu được — đó là lý do có danh sách.
+ * Chỉ khi MỌI model đều hết quota mới báo học viên là hết lượt hôm nay.
  *
  * @param {{system: string, prompt: string}} input
  * @returns {Promise<object>} review đã chuẩn hoá, kèm meta
@@ -324,12 +370,19 @@ export async function requestAiReview({ system, prompt }) {
   const apiKey = readEnv('GEMINI_API_KEY');
   const deadline = Date.now() + TOTAL_DEADLINE_MS;
 
-  // Model chính trước, rồi lần lượt các model dự phòng.
-  // Hai vòng: Google trả 503 theo từng đợt ngắn, nên vòng 2 thường đã qua cơn.
-  const plan = [status.model, ...status.fallbacks, status.model, ...status.fallbacks];
-  const HEDGE_DELAY_MS = 6_000;
+  /**
+   * Chờ bao lâu trước khi bắn thêm model dự phòng (hedging).
+   *
+   * Đặt cao (15s) là có chủ đích: sinh JSON 3.000 token mất 15–25 giây, nên
+   * hedge sớm sẽ bắn 3 model song song cho mỗi lần bấm — đốt sạch 60 lượt
+   * miễn phí mỗi ngày chỉ sau vài lượt dùng. Lỗi hết quota thì Google trả
+   * trong <1 giây, nên vòng lặp vẫn nhảy sang model kế rất nhanh.
+   */
+  const HEDGE_DELAY_MS = 15_000;
 
   const tried = [];
+  const exhausted = new Set(); // model đã hết quota NGÀY → bỏ qua hẳn
+  let quotaSeconds = 0;
   let lastBusy = null;
   let sawTimeout = false;
   let sawNetwork = false;
@@ -337,8 +390,8 @@ export async function requestAiReview({ system, prompt }) {
 
   const controller = new AbortController();
   const abortAll = () => controller.abort();
+  let settled = false;
 
-  /** Bắn 1 nhánh; trả về kết quả hoặc null nếu nhánh này thất bại */
   const launch = (model) => {
     tried.push(model);
     return generateOnce({
@@ -351,64 +404,89 @@ export async function requestAiReview({ system, prompt }) {
     }).catch(() => null);
   };
 
-  try {
-    const pending = new Map(); // promise → thứ tự nhánh
+  const finish = (result) => ({
+    ...result.review,
+    meta: { ...result.meta, attempts: tried.length, tried },
+  });
 
-    for (let index = 0; index < plan.length; index += 1) {
-      const model = plan[index];
-      if (Date.now() > deadline - 2_500) break;
-
-      const task = launch(model).then((result) => ({ model, result }));
-      pending.set(task, model);
-
-      // Chờ phản hồi đầu tiên; nếu quá HEDGE_DELAY_MS thì bắn thêm nhánh kế
-      // và tiếp tục chờ — nhánh nào xong trước được dùng.
-      const settled = await Promise.race([
-        ...pending.keys(),
-        new Promise((resolve) => setTimeout(() => resolve(null), HEDGE_DELAY_MS)),
-      ]);
-
-      // Hết thời gian chờ mà chưa có nhánh nào xong → bắn thêm model kế tiếp
-      if (settled === null) continue;
-
-      pending.delete(settled);
-      const { result } = settled;
-      if (!result) continue;
-
-      if (result.kind === 'ok') {
-        abortAll();
-        return {
-          ...result.review,
-          meta: { ...result.meta, attempts: tried.length, tried },
-        };
-      }
-      if (result.kind === 'fatal') {
-        fatalError = result;
-        abortAll();
-        break;
-      }
-      if (result.kind === 'timeout') sawTimeout = true;
-      if (result.kind === 'network') sawNetwork = true;
-      if (result.kind === 'busy') lastBusy = result;
+  /** Ghi nhận kết quả 1 nhánh; trả về review nếu thành công */
+  const absorb = (result) => {
+    if (!result) return null;
+    if (result.kind === 'ok') return result;
+    if (result.kind === 'fatal') fatalError = result;
+    if (result.kind === 'quota') {
+      exhausted.add(result.model);
+      quotaSeconds = Math.max(quotaSeconds, result.retrySeconds || 0);
     }
+    if (result.kind === 'timeout') sawTimeout = true;
+    if (result.kind === 'network') sawNetwork = true;
+    if (result.kind === 'busy') lastBusy = result;
+    return null;
+  };
 
-    // Chờ nốt các nhánh còn treo (nếu có) trước khi kết luận thất bại
-    if (pending.size) {
-      const remaining = await Promise.race([
-        Promise.race([...pending.keys()]),
-        new Promise((resolve) => setTimeout(() => resolve(null), Math.max(1_000, deadline - Date.now()))),
-      ]);
-      if (remaining?.result?.kind === 'ok') {
-        abortAll();
-        return {
-          ...remaining.result.review,
-          meta: { ...remaining.result.meta, attempts: tried.length, tried },
-        };
+  try {
+    // Vòng 1 thử lần lượt; vòng 2 chỉ thử lại các model CHƯA hết quota
+    // (503 thường tự hết sau vài giây, còn model đã hết quota thì chờ vô ích).
+    for (let round = 0; round < 2; round += 1) {
+      const plan = [status.model, ...status.fallbacks].filter((m) => !exhausted.has(m));
+      if (!plan.length) break;
+      if (round > 0) await new Promise((r) => setTimeout(r, 1_200));
+
+      const pending = new Map();
+
+      for (const model of plan) {
+        if (settled) break;
+        if (Date.now() > deadline - 2_500) break;
+
+        const task = launch(model).then((result) => ({ model, result }));
+        pending.set(task, model);
+
+        const first = await Promise.race([
+          ...pending.keys(),
+          new Promise((resolve) => setTimeout(() => resolve(null), HEDGE_DELAY_MS)),
+        ]);
+
+        // Chưa nhánh nào xong sau 15s → cứ để nó chạy, thử nhịp nhàng model kế
+        if (first === null) continue;
+
+        pending.delete(first);
+        const ok = absorb(first.result);
+        if (ok) {
+          settled = true;
+          abortAll();
+          return finish(ok);
+        }
+        if (fatalError) {
+          settled = true;
+          abortAll();
+          break;
+        }
       }
-      if (remaining?.result?.kind === 'fatal') fatalError = remaining.result;
-      if (remaining?.result?.kind === 'busy') lastBusy = remaining.result;
-      if (remaining?.result?.kind === 'timeout') sawTimeout = true;
-      if (remaining?.result?.kind === 'network') sawNetwork = true;
+
+      if (settled) break;
+
+      // Chờ nốt các nhánh còn treo trước khi sang vòng sau
+      if (pending.size) {
+        const rest = await Promise.race([
+          Promise.all([...pending.keys()]),
+          new Promise((resolve) =>
+            setTimeout(() => resolve(null), Math.max(1_000, deadline - Date.now())),
+          ),
+        ]);
+        if (Array.isArray(rest)) {
+          for (const { result } of rest) {
+            const ok = absorb(result);
+            if (ok) {
+              settled = true;
+              abortAll();
+              return finish(ok);
+            }
+          }
+        }
+      }
+      if (fatalError) break;
+      // Mất mạng thì đổi model cũng vô ích
+      if (sawNetwork && !lastBusy && !exhausted.size) break;
     }
   } finally {
     abortAll();
@@ -431,6 +509,11 @@ export async function requestAiReview({ system, prompt }) {
   if (lastBusy?.code === 'AI_EMPTY' || lastBusy?.code === 'AI_BAD_JSON' || lastBusy?.code === 'AI_INCOMPLETE') {
     throw createError(MESSAGES[lastBusy.code], lastBusy.code, 502);
   }
+  // Mọi model đều hết hạn mức ngày → nói đúng sự thật, đừng hứa "30 giây nữa"
+  const allModels = [status.model, ...status.fallbacks];
+  if (allModels.every((m) => exhausted.has(m))) {
+    throw createError(formatQuotaMessage(quotaSeconds), 'AI_QUOTA_DAY', 503);
+  }
   if (sawTimeout && !lastBusy) {
     throw createError(MESSAGES.AI_TIMEOUT, 'AI_TIMEOUT', 504);
   }
@@ -438,4 +521,15 @@ export async function requestAiReview({ system, prompt }) {
     throw createError(MESSAGES.AI_NETWORK, 'AI_NETWORK', 502);
   }
   throw createError(MESSAGES.AI_BUSY, 'AI_BUSY', 503);
+}
+
+/** "còn khoảng 15 giờ 38 phút" — giúp học viên biết là hết lượt hôm nay, không phải lỗi */
+function formatQuotaMessage(seconds) {
+  const base =
+    'Hạn mức miễn phí của AI đã dùng hết cho hôm nay. Bạn xem bảng "Điểm yếu lần này" bên dưới để biết cần ôn phần nào trước.';
+  if (!seconds || seconds < 60) return base;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  const left = hours > 0 ? `${hours} giờ ${minutes} phút` : `${minutes} phút`;
+  return `Hạn mức miễn phí của AI đã dùng hết cho hôm nay, khoảng ${left} nữa mới có lại. Trong lúc chờ, bạn xem bảng "Điểm yếu lần này" bên dưới để biết cần ôn phần nào trước.`;
 }
