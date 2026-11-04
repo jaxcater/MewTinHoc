@@ -33,6 +33,7 @@ import { openExamLogReport } from '../../lib/examLogReport.js';
 import { fetchAiStatus, requestAiReview } from '../../lib/aiReviewApi.js';
 import useCountdown from './useCountdown.js';
 import AiReviewPanel from './AiReviewPanel.jsx';
+import QuestionNavigator from './QuestionNavigator.jsx';
 import './exam-room.css';
 import './gen-exam.css';
 
@@ -579,7 +580,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
                     data-result={detail.correctStatementCount === 4 ? 'correct' : 'wrong'}
                   >
                     <div className="exam-q__head">
-                      <span className="exam-q__no">Câu {index + 21}</span>
+                      <span className="exam-q__no">Câu {totalMcq + index + 1}</span>
                       <span
                         className="exam-q__topic"
                         style={{
@@ -689,12 +690,18 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
         </button>
       </div>
 
+      <div className="exam-room__workspace">
+      <QuestionNavigator exam={exam} mcqAnswers={mcqAnswers} tfAnswers={tfAnswers}
+        activePart={activePart} onChangePart={setActivePart} />
       <div className="exam-room__questions">
         {activePart === 'partI'
           ? exam.partI.map((question, index) => (
               <article
                 className="exam-q"
                 key={question.no}
+                id={"exam-question-partI-" + index}
+                data-question-key={"partI-" + index}
+                tabIndex={-1}
                 data-answered={Number.isInteger(mcqAnswers[index])}
               >
                 <div className="exam-q__head">
@@ -720,10 +727,13 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
               <article
                 className="exam-q"
                 key={question.no}
+                id={"exam-question-partII-" + index}
+                data-question-key={"partII-" + index}
+                tabIndex={-1}
                 data-answered={Object.keys(tfAnswers[index] || {}).length === 4}
               >
                 <div className="exam-q__head">
-                  <span className="exam-q__no">Câu {index + 21}</span>
+                  <span className="exam-q__no">Câu {totalMcq + index + 1}</span>
                   <span className="exam-q__topic">Đúng / Sai</span>
                 </div>
                 <p className="exam-q__scenario">{renderRichText(question.scenario)}</p>
@@ -760,6 +770,8 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
                 </div>
               </article>
             ))}
+      </div>
+
       </div>
 
       {submitError && (

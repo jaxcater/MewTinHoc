@@ -303,6 +303,7 @@ export default function App() {
         streak={streak}
         onLogout={handleLogout}
         onNavigate={goToTab}
+        onOpenArena={() => showToast('Đang xây dựng')}
         onOpenStreakDetails={() => {
           setActiveTab(TABS.HOME);
           navigate('/');
@@ -465,7 +466,7 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className={`toast-notice${toastTone === 'demo' ? ' toast-notice--demo' : ''}`}>
+        <div role="status" aria-live="polite" className={`toast-notice${toastTone === 'demo' ? ' toast-notice--demo' : ''}`}>
           <Flame size={18} color="var(--color-amber)" />
           <span>{toastMessage}</span>
         </div>

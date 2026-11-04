@@ -36,3 +36,6 @@ server/exam/.key-secret
 
 # Artifact tam cua taste-skill inspector
 .taste-skill/
+
+# Persistent daily chatbot usage
+var/chat-usage/

@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { identifyCaller } from './exam/auth.js';
+import { chatQuota } from './chatQuota.js';
 import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession, diagnoseBotpressChat } from './botpressService.js';
 import { applySecurityHeaders } from './securityHeaders.js';
 
@@ -74,7 +76,7 @@ export async function botpressMiddleware(req, res, next) {
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (method === 'OPTIONS') {
     if (!allowedOrigin || requestOrigin === allowedOrigin) {
@@ -101,6 +103,12 @@ export async function botpressMiddleware(req, res, next) {
       });
     }
 
+    if (url === '/quota' || url === '/api/botpress/quota') {
+      if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      const caller = await identifyCaller(req);
+      return sendJson(res, 200, { quota: chatQuota.status(caller.userId) });
+    }
+
     if (url === '/files' || url === '/api/botpress/files') {
       if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
       const result = await listBotpressFiles();
@@ -119,11 +127,21 @@ export async function botpressMiddleware(req, res, next) {
       const body = await parseJsonBody(req);
       const message = cleanString(body.message || body.text, MAX_MESSAGE_CHARS);
       if (!message) return sendJson(res, 400, { error: 'Tin nhắn không được để trống' });
+      const caller = await identifyCaller(req);
+      const reservation = chatQuota.consume(caller.userId);
+      if (!reservation.allowed) {
+        res.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(reservation.quota.resetAt) - Date.now()) / 1000))));
+        return sendJson(res, 429, {
+          code: 'CHAT_DAILY_LIMIT',
+          error: 'Bạn đã dùng hết 5 lượt chat hôm nay. Hạn mức đặt lại lúc 0 giờ Việt Nam.',
+          quota: reservation.quota,
+        });
+      }
       const userId = getChatSession(req, res);
       // conversationId luôn lấy từ phiên phía server (cookie) — không tin giá
       // trị client gửi lên, tránh việc chèn conversation của người khác.
       const chatRes = await processChatMessage({ message, userId, conversationId: null });
-      return sendJson(res, 200, chatRes);
+      return sendJson(res, 200, { ...chatRes, quota: reservation.quota });
     }
 
     if (url === '/reset' || url === '/api/botpress/reset') {

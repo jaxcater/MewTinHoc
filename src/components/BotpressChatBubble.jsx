@@ -11,6 +11,7 @@ import {
   Lock
 } from 'lucide-react';
 import bubbleChatImg from '../../img/BubbleChat.png';
+import { supabase } from '../supabase.js';
 import DemoLockedView from './demo/DemoLockedView';
 import { isLockedForDemo, DEMO_FEATURE } from '../lib/demoAccess';
 
@@ -212,6 +213,8 @@ function FormattedMessage({ text, isUser = false }) {
 }
 
 export default function BotpressChatBubble({ user, onRequestUpgrade }) {
+  const [chatQuota, setChatQuota] = useState(null);
+  const quotaExhausted = Boolean(chatQuota?.remaining === 0 && Date.parse(chatQuota.resetAt) > Date.now());
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedCurl, setCopiedCurl] = useState(false);
@@ -253,6 +256,10 @@ export default function BotpressChatBubble({ user, onRequestUpgrade }) {
   const fetchBackend = useCallback(async (endpoint, options = {}) => {
     const base = import.meta.env.BASE_URL || '/';
     const cleanBase = base.endsWith('/') ? base : base + '/';
+    const { data } = await supabase.auth.getSession();
+    const headers = new Headers(options.headers);
+    if (data?.session?.access_token) headers.set('Authorization', 'Bearer ' + data.session.access_token);
+    options = { ...options, headers };
     const primaryUrl = `${cleanBase}api/botpress${endpoint}`;
 
     try {
@@ -266,6 +273,23 @@ export default function BotpressChatBubble({ user, onRequestUpgrade }) {
       return await fetch(`/api/botpress${endpoint}`, options);
     }
   }, []);
+
+  useEffect(() => {
+    setChatQuota(null);
+    if (!isOpen || chatLocked) return undefined;
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const res = await fetchBackend('/quota');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setChatQuota(data.quota);
+      } catch { /* The next send still enforces the server quota. */ }
+    };
+    refresh();
+    const timer = setInterval(refresh, 60000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [isOpen, chatLocked, user?.id, fetchBackend]);
 
   // Kiểm tra trạng thái Backend khi mở component
   const checkBackendStatus = useCallback(async () => {
@@ -454,7 +478,7 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
     // Chặn tuyệt đối: tài khoản Demo không gửi được tin nhắn cho CamCam.
     if (chatLocked) return;
     const text = (textToSend || inputMessage).trim();
-    if (!text || isTyping) return;
+    if (!text || isTyping || quotaExhausted) return;
 
     const userMsg = {
       id: Date.now(),
@@ -490,6 +514,7 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
         if (!data) {
           throw new Error('Máy chủ trả về dữ liệu không đọc được');
         }
+        if (data.quota) setChatQuota(data.quota);
         if (data.conversationId) {
           setConversationId(data.conversationId);
         }
@@ -508,6 +533,12 @@ curl -H "Authorization: bearer $BOTPRESS_TOKEN" -H "x-bot-id: $BOTPRESS_BOT_ID" 
       } else {
         // Giữ lại status + body để báo đúng nguyên nhân, không nuốt lỗi.
         const body = await res.json().catch(() => null);
+        if (body?.quota) setChatQuota(body.quota);
+        if (body?.code === 'CHAT_DAILY_LIMIT') {
+          setMessages((prev) => [...prev, { id: Date.now() + 1, sender: 'bot',
+            text: body.error, time: 'Vừa xong' }]);
+          return;
+        }
         throw new Error(body?.error || `Máy chủ trả về HTTP ${res.status}`);
       }
     } catch (err) {
@@ -805,11 +836,17 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
                 <div ref={messagesEndRef} />
               </div>
 
+              <div role="status" style={{ padding: '8px 16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                {quotaExhausted
+                  ? 'Đã hết 5 lượt chat hôm nay. Hạn mức đặt lại lúc 0 giờ Việt Nam.'
+                  : (chatQuota ? 'Còn ' + chatQuota.remaining + '/5 lượt chat hôm nay.' : 'Giới hạn 5 lượt chat mỗi ngày.')}
+              </div>
               {/* Input Box */}
               <div className="botpress-input-box">
                 <input
                   type="text"
-                  placeholder="Đặt câu hỏi."
+                  placeholder={quotaExhausted ? "Bạn đã hết lượt chat hôm nay" : "Đặt câu hỏi."}
+                  disabled={quotaExhausted || isTyping}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -820,7 +857,7 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
                 <button
                   className="botpress-send-btn"
                   onClick={() => handleSendMessage()}
-                  disabled={!inputMessage.trim()}
+                  disabled={!inputMessage.trim() || isTyping || quotaExhausted}
                   title="Gửi câu hỏi"
                 >
                   <Send size={16} />

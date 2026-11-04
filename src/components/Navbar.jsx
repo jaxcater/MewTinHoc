@@ -10,6 +10,7 @@ import {
   LogOut,
   Layers,
   ShieldCheck,
+  Swords,
   Lock
 } from 'lucide-react';
 import logoMeoCam from '../../img/logomeocam.png';
@@ -52,7 +53,8 @@ export default function Navbar({
   onOpenGoogleLogin,
   onLogout,
   onOpenStreakDetails,
-  onNavigate
+  onNavigate,
+  onOpenArena
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -329,6 +331,22 @@ export default function Navbar({
                 ) : (
                   <span className="tab-badge-hot">AI</span>
                 )}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="nav-tab-btn is-demo-locked"
+              onClick={onOpenArena}
+              id="tab-arena"
+              aria-label="Đấu trường — Đang xây dựng"
+              title="Đấu trường — Đang xây dựng"
+            >
+              <span className="nav-tab-inner">
+                <Swords size={17} />
+                <span className="nav-tab-label">Đấu trường</span>
+                <span className="nav-tab-lock" aria-label="Đang khóa">
+                  <Lock size={13} />
+                </span>
               </span>
             </button>
           </nav>

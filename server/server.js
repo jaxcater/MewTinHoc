@@ -39,7 +39,7 @@ function safeDistPath(requestUrl) {
   return candidate;
 }
 
-const server = http.createServer(async (req, res) => {
+async function dispatch(req, res) {
   applySecurityHeaders(res, req);
 
   // API gen đề phải đứng TRƯỚC static handler, nếu không POST sẽ rơi
@@ -106,9 +106,18 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify({ error: 'Static build chưa sẵn sàng' }));
+}
+
+const server = http.createServer((req, res) => {
+  applySecurityHeaders(res, req);
+  const work = dispatch(req, res);
+  Promise.resolve(work).catch(() => {
+    if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: false, message: 'Server error' }));
+  });
 });
 
-server.listen(PORT, async () => {
+server.listen(PORT, process.env.HOST || '127.0.0.1', async () => {
   console.log(`MewTinHoc server listening on port ${PORT}`);
 
   // Kiểm tra bố cục dữ liệu đề 1 lần lúc khởi động — cảnh báo sớm nếu
