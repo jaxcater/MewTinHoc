@@ -21,7 +21,7 @@ export const ICT_EXAM_STRUCTURE = {
     {
       "part": "Phần II",
       "format": "4 câu trắc nghiệm Đúng/Sai (Câu 1 đến 4, mỗi câu 4 lệnh a, b, c, d)",
-      "focus": "Chuyên sâu ICT (Câu 3 & 4): Bảng tính Excel nâng cao (Hàm IF/AND/OR, VLOOKUP, SUMIF, Pivot Table), Thiết kế Web HTML/CSS, Biên tập Đồ họa & Video",
+      "focus": "Chuyên sâu ICT (Câu 3 & 4): Chủ đề ICT 1 (Thực hành tạo và khai thác Cơ sở dữ liệu), Chủ đề ICT 2 (Sử dụng phần mềm tạo trang web)",
       "points": "4.0 điểm (Lũy tiến max 1.0đ / câu)"
     }
   ]
@@ -38,9 +38,9 @@ export const ICT_12_WEEK_PLAN = [
   {
     "phase": "Giai đoạn 2",
     "weeks": "Tuần 5 - 9",
-    "title": "Luyện sâu Kỹ năng Bảng tính Excel & Thiết kế Web HTML/CSS (Chuyên sâu ICT)",
+    "title": "Chuyên sâu ICT: Thực hành CSDL & Phần mềm tạo trang web",
     "targetScore": "7.5 - 8.5 điểm",
-    "content": "Thực hành giải các kịch bản Đúng/Sai Phần II dành riêng cho ICT: Địa chỉ ô tuyệt đối ($A$1), các hàm thống kê và tìm kiếm (IF/AND/OR, VLOOKUP, SUMIF, Pivot Table), cấu trúc thẻ HTML (table, form, input) và định dạng thuộc tính CSS; Biên tập đồ họa & video số."
+    "content": "Thực hành giải các kịch bản Đúng/Sai Phần II chuyên sâu ICT: Chủ đề ICT 1 (Thực hành tạo và khai thác Cơ sở dữ liệu) và Chủ đề ICT 2 (Sử dụng phần mềm tạo trang web)."
   },
   {
     "phase": "Giai đoạn 3",

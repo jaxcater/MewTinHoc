@@ -218,7 +218,7 @@ function TermsContent() {
         <ul>
           <li><strong>Thay đổi:</strong> chúng tôi có thể cập nhật chính sách này và sẽ thông báo trên website; việc tiếp tục sử dụng sau ngày hiệu lực nghĩa là bạn chấp nhận bản mới. Thay đổi quan trọng về dữ liệu cá nhân sẽ được thông báo riêng và xin lại sự đồng ý khi cần.</li>
           <li><strong>Luật áp dụng:</strong> pháp luật Việt Nam. Tranh chấp được ưu tiên giải quyết bằng thương lượng; nếu không được, giải quyết tại Tòa án có thẩm quyền tại Việt Nam.</li>
-          <li><strong>Liên hệ:</strong> [Tên chủ quản website] · Email: [email liên hệ] · Địa chỉ: [địa chỉ] · Ngày có hiệu lực: [dd/mm/yyyy].</li>
+          <li><strong>Liên hệ:</strong> Email: [support@mewtinhoc.online] · Ngày có hiệu lực: [30/10/2026].</li>
         </ul>
         <div className="terms-highlight-box terms-highlight-note">
           <em>Lưu ý: văn bản này là bản mẫu soạn theo pháp luật Việt Nam, chưa phải tư vấn pháp lý chính thức. Hãy điền thông tin trong [ ] và nhờ luật sư kiểm tra trước khi công bố.</em>
@@ -552,91 +552,91 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
 
               {/* Chỉ cho phép tài khoản demo khi chạy local development. */}
               {(
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '0.1rem 0' }}>
-              {/* Hoặc Trải nghiệm nhanh */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
-                <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600 }}>HOẶC</span>
-                <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
-              </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '0.1rem 0' }}>
+                  {/* Hoặc Trải nghiệm nhanh */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
+                    <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600 }}>HOẶC</span>
+                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
+                  </div>
 
-              <button
-                type="button"
-                onClick={() => onLogin({
-                  id: 'demo-student-id',
-                  isDemo: true,
-                  name: 'Nguyễn Văn An',
-                  email: 'an.nguyen@hocvien.edu.vn',
-                  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-                  grade: 'Lớp 12 — Ôn thi THPTQG'
-                })}
-                style={{
-                  padding: '0.75rem 1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  background: '#FFF9F2',
-                  border: '1.5px dashed var(--color-primary)',
-                  borderRadius: '10px',
-                  fontSize: '0.86rem',
-                  fontWeight: 700,
-                  color: 'var(--color-primary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                id="btn-demo-login"
-              >
-                <span>⚡ Vào nhanh trải nghiệm (Học viên mẫu)</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => onLogin({
+                      id: 'demo-student-id',
+                      isDemo: true,
+                      name: 'Nguyễn Văn An',
+                      email: 'an.nguyen@hocvien.edu.vn',
+                      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+                      grade: 'Lớp 12 — Ôn thi THPTQG'
+                    })}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      background: '#FFF9F2',
+                      border: '1.5px dashed var(--color-primary)',
+                      borderRadius: '10px',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      color: 'var(--color-primary)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    id="btn-demo-login"
+                  >
+                    <span>⚡ Vào nhanh trải nghiệm (Học viên mẫu)</span>
+                  </button>
 
-              {/* Nói rõ giới hạn của tài khoản Demo NGAY TRƯỚC khi học viên bấm vào,
+                  {/* Nói rõ giới hạn của tài khoản Demo NGAY TRƯỚC khi học viên bấm vào,
                   để họ không bất ngờ khi các chức năng bị khoá bên trong. */}
-              <p
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.4rem',
-                  margin: 0,
-                  fontSize: '0.72rem',
-                  lineHeight: 1.5,
-                  color: '#92400E',
-                  background: '#FFFBEB',
-                  border: '1px solid #FDE68A',
-                  borderRadius: '6px',
-                  padding: '6px 9px'
-                }}
-              >
-                <Lock size={13} color="#B45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>
-                  Tài khoản Demo chỉ xem được <strong>Trang chủ</strong> và{' '}
-                  <strong>Lộ trình</strong>. Kho đề thi, tạo bài thi thử và CamCam cần
-                  đăng nhập bằng Google.
-                </span>
-              </p>
+                  <p
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.4rem',
+                      margin: 0,
+                      fontSize: '0.72rem',
+                      lineHeight: 1.5,
+                      color: '#92400E',
+                      background: '#FFFBEB',
+                      border: '1px solid #FDE68A',
+                      borderRadius: '6px',
+                      padding: '6px 9px'
+                    }}
+                  >
+                    <Lock size={13} color="#B45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span>
+                      Tài khoản Demo chỉ xem được <strong>Trang chủ</strong> và{' '}
+                      <strong>Lộ trình</strong>. Kho đề thi, tạo bài thi thử và CamCam cần
+                      đăng nhập bằng Google.
+                    </span>
+                  </p>
 
-              <div style={{
+                  <div style={{
 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                fontSize: '0.75rem',
-                color: '#15803D',
-                background: '#F0FDF4',
-                padding: '6px 10px',
-                borderRadius: '6px',
-                border: '1px solid #DCFCE7'
-              }}>
-                <ShieldCheck size={14} color="#16A34A" />
-                <span>Xác thực qua Google an toàn</span>
-              </div>
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    fontSize: '0.75rem',
+                    color: '#15803D',
+                    background: '#F0FDF4',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid #DCFCE7'
+                  }}>
+                    <ShieldCheck size={14} color="#16A34A" />
+                    <span>Xác thực qua Google an toàn</span>
+                  </div>
 
-              <div className="login-security-note">
-                <ShieldCheck size={14} color="#16A34A" />
-                <span>Không lưu mật khẩu · Dữ liệu được mã hóa an toàn</span>
-              </div>
-              </div>
+                  <div className="login-security-note">
+                    <ShieldCheck size={14} color="#16A34A" />
+                    <span>Không lưu mật khẩu · Dữ liệu được mã hóa an toàn</span>
+                  </div>
+                </div>
               )}
             </div>
           </div>

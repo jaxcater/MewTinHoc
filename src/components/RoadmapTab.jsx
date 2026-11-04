@@ -405,7 +405,10 @@ export default function RoadmapTab({
       : null;
 
   return (
-    <div className="roadmap-container">
+    <div
+      className="roadmap-container"
+      style={{ '--roadmap-accent': currentTrackData.badgeColor }}
+    >
       {/* 1. Header Card: Tổng quan & Chuyển đổi 2 Lộ Trình */}
       <div className="roadmap-header-card">
         <div className="roadmap-header-text">
@@ -550,7 +553,7 @@ export default function RoadmapTab({
                 )}
               </div>
               <div className="track-btn-subtitle">
-                Trọng tâm: Bảng tính Excel nâng cao, Thiết kế web HTML/CSS, Đồ họa & Biên tập video
+                Trọng tâm: Thực hành CSDL (Chủ đề ICT 1), Phần mềm tạo trang web (Chủ đề ICT 2)
               </div>
             </div>
           </div>
@@ -724,7 +727,7 @@ export default function RoadmapTab({
                       width="20"
                       height="26"
                       rx="10"
-                      stroke={isCompleted ? '#22C55E' : isInProgress ? '#F59E0B' : '#94A3B8'}
+                      stroke={isCompleted ? '#22C55E' : isInProgress ? currentTrackData.badgeColor : '#94A3B8'}
                       strokeWidth="5"
                     />
                     <circle
@@ -742,15 +745,7 @@ export default function RoadmapTab({
                 className={`station-node-card ${isCompleted ? 'completed' : isInProgress ? 'in-progress' : ''}`}
                 onClick={() => handleOpenStationModal(station, 0, false, station.pdfUrl ? 'pdf' : 'theory')}
                 style={{
-                  borderLeft: `5px solid ${
-                    isCompleted
-                      ? '#22C55E'
-                      : station.priorityBadge === 'extreme'
-                      ? '#DC2626'
-                      : station.priorityBadge === 'high'
-                      ? '#EA580C'
-                      : currentTrackData.badgeColor
-                  }`
+                  borderLeft: `5px solid ${isCompleted ? '#22C55E' : currentTrackData.badgeColor}`
                 }}
               >
                 <div className="node-left-col">
