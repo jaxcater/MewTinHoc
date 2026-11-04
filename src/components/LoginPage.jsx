@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ShieldCheck, BookOpen, Brain, ArrowRight, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail } from 'lucide-react';
+import { ShieldCheck, BookOpen, Brain, ArrowRight, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 import logoMeoCam from '../../img/logomeocam.png';
 import LandingPage from './landing/LandingPage';
@@ -40,7 +40,7 @@ function GoogleGLogo({ size = 22 }) {
 }
 
 /* ─── Terms & Privacy Modal ─── */
-function TermsPrivacyModal({ isOpen, onClose, initialTab = 'terms' }) {
+function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) {
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
@@ -57,6 +57,14 @@ function TermsPrivacyModal({ isOpen, onClose, initialTab = 'terms' }) {
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleAcceptClick = () => {
+    if (onAccept) {
+      onAccept();
+    } else {
+      onClose();
+    }
   };
 
   return (
@@ -103,7 +111,7 @@ function TermsPrivacyModal({ isOpen, onClose, initialTab = 'terms' }) {
 
         {/* Footer */}
         <div className="terms-modal-footer">
-          <button className="terms-modal-accept-btn" onClick={onClose}>
+          <button className="terms-modal-accept-btn" onClick={handleAcceptClick}>
             Tôi đã đọc và hiểu
           </button>
         </div>
@@ -301,7 +309,8 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [floatAnim, setFloatAnim] = useState(false);
-  const [termsModal, setTermsModal] = useState({ open: false, tab: 'terms' });
+  const [termsModal, setTermsModal] = useState({ open: false, tab: 'terms', pendingAction: null });
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   /**
    * Hai chặng của trang khi chưa đăng nhập:
@@ -386,13 +395,58 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
   };
 
   const openTerms = (e) => {
-    e.preventDefault();
-    setTermsModal({ open: true, tab: 'terms' });
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setTermsModal({ open: true, tab: 'terms', pendingAction: 'check_only' });
   };
 
   const openPrivacy = (e) => {
-    e.preventDefault();
-    setTermsModal({ open: true, tab: 'privacy' });
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setTermsModal({ open: true, tab: 'privacy', pendingAction: 'check_only' });
+  };
+
+  const handleCheckboxClick = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!agreedTerms) {
+      // Khi nhấn vào tick box khi chưa đồng ý, hiện cửa sổ điều khoản ra
+      setTermsModal({ open: true, tab: 'terms', pendingAction: 'check_only' });
+    } else {
+      // Khi đã tick rồi thì bấm vào sẽ bỏ tick
+      setAgreedTerms(false);
+    }
+  };
+
+  const handleAcceptTerms = () => {
+    const action = termsModal.pendingAction;
+    setAgreedTerms(true);
+    setTermsModal({ open: false, tab: 'terms', pendingAction: null });
+
+    // Khi người dùng mới vào trang login không nhấn vào tickbox mà nhấn vào đăng nhập google
+    // nó vẫn sẽ hiện cửa sổ điều khoản ra, khi nhấn đã đọc và hiểu, sẽ chuyển tiếp đăng nhập
+    if (action === 'google_login') {
+      handleGoogleLogin();
+    }
+  };
+
+  const handleCloseTerms = () => {
+    setTermsModal({ open: false, tab: 'terms', pendingAction: null });
+  };
+
+  const handleGoogleBtnClick = () => {
+    if (agreedTerms) {
+      handleGoogleLogin();
+    } else {
+      // Chưa tick -> hiện cửa sổ điều khoản, khi nhấn đã đọc và hiểu sẽ chuyển tiếp đăng nhập
+      setTermsModal({ open: true, tab: 'terms', pendingAction: 'google_login' });
+    }
   };
 
   // Chặng 1 — trang giới thiệu. Chỉ render khi chưa bấm bắt đầu.
@@ -515,7 +569,7 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
               <button
                 type="button"
                 className="login-google-btn"
-                onClick={handleGoogleLogin}
+                onClick={handleGoogleBtnClick}
                 disabled={isGoogleLoading}
                 aria-busy={isGoogleLoading}
                 style={{
@@ -550,16 +604,44 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
                 )}
               </button>
 
-              {/* Chỉ cho phép tài khoản demo khi chạy local development. */}
+              {/* DÒNG ĐỒNG Ý ĐIỀU KHOẢN VÀ TICK BOX */}
+              <div className="login-terms-agreement">
+                <div
+                  className="login-terms-checkbox-label"
+                  onClick={handleCheckboxClick}
+                  role="checkbox"
+                  aria-checked={agreedTerms}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCheckboxClick(e);
+                    }
+                  }}
+                >
+                  <div
+                    className={`login-terms-custom-box ${agreedTerms ? 'checked' : ''}`}
+                    aria-hidden="true"
+                  >
+                    {agreedTerms && <Check size={12} strokeWidth={3.2} />}
+                  </div>
+                  <div className="login-terms-text">
+                    Tôi đồng ý với{' '}
+                    <a href="#terms" className="login-terms-link" onClick={openTerms}>
+                      Điều khoản sử dụng
+                    </a>{' '}
+                    và{' '}
+                    <a href="#privacy" className="login-terms-link" onClick={openPrivacy}>
+                      Chính sách bảo mật
+                    </a>{' '}
+                    của MewTinHoc.
+                  </div>
+                </div>
+              </div>
+
+              {/* Nút đăng nhập Học viên mẫu */}
               {(
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '0.1rem 0' }}>
-                  {/* Hoặc Trải nghiệm nhanh */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
-                    <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600 }}>HOẶC</span>
-                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
-                  </div>
-
                   <button
                     type="button"
                     onClick={() => onLogin({
@@ -587,33 +669,8 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
                     }}
                     id="btn-demo-login"
                   >
-                    <span>⚡ Vào nhanh trải nghiệm (Học viên mẫu)</span>
+                    <span>Học viên mẫu</span>
                   </button>
-
-                  {/* Nói rõ giới hạn của tài khoản Demo NGAY TRƯỚC khi học viên bấm vào,
-                  để họ không bất ngờ khi các chức năng bị khoá bên trong. */}
-                  <p
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.4rem',
-                      margin: 0,
-                      fontSize: '0.72rem',
-                      lineHeight: 1.5,
-                      color: '#92400E',
-                      background: '#FFFBEB',
-                      border: '1px solid #FDE68A',
-                      borderRadius: '6px',
-                      padding: '6px 9px'
-                    }}
-                  >
-                    <Lock size={13} color="#B45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span>
-                      Tài khoản Demo chỉ xem được <strong>Trang chủ</strong> và{' '}
-                      <strong>Lộ trình</strong>. Kho đề thi, tạo bài thi thử và CamCam cần
-                      đăng nhập bằng Google.
-                    </span>
-                  </p>
 
                   <div style={{
 
@@ -641,18 +698,14 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
             </div>
           </div>
 
-          <p className="login-footer-note">
-            Bằng cách đăng nhập, bạn đồng ý với{' '}
-            <a href="#terms" className="login-footer-link" onClick={openTerms}>Điều khoản sử dụng</a> và{' '}
-            <a href="#privacy" className="login-footer-link" onClick={openPrivacy}>Chính sách bảo mật</a> của MewTinHoc.
-          </p>
         </div>
       </div>
 
       {/* Terms & Privacy Modal */}
       <TermsPrivacyModal
         isOpen={termsModal.open}
-        onClose={() => setTermsModal({ open: false, tab: 'terms' })}
+        onClose={handleCloseTerms}
+        onAccept={handleAcceptTerms}
         initialTab={termsModal.tab}
       />
     </div>

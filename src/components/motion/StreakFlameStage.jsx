@@ -160,20 +160,6 @@ export default function StreakFlameStage({
         {displayStreak > 0 ? currentEvolution.name : 'Chưa Bắt Đầu'}
       </span>
 
-      {daysToNext ? (
-        <span className="streak-evo-next">
-          Học thêm <strong>{daysToNext} ngày</strong> nữa để mở khoá một hình dạng mới 🔒
-        </span>
-      ) : displayStreak > 0 ? (
-        <span className="streak-evo-next">
-          🎉 Cấp tối đa! Đã học <strong>{displayStreak} ngày</strong> liên tục
-        </span>
-      ) : (
-        <span className="streak-evo-next">
-          Bắt đầu chuỗi học tập để thức tỉnh ngọn lửa đầu tiên!
-        </span>
-      )}
-
       {/* Thanh tiến độ chạy từ 0 → giá trị hiện tại trong 900ms ease-out */}
       <div className="streak-evo-progress">
         <motion.div
