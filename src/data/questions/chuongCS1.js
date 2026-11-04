@@ -35,25 +35,127 @@ export const CHUONG_CS1_QUIZ = {
     { id: 'cs1_mcq_20', q: 'Điều kiện tiên quyết bắt buộc của cấu trúc mảng để có thể áp dụng thuật toán Tìm kiếm nhị phân (Binary Search) là gì?', opts: ['Các phần tử trong mảng phải là số nguyên dương', 'Dãy số hoặc danh sách các phần tử phải được sắp xếp theo thứ tự (tăng dần hoặc giảm dần)', 'Độ dài của mảng phải là một lũy thừa của 2', 'Mảng không được chứa bất kì phần tử nào trùng lặp nhau'], ans: 1, exp: 'Tìm kiếm nhị phân dựa vào việc so sánh khóa tìm kiếm với phần tử giữa để loại bỏ một nửa không gian tìm kiếm, do đó mảng bắt buộc phải được sắp xếp trước.' }
   ],
   tf: [
-    { id: 'cs1_tf_1', ctx: '(Trích Đề thi tốt nghiệp THPT chính thức năm 2025 — Mã đề 0501, 0502) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++. [Python] (1) def F(A, n): (2) for i in range(1, n): (3) x = A[i]; (4) j = i - 1; (5) while j >= 0 and A[j] > x: (6) A[j + 1] = A[j]; (7) j = j - 1; (8) A[j + 1] = x; (9) return (A[n // 2] + A[n - 1]) / 2. [C++] float F(int A[], int n) { for (int i = 1; i < n; i++) { int x = A[i]; int j = i - 1; while (j >= 0 && A[j] > x) { A[j + 1] = A[j]; j = j - 1; } A[j + 1] = x; } return (A[n / 2] + A[n - 1]) / 2.0; }. Sau khi chọn một trong hai ngôn ngữ Python hoặc C++ để tìm hiểu hàm trên, một số bạn học sinh đã nêu các ý kiến sau:', items: [
+    { id: 'cs1_tf_1', ctx: '(Trích Đề thi tốt nghiệp THPT chính thức năm 2025 — Mã đề 0501, 0502) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++:', code: [
+      { lang: 'Python', lines: [
+        'def F(A, n):',
+        '    for i in range(1, n):',
+        '        x = A[i]',
+        '        j = i - 1',
+        '        while j >= 0 and A[j] > x:',
+        '            A[j + 1] = A[j]',
+        '            j = j - 1',
+        '        A[j + 1] = x',
+        '    return (A[n // 2] + A[n - 1]) / 2'
+      ] },
+      { lang: 'C++', lines: [
+        'float F(int A[], int n) {',
+        '    for (int i = 1; i < n; i++) {',
+        '        int x = A[i];',
+        '        int j = i - 1;',
+        '        while (j >= 0 && A[j] > x) {',
+        '            A[j + 1] = A[j];',
+        '            j = j - 1;',
+        '        }',
+        '        A[j + 1] = x;',
+        '    }',
+        '    return (A[n / 2] + A[n - 1]) / 2.0;',
+        '}'
+      ] }
+    ], ctxAfter: 'Sau khi chọn một trong hai ngôn ngữ Python hoặc C++ để tìm hiểu hàm trên, một số bạn học sinh đã nêu các ý kiến sau:', items: [
       { s: 'Mảng A biểu diễn cấu trúc dữ liệu ngăn xếp (Stack).', ans: false, exp: 'Sai. Mảng A trong đoạn mã được sử dụng để lưu trữ dãy phần tử dữ liệu cần sắp xếp và hỗ trợ truy cập ngẫu nhiên qua chỉ số A[i], A[j]. Đây không phải là cấu trúc dữ liệu ngăn xếp (Stack hoạt động theo cơ chế LIFO với các thao tác push/pop).' },
       { s: 'Nếu dữ liệu đầu vào là mảng A gồm n phần tử đã được sắp xếp theo chiều không giảm thì các câu lệnh tại Dòng 6 và Dòng 7 được thực hiện n lần.', ans: false, exp: 'Sai. Nếu mảng A ban đầu đã sắp xếp tăng dần (không giảm) thì với mọi i, giá trị x = A[i] luôn lớn hơn hoặc bằng A[j] = A[i-1]. Do đó, điều kiện lặp A[j] > x ngay lập tức nhận giá trị False; vòng lặp while không bao giờ được thực hiện lần nào (0 lần lặp), chứ không phải thực hiện n lần.' },
       { s: 'Nếu dữ liệu đầu vào là n = 6 và mảng A là (6, 4, 2, 1, 3, 5) thì sau khi câu lệnh for tại Dòng 2 thực hiện lần lặp thứ 2, giá trị của mảng A là (2, 4, 6, 1, 3, 5).', ans: true, exp: 'Đúng. Hàm F cài đặt thuật toán Sắp xếp chèn (Insertion Sort). Ban đầu mảng là (6, 4, 2, 1, 3, 5). Lần lặp thứ nhất (i = 1, x = 4): chèn 4 vào trước 6 -> mảng thành (4, 6, 2, 1, 3, 5). Lần lặp thứ hai (i = 2, x = 2): chèn 2 vào đầu đoạn đã sắp -> mảng trở thành (2, 4, 6, 1, 3, 5).' },
       { s: 'Nếu dữ liệu đầu vào là n = 7 và mảng A là (8, 6, 4, 2, 3, 5, 7) thì hàm trả về giá trị 6.5.', ans: true, exp: 'Đúng. Sau khi sắp xếp chèn hoàn tất, mảng A trở thành (2, 3, 4, 5, 6, 7, 8). Với n = 7: n // 2 = 3, A[3] = 5; phần tử cuối A[n - 1] = A[6] = 8. Giá trị trả về là (5 + 8) / 2 = 6.5.' }
     ] },
-    { id: 'cs1_tf_2', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Cà Mau lần 1) Nhóm học sinh đang tìm hiểu về các thuật toán cơ bản trên dãy số. Cô giáo cung cấp đoạn mã Python và C++ thực hiện tìm kiếm vị trí của giá trị x trong dãy A gồm n phần tử và yêu cầu nhóm phân tích. [Python] def search(A, n, x): for i in range(n): if A[i] == x: return i; return -1. [C++] int search(int A[], int n, int x) { for (int i = 0; i < n; i++) { if (A[i] == x) return i; } return -1; }. Sau khi nghiên cứu, các bạn học sinh đưa ra các nhận xét sau:', items: [
+    { id: 'cs1_tf_2', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Cà Mau lần 1) Nhóm học sinh đang tìm hiểu về các thuật toán cơ bản trên dãy số. Cô giáo cung cấp đoạn mã Python và C++ thực hiện tìm kiếm vị trí của giá trị x trong dãy A gồm n phần tử và yêu cầu nhóm phân tích:', code: [
+      { lang: 'Python', lines: [
+        'def search(A, n, x):',
+        '    for i in range(n):',
+        '        if A[i] == x:',
+        '            return i',
+        '    return -1'
+      ] },
+      { lang: 'C++', lines: [
+        'int search(int A[], int n, int x) {',
+        '    for (int i = 0; i < n; i++) {',
+        '        if (A[i] == x)',
+        '            return i;',
+        '    }',
+        '    return -1;',
+        '}'
+      ] }
+    ], ctxAfter: 'Sau khi nghiên cứu, các bạn học sinh đưa ra các nhận xét sau:', items: [
       { s: 'Ở vòng lặp tại dòng lệnh for, biến chỉ số i sẽ nhận giá trị lần lượt chạy từ 0 đến n.', ans: false, exp: 'Sai. Trong Python, cú pháp range(n) sinh dãy số từ 0 đến n - 1 (không bao gồm n). Trong C++, điều kiện i < n cũng chỉ cho phép i nhận giá trị đến n - 1. Do đó nhận định chỉ số i chạy đến n là Sai.' },
       { s: 'Thuật toán được mô tả trong đoạn mã trên là thuật toán tìm kiếm tuần tự (Sequential Search).', ans: true, exp: 'Đúng. Thuật toán duyệt lần lượt từng phần tử A[0], A[1], ..., A[n-1] theo thứ tự tuyến tính từ đầu đến cuối dãy để so sánh với giá trị cần tìm x. Đây chính là thuật toán tìm kiếm tuần tự.' },
       { s: 'Với đầu vào dãy A = [5, 3, 8, 2] và x = 8, hàm sẽ thực hiện phép so sánh tại câu lệnh if đúng ba lần và trả về kết quả là 2.', ans: true, exp: 'Đúng. Lần 1: i = 0, A[0] = 5 == 8 (False). Lần 2: i = 1, A[1] = 3 == 8 (False). Lần 3: i = 2, A[2] = 8 == 8 (True) -> hàm lập tức return chỉ số 2. Vậy hàm thực hiện đúng 3 phép so sánh và trả về kết quả là 2.' },
       { s: 'Trong trường hợp giá trị x xuất hiện nhiều lần trong dãy A, hàm sẽ luôn trả về chỉ số của vị trí cuối cùng tìm thấy x.', ans: false, exp: 'Sai. Ngay khi tìm thấy phần tử A[i] == x đầu tiên, câu lệnh return i lập tức kết thúc hàm và trả về chỉ số đó. Do đó hàm luôn trả về vị trí xuất hiện đầu tiên của x trong dãy, không phải vị trí cuối cùng.' }
     ] },
-    { id: 'cs1_tf_3', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Gia Lai) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++, trong đó mảng A gồm n phần tử đã được sắp xếp theo thứ tự tăng dần (không giảm). [Python] def binary_search(A, n, x): left = 0; right = n - 1; while left <= right: mid = (left + right) // 2; if A[mid] == x: return mid + 1; elif A[mid] < x: left = mid + 1; else: right = mid - 1; return -1. [C++] int binary_search(int A[], int n, int x) { int left = 0, right = n - 1; while (left <= right) { int mid = (left + right) / 2; if (A[mid] == x) return mid + 1; else if (A[mid] < x) left = mid + 1; else right = mid - 1; } return -1; }. Sau khi chọn một trong hai ngôn ngữ Python hoặc C++ để tìm hiểu hàm trên, một số học sinh đưa ra các nhận định sau:', items: [
+    { id: 'cs1_tf_3', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Gia Lai) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++, trong đó mảng A gồm n phần tử đã được sắp xếp theo thứ tự tăng dần (không giảm):', code: [
+      { lang: 'Python', lines: [
+        'def binary_search(A, n, x):',
+        '    left = 0',
+        '    right = n - 1',
+        '    while left <= right:',
+        '        mid = (left + right) // 2',
+        '        if A[mid] == x:',
+        '            return mid + 1',
+        '        elif A[mid] < x:',
+        '            left = mid + 1',
+        '        else:',
+        '            right = mid - 1',
+        '    return -1'
+      ] },
+      { lang: 'C++', lines: [
+        'int binary_search(int A[], int n, int x) {',
+        '    int left = 0, right = n - 1;',
+        '    while (left <= right) {',
+        '        int mid = (left + right) / 2;',
+        '        if (A[mid] == x)',
+        '            return mid + 1;',
+        '        else if (A[mid] < x)',
+        '            left = mid + 1;',
+        '        else',
+        '            right = mid - 1;',
+        '    }',
+        '    return -1;',
+        '}'
+      ] }
+    ], ctxAfter: 'Sau khi chọn một trong hai ngôn ngữ Python hoặc C++ để tìm hiểu hàm trên, một số học sinh đưa ra các nhận định sau:', items: [
       { s: 'Thuật toán trên chỉ hoạt động đúng khi mảng A được sắp xếp theo thứ tự không giảm.', ans: true, exp: 'Đúng. Thuật toán Tìm kiếm nhị phân (Binary Search) dựa trên nguyên lý so sánh x với phần tử ở giữa A[mid] để loại bỏ một nửa số phần tử ở mỗi bước. Do đó, mảng A bắt buộc phải được sắp xếp trước thì thuật toán mới đảm bảo tính đúng đắn.' },
       { s: 'Với mảng A gồm n phần tử, trong trường hợp x tồn tại trong mảng, số lần lặp của vòng lặp while không vượt quá ⌈log₂n⌉ + 1.', ans: true, exp: 'Đúng. Ở mỗi bước lặp của tìm kiếm nhị phân, phạm vi tìm kiếm giảm đi một nửa (từ n xuống n/2, n/4,...). Do đó độ phức tạp thời gian là O(log₂n) và số lần lặp tối đa không vượt quá ⌈log₂n⌉ + 1.' },
       { s: 'Nếu giá trị x không tồn tại trong mảng A thì vòng lặp while luôn thực hiện đúng n lần.', ans: false, exp: 'Sai. Trong trường hợp xấu nhất (khi x không tồn tại trong mảng), vòng lặp while cũng chỉ lặp tối đa khoảng log₂n bước cho đến khi left > right thì dừng lại. Vòng lặp không bao giờ lặp n lần (n lần là đặc trưng của tìm kiếm tuần tự).' },
       { s: 'Nếu n = 7 và mảng A là (1, 3, 5, 7, 9, 11, 13), x = 7 thì hàm trả về giá trị 4.', ans: true, exp: 'Đúng. Mảng có 7 phần tử: left = 0, right = 6. Bước 1: mid = (0 + 6) // 2 = 3, A[3] = 7. So sánh A[3] == x (7 == 7) là Đúng -> hàm return mid + 1 = 3 + 1 = 4. Vậy hàm trả về giá trị 4.' }
     ] },
-    { id: 'cs1_tf_4', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Đà Nẵng lần 1) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++. [Python] def S(A): n = len(A); for i in range(n - 1): m = i; for j in range(i + 1, n): if not (A[m] >= A[j]): m = j; if m != i: A[i], A[m] = A[m], A[i]; return A[0] + A[n - 2]. [C++] float S(int A[], int n) { for (int i = 0; i < n - 1; i++) { int m = i; for (int j = i + 1; j < n; j++) { if (!(A[m] >= A[j])) { m = j; } } if (m != i) { int t = A[i]; A[i] = A[m]; A[m] = t; } } return (A[0] + A[n - 2]); }. Sau khi chọn một trong hai ngôn ngữ lập trình Python hoặc C++ để tìm hiểu hàm trên, một số bạn học sinh đã nêu các ý kiến sau:', items: [
+    { id: 'cs1_tf_4', ctx: '(Trích Đề thi thử tốt nghiệp THPT năm 2026 — Sở GD&ĐT Đà Nẵng lần 1) Cho hàm sau đây được viết bằng ngôn ngữ lập trình Python và C++:', code: [
+      { lang: 'Python', lines: [
+        'def S(A):',
+        '    n = len(A)',
+        '    for i in range(n - 1):',
+        '        m = i',
+        '        for j in range(i + 1, n):',
+        '            if not (A[m] >= A[j]):',
+        '                m = j',
+        '        if m != i:',
+        '            A[i], A[m] = A[m], A[i]',
+        '    return A[0] + A[n - 2]'
+      ] },
+      { lang: 'C++', lines: [
+        'float S(int A[], int n) {',
+        '    for (int i = 0; i < n - 1; i++) {',
+        '        int m = i;',
+        '        for (int j = i + 1; j < n; j++) {',
+        '            if (!(A[m] >= A[j])) {',
+        '                m = j;',
+        '            }',
+        '        }',
+        '        if (m != i) {',
+        '            int t = A[i]; A[i] = A[m]; A[m] = t;',
+        '        }',
+        '    }',
+        '    return (A[0] + A[n - 2]);',
+        '}'
+      ] }
+    ], ctxAfter: 'Sau khi chọn một trong hai ngôn ngữ lập trình Python hoặc C++ để tìm hiểu hàm trên, một số bạn học sinh đã nêu các ý kiến sau:', items: [
       { s: 'Đoạn mã được mô tả bằng hàm S trên là thuật toán sắp xếp nổi bọt.', ans: false, exp: 'Sai. Hàm S sử dụng vòng lặp trong để tìm vị trí m của phần tử lớn nhất trong đoạn chưa sắp xếp A[i..n-1], sau đó đổi chỗ phần tử lớn nhất đó với A[i]. Đây là thuật toán Sắp xếp chọn (Selection Sort) theo thứ tự giảm dần, không phải Sắp xếp nổi bọt.' },
       { s: 'Thuật toán trên luôn thực hiện đầy đủ số lần lặp của các vòng for ngay cả khi danh sách ban đầu đã được sắp xếp.', ans: true, exp: 'Đúng. Cả hai vòng lặp for đều có số bước lặp cố định độc lập với nội dung dữ liệu (i chạy từ 0 đến n-2, j chạy từ i+1 đến n-1). Chương trình không có cờ hiệu kiểm tra hay lệnh ngắt break dừng sớm, nên dù mảng đã được sắp xếp thì các vòng lặp vẫn duyệt đầy đủ n(n-1)/2 lần so sánh.' },
       { s: 'Thuật toán trên sử dụng phương pháp tìm kiếm tuần tự để xác định vị trí của phần tử A[m] trong mỗi lần lặp.', ans: true, exp: 'Đúng. Trong vòng for thứ hai, chỉ số j duyệt tuần tự qua từng phần tử từ i + 1 đến n - 1 để so sánh và cập nhật vị trí của phần tử lớn nhất m. Đây chính là thao tác tìm kiếm tuần tự phần tử lớn nhất trong đoạn con chưa sắp xếp.' },

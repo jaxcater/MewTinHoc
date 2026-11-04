@@ -8,6 +8,80 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+// Hiển thị đoạn mã theo từng dòng (có số dòng); blocks: [{ lang, lines: [] }]
+function CodeBlocks({ blocks }) {
+  if (!Array.isArray(blocks) || blocks.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '0.75rem',
+        margin: '0.75rem 0'
+      }}
+    >
+      {blocks.map((block, blockIdx) => (
+        <div
+          key={blockIdx}
+          style={{
+            background: '#0F172A',
+            border: '1px solid #334155',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            minWidth: 0
+          }}
+        >
+          <div
+            style={{
+              padding: '0.35rem 0.75rem',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              color: '#93C5FD',
+              background: '#1E293B',
+              borderBottom: '1px solid #334155',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}
+          >
+            {block.lang}
+          </div>
+          <pre
+            style={{
+              margin: 0,
+              padding: '0.6rem 0',
+              overflowX: 'auto',
+              fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace",
+              fontSize: '0.82rem',
+              fontWeight: 500,
+              lineHeight: 1.6,
+              color: '#E2E8F0'
+            }}
+          >
+            {(block.lines || []).map((line, lineIdx) => (
+              <div key={lineIdx} style={{ display: 'flex' }}>
+                <span
+                  style={{
+                    flex: '0 0 auto',
+                    width: '2.25rem',
+                    paddingRight: '0.75rem',
+                    textAlign: 'right',
+                    color: '#64748B',
+                    userSelect: 'none'
+                  }}
+                >
+                  {lineIdx + 1}
+                </span>
+                <span style={{ whiteSpace: 'pre', paddingRight: '0.75rem' }}>{line || ' '}</span>
+              </div>
+            ))}
+          </pre>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function StationQuizView({
   quizData,
   stationTitle = 'Chủ đề ôn tập',
@@ -429,6 +503,8 @@ export default function StationQuizView({
                     {/* Nội dung câu hỏi */}
                     <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem', lineHeight: 1.5 }}>
                       {q.q}
+                      <CodeBlocks blocks={q.code} />
+                      {q.qAfter && <div>{q.qAfter}</div>}
                     </div>
 
                     {/* 4 phương án A, B, C, D */}
@@ -584,6 +660,11 @@ export default function StationQuizView({
                       }}
                     >
                       {q.ctx}
+
+                      {/* Đoạn mã hiển thị theo từng dòng (có số dòng) */}
+                      <CodeBlocks blocks={q.code} />
+
+                      {q.ctxAfter && <div>{q.ctxAfter}</div>}
                     </div>
 
                     {/* Danh sách 4 mệnh đề a, b, c, d */}

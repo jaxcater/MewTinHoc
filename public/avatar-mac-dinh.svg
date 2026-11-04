@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Avatar mac dinh">
+  <circle cx="100" cy="100" r="100" fill="#FFF3E6" />
+  <path d="M62 62 L56 30 L86 46 Z" fill="#E9A23B" />
+  <path d="M138 62 L144 30 L114 46 Z" fill="#E9A23B" />
+  <circle cx="100" cy="96" r="42" fill="#F97316" />
+  <circle cx="85" cy="92" r="5" fill="#2B2118" />
+  <circle cx="115" cy="92" r="5" fill="#2B2118" />
+  <path d="M93 106 Q100 112 107 106" stroke="#2B2118" stroke-width="4" fill="none" stroke-linecap="round" />
+  <path d="M28 168 Q100 128 172 168 L172 200 L28 200 Z" fill="#F97316" />
+</svg>

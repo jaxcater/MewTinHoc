@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
@@ -15,6 +15,27 @@ import {
 import logoMeoCam from '../../img/logomeocam.png';
 import { headerMotionVariants, reducedMotionVariants, SPRINGS } from '../variants';
 import { isDemoUser, isLockedForDemo, DEMO_FEATURE } from '../lib/demoAccess';
+import { nextAvatarFallbackSrc, resolveAvatarSrc } from '../lib/defaultAvatar';
+
+// Avatar học viên: ảnh lỗi (mất mạng, URL hết hạn) thì rơi dần về ảnh mặc định nằm trong web
+// (dùng key={avatar} ở nơi gọi để reset chuỗi fallback khi đổi tài khoản)
+function StudentAvatar({ user }) {
+  const [fallbackSrc, setFallbackSrc] = useState(null);
+  const src = fallbackSrc || resolveAvatarSrc(user?.avatar, user?.name);
+
+  return (
+    <img
+      src={src}
+      alt=""
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      className="student-avatar"
+      onError={() => {
+        setFallbackSrc((current) => nextAvatarFallbackSrc(current || src)); // chặn lặp vô hạn: bước cuối là ảnh nhúng trong code
+      }}
+    />
+  );
+}
 
 export const TABS = {
   HOME: 'home',
@@ -119,17 +140,7 @@ export default function Navbar({
                 className="student-profile-chip"
                 title={`Học viên: ${user.name}`}
               >
-                <img
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Học viên')}&background=ea580c&color=ffffff&bold=true`}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
-                  className="student-avatar"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Học viên')}&background=ea580c&color=ffffff&bold=true`;
-                  }}
-                />
+                <StudentAvatar key={user.avatar || 'default-avatar'} user={user} />
                 <span className="student-name">{user.name}</span>
                 {isDemo && (
                   <span className="student-demo-tag" title="Bạn đang dùng tài khoản Demo — chưa phải tài khoản thật">
