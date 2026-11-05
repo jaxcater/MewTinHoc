@@ -19,7 +19,7 @@ import {
   TMP_DIR,
   ensureDirs,
 } from './config.js';
-import { keyHealthCheck, readSealedFile, sealJson } from './crypto.js';
+import { keyHealthCheck, openJson, readSealedFile, sealJson } from './crypto.js';
 import { gradeExam } from './grading.js';
 
 /** Tên file trong pool: ict-<uuid>.dat (mã hoá) hoặc .json (bản cũ) */
@@ -47,6 +47,36 @@ function readExamFile(filePath) {
     return JSON.parse(raw);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Như readExamFile nhưng phân biệt được "file hỏng" với "không đọc được".
+ *
+ * Cần phân biệt vì 2 tình huống phải xử lý khác hẳn nhau:
+ *  - EACCES/EPERM (sai quyền sở hữu, ví dụ cron chạy bằng root sinh file
+ *    root:root 0600) → lỗi cấu hình, KHÔNG được cách ly đề, chỉ cảnh báo.
+ *  - Còn lại (sai khoá, ghi dở, định dạng lạ) → đề thật sự hỏng, cách ly.
+ *
+ * @returns {{payload: object|null, error: string|null}}
+ */
+function readExamFileChecked(filePath) {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    const sealed = openJson(buffer);
+    if (sealed) return { payload: sealed, error: null };
+    // Thử JSON thô (bản cũ)
+    try {
+      return { payload: JSON.parse(buffer.toString('utf8')), error: null };
+    } catch {
+      return { payload: null, error: null }; // đọc được nhưng không giải mã được
+    }
+  } catch (err) {
+    if (err?.code === 'EACCES' || err?.code === 'EPERM') {
+      return { payload: null, error: `${err.code} — sai quyền sở hữu` };
+    }
+    if (err?.code === 'ENOENT') return { payload: null, error: null };
+    return { payload: null, error: err?.message || 'lỗi đọc file' };
   }
 }
 
@@ -169,7 +199,20 @@ export function claimExam(track) {
     // Trước đây file hỏng bị unlink ngay sau khi rename. Khi khoá mã hoá
     // trong RAM khác .key-secret trên đĩa, MỌI file đều "hỏng" → một lần
     // học viên bấm tạo đề là xoá sạch cả kho. Đó là lỗi mất dữ liệu.
-    if (!readExamFile(candidate.path)?.publicExam) {
+    //
+    // Quan trọng: file KHÔNG ĐỌC ĐƯỢC vì quyền (EACCES) là lỗi cấu hình,
+    // không phải đề hỏng. Cách ly nó sẽ mất đề oan — chỉ cảnh báo rồi bỏ qua,
+    // để admin sửa quyền là đề chạy lại bình thường.
+    const check = readExamFileChecked(candidate.path);
+    if (check.error) {
+      console.error(
+        `[exam] ⚠ Không đọc được đề ${candidate.file} (${check.error}). ` +
+          'Giữ nguyên trong kho. Kiểm tra quyền sở hữu: ' +
+          'chown -R www:www /www/wwwroot/dethicosan',
+      );
+      continue;
+    }
+    if (!check.payload?.publicExam) {
       quarantinePoolFile(candidate.path, 'không giải mã được');
       continue;
     }

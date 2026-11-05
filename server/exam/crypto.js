@@ -167,10 +167,26 @@ export function keyHealthCheck() {
   }
   if (candidates.length === 0) return 'no-data';
 
-  // Thử tối đa 3 file là đủ để kết luận
-  for (const file of candidates.slice(0, 3)) {
-    if (readSealedFile(file)) return 'ok';
+  // Thử tối đa 5 file là đủ để kết luận. File không đọc được vì quyền
+  // (EACCES) KHÔNG được tính là "khoá sai" — đó là lỗi quyền, không phải
+  // lỗi khoá. Nếu tính sai, hệ thống sẽ chặn phát đề oan.
+  let unreadable = 0;
+  let checked = 0;
+  for (const file of candidates.slice(0, 5)) {
+    let buffer;
+    try {
+      buffer = fs.readFileSync(file);
+    } catch (err) {
+      if (err?.code === 'EACCES' || err?.code === 'EPERM') unreadable += 1;
+      continue;
+    }
+    checked += 1;
+    if (openJson(buffer)) return 'ok';
   }
+
+  // Không đọc được file nào: nếu tất cả là lỗi quyền thì đây không phải
+  // vấn đề khoá — trả 'no-data' để không chặn phát đề.
+  if (checked === 0 && unreadable > 0) return 'no-data';
   return 'bad-key';
 }
 
