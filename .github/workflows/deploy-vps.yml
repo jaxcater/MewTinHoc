@@ -3,14 +3,66 @@ name: Deploy to VPS
 on:
   push:
     branches: [ main ]
+  # Cho phép bấm chạy tay từ tab Actions khi cần deploy lại mà không cần commit.
+  workflow_dispatch:
+
+# Không chạy 2 lần deploy chồng nhau: lần sau huỷ lần trước.
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30
+
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Repo này là PRIVATE, nên VPS KHÔNG thể `git fetch` từ GitHub bằng
+      # HTTPS (nó trả "could not read Username"). Bản cũ dựa vào git trên
+      # máy chủ nên deploy luôn chết ở bước fetch. Ở đây ta đóng gói đúng
+      # các file mà git đang track rồi đẩy sang VPS — máy chủ không cần
+      # credential GitHub nào cả.
+      - name: Package tracked files
+        run: |
+          mkdir -p /tmp/site
+          git archive --format=tar HEAD | tar -x -C /tmp/site
+          echo "Đóng gói $(find /tmp/site -type f | wc -l) file"
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "176.111.220.220" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # Đồng bộ source. --delete khớp đúng hành vi `git reset --hard` của bản
+      # cũ (file bị xoá khỏi git cũng biến mất trên máy chủ), nhưng các thư
+      # mục sinh ra lúc build/chạy thì được giữ lại:
+      #   node_modules, dist   → sinh tại chỗ, không nằm trong git
+      #   .env.local           → chứa secret, không bao giờ bị ghi đè
+      #   var                  → trạng thái runtime (var/chat-usage/ là hạn
+      #                          mức chat hàng ngày). Nằm trong .gitignore nên
+      #                          không có trong bản đóng gói; thiếu exclude này
+      #                          thì mỗi lần deploy sẽ xoá sạch hạn mức đã dùng.
+      # --chown=www:www vì tiến trình chạy bằng user `www`; file do root tạo
+      # sẽ khiến `www` không đọc được (đây chính là lỗi từng làm hỏng kho đề).
+      - name: Sync source to VPS
+        run: |
+          rsync -az --delete --chown=www:www \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude '.env.local' \
+            --exclude '.evn.local' \
+            --exclude 'var' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            /tmp/site/ "root@176.111.220.220:/www/wwwroot/MewTinHoc/"
+
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           ENV_BOTPRESS_WEBHOOK_ID: ${{ secrets.BOTPRESS_WEBHOOK_ID }}
           ENV_BOTPRESS_ENCRYPTION_KEY: ${{ secrets.BOTPRESS_ENCRYPTION_KEY }}
@@ -30,18 +82,22 @@ jobs:
           command_timeout: 20m
           envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_EXAM_ADMIN_TOKEN,ENV_GEMINI_API_KEY,ENV_GEMINI_MODEL
           script: |
-            set -e
-            cd /www/wwwroot/mewtinhoc
-            git config --global --add safe.directory /www/wwwroot/mewtinhoc
-            # Treat the VPS checkout as a deploy mirror; discard tracked server-side edits.
-            git fetch origin main
-            git reset --hard origin/main
-            export PATH=/www/server/nodejs/v22.22.1/bin:$PATH
+            set -eu
 
-            # .env.local nằm trong .gitignore nên `git reset --hard` không tạo ra nó
-            # trên máy chủ - thiếu file này là chat CamCam rơi vào "missing_webhook_id".
-            # Mỗi khoá chỉ được ghi khi secret tương ứng có giá trị; khoá nào không
-            # có secret thì giữ nguyên dòng cũ đang tồn tại trên máy chủ.
+            # Linux phân biệt hoa/thường: thư mục thật là /www/wwwroot/MewTinHoc.
+            # Bản cũ dùng /www/wwwroot/mewtinhoc nên `cd` thất bại ngay.
+            APP_DIR=/www/wwwroot/MewTinHoc
+            cd "$APP_DIR"
+
+            # Node trên VPS này là v26.13.0 (không phải v22.22.1 như bản cũ).
+            export PATH=/www/server/nodejs/v26.13.0/bin:$PATH
+            node -v
+
+            # ------------------------------------------------------------------
+            # .env.local: `git archive` không mang theo file này (nằm trong
+            # .gitignore), nên nó được giữ nguyên qua rsync và chỉ cập nhật
+            # từng khoá khi secret tương ứng có giá trị.
+            # ------------------------------------------------------------------
             umask 077
             touch .env.local
             chmod 600 .env.local
@@ -49,7 +105,7 @@ jobs:
             write_env() {
               key="$1"
               value="$2"
-              if [ -z "$value" ]; then
+              if [ -z "${value:-}" ]; then
                 return 0
               fi
               grep -v "^${key}=" .env.local > .env.local.tmp 2>/dev/null || true
@@ -69,6 +125,12 @@ jobs:
             write_env GEMINI_MODEL "$ENV_GEMINI_MODEL"
             # Cố ý KHÔNG ghi EXAM_KEY_SECRET: đổi khoá này sẽ làm toàn bộ đề đã
             # sinh trong dethicosan/ không đọc được nữa.
+            # Cũng KHÔNG ghi EXAM_DATA_ROOT: mặc định đã đúng là /www/wwwroot.
+
+            chmod 600 .env.local
+            # Bắt buộc: script này chạy bằng root, còn app chạy bằng www.
+            # Thiếu dòng này là `www` không đọc được .env.local → mất key Gemini.
+            chown www:www .env.local
 
             # Cảnh báo sớm thay vì để học viên phát hiện khi bấm gửi tin.
             if ! grep -q '^BOTPRESS_WEBHOOK_ID=.' .env.local \
@@ -77,18 +139,88 @@ jobs:
               echo "WARNING: CamCam se chi tra loi mau cho toi khi them secret BOTPRESS_WEBHOOK_ID."
             fi
 
-            # Nút "Đánh giá của AI" chỉ chạy khi có khoá Gemini trên máy chủ.
             if ! grep -q '^GEMINI_API_KEY=.' .env.local; then
               echo "WARNING: Chua co GEMINI_API_KEY - nut 'Danh gia cua AI' se bao chua cau hinh."
               echo "WARNING: Them secret GEMINI_API_KEY trong GitHub repo (Settings > Secrets)."
             fi
 
-            # Vite nằm trong devDependencies nên phải cài đầy đủ dependency để build.
-            npm ci --include=dev
-            npm run build
-            # NODE_ENV chỉ dành cho tiến trình production, không được đặt trước npm ci.
-            export NODE_ENV=production
-            pm2 restart mewtinhoc --update-env
-            git log -1 --oneline
-            test -f dist/index.html
-            echo "Deploy completed at $(date)" >> /tmp/deploy.log
+            # ------------------------------------------------------------------
+            # Build + chạy đều dưới user `www`.
+            # Nếu chạy `npm ci` bằng root thì node_modules và dist sẽ thuộc
+            # root, và `www` không đọc được → app chết khi khởi động.
+            # ------------------------------------------------------------------
+            su -s /bin/bash www -c '
+              set -eu
+              export HOME=/home/www
+              export PATH=/www/server/nodejs/v26.13.0/bin:$PATH
+              cd /www/wwwroot/MewTinHoc
+
+              # Cache npm toàn cục (/www/server/nodejs/cache) thuộc root:root
+              # nên user www không ghi được log → npm ci thất bại giữa chừng.
+              # Trỏ cache về nhà của www.
+              export npm_config_cache=/home/www/.npm
+              mkdir -p "$npm_config_cache"
+
+              # Vite nằm trong devDependencies nên phải cài đầy đủ dependency.
+              npm ci --include=dev
+
+              # Dọn dist cũ TRƯỚC khi build: nếu build lỗi mà dist cũ còn đó
+              # thì `test -f dist/index.html` vẫn pass và deploy sẽ "xanh" với
+              # bundle cũ — đúng kiểu lỗi âm thầm.
+              rm -rf dist
+              npm run build
+
+              test -f dist/index.html
+
+              # PM2 chạy dưới user www (root không thấy tiến trình này).
+              # `pm2 restart` chỉ thành công khi app đã tồn tại trong danh sách,
+              # nên deploy đầu tiên dùng start.
+              if pm2 describe mewtinhoc >/dev/null 2>&1; then
+                NODE_ENV=production pm2 restart mewtinhoc --update-env
+              else
+                NODE_ENV=production pm2 start server/server.js \
+                  --name mewtinhoc --cwd /www/wwwroot/MewTinHoc --time
+              fi
+              pm2 save
+            '
+
+            # `pm2 restart` báo thành công kể cả khi tiến trình chết ngay sau đó
+            # (ví dụ thiếu node_modules), nên phải kiểm tra trạng thái thật và
+            # HTTP, không tin mã thoát của pm2.
+            su -s /bin/bash www -c '
+              export HOME=/home/www
+              export PATH=/www/server/nodejs/v26.13.0/bin:$PATH
+              pm2 describe mewtinhoc | grep -q "status.*online" \
+                || { echo "LOI: PM2 khong o trang thai online"; exit 1; }
+            '
+
+            # ------------------------------------------------------------------
+            # Kiểm tra sau deploy: app phải trả 200 thì job mới xanh.
+            # ------------------------------------------------------------------
+            sleep 3
+            for i in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:3001/ || true)
+              if [ "$code" = "200" ]; then
+                echo "Health check OK (HTTP $code)"
+                break
+              fi
+              echo "Health check lan $i: HTTP $code - cho them..."
+              sleep 3
+            done
+
+            if [ "${code:-}" != "200" ]; then
+              echo "LOI: server khong tra 200 sau khi deploy."
+              su -s /bin/bash www -c 'export HOME=/home/www; export PATH=/www/server/nodejs/v26.13.0/bin:$PATH; pm2 logs mewtinhoc --lines 40 --nostream' || true
+              exit 1
+            fi
+
+            # Kho đề phải còn nguyên sau deploy (dethicosan nằm ngoài repo nên
+            # rsync không đụng tới, nhưng kiểm tra cho chắc).
+            su -s /bin/bash www -c '
+              export HOME=/home/www
+              export PATH=/www/server/nodejs/v26.13.0/bin:$PATH
+              cd /www/wwwroot/MewTinHoc
+              node -e "import(\"./server/exam/storage.js\").then(m=>console.log(\"Kho de:\",JSON.stringify(m.countPool())))"
+            ' || echo "WARNING: khong doc duoc kho de"
+
+            echo "Deploy completed at $(date)" >> /var/log/mewtinhoc-deploy.log
