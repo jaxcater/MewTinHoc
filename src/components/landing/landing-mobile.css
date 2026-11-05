@@ -226,11 +226,6 @@
     padding-right: 0.72rem;
   }
 
-  .mtl-hero__actions .mtl-link {
-    justify-content: center;
-    min-height: 44px;
-  }
-
   /* Three facts, one per line, read as a sentence: the number in ink,
      the qualifier in muted text right after it. No table lines, no
      justify-between, so nothing is pushed against the screen edge and

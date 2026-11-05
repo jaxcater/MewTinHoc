@@ -6,8 +6,7 @@
 .mtl-mesh__layer--b, .mtl-mesh__layer--c { display: none; }
 .mtl-nav { padding-top: 14px; }
 .mtl-nav__links { gap: 8px; }
-.mtl-motion-toggle { width: 44px; height: 44px; flex: none; display: grid; place-items: center; padding: 0; border: 1px solid #e8dacb; border-radius: 50%; color: var(--mtl-ink); background: #fffdf8; cursor: pointer; }
-.mtl-motion-toggle:focus-visible, .mtl-mobile-nav a:focus-visible { outline: 3px solid var(--mtl-orange); outline-offset: 3px; }
+.mtl-mobile-nav a:focus-visible { outline: 3px solid var(--mtl-orange); outline-offset: 3px; }
 .mtl-mobile-nav { position: relative; z-index: 1; display: flex; justify-content: center; gap: 5px; margin-top: 14px; padding: 0 12px; border-block: 1px solid #e9dac8; }
 .mtl-mobile-nav a { min-height: 44px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: .75rem; font-weight: 650; color: var(--mtl-muted); white-space: nowrap; text-decoration: none; }
 .mtl-hero { padding-top: 28px; padding-bottom: 32px; }
@@ -21,7 +20,6 @@
 .mtl-hero .mtl-lead { font-size: 1rem; line-height: 1.65; max-width: 43ch; color: #725744; }
 .mtl-hero__actions { gap: 6px; }
 .mtl-hero__actions .mtl-btn { min-height: 54px; }
-.mtl-hero__try { display: inline-flex; min-height: 44px; gap: 8px; font-size: .875rem; text-decoration: none; }
 .mtl-hero__reassurance { display: flex; align-items: center; justify-content: center; gap: 5px; margin: -3px 0 0; color: var(--mtl-muted); font-size: .6875rem; }
 .mtl-hero__reassurance svg { color: #527d4d; flex: none; }
 .mtl-hero__stage { max-width: 320px; margin-top: 6px; }
@@ -103,7 +101,6 @@
   .mtl-root .mtl-h2 { font-size: clamp(1.75rem, 7.4vw, 2.125rem); }
   .mtl-leg { padding: 18px 16px; margin-bottom: 12px; }
   .mtl-leg__station { top: 21px; }
-  .mtl-hero__actions .mtl-link { min-height: 44px; }
   .mtl-preview__title, .mtl-preview__pct, .mtl-preview__meta { font-size: .625rem; }
   .mtl-bank__ui, .mtl-quiz, .mtl-ai-note { box-shadow: none; }
   .mtl-glow, .mtl-orbit, .mtl-brand__name, .mtl-brand__dot, .mtl-preview, .mtl-chip, .mtl-cat__bubble { animation: none; }
@@ -114,7 +111,6 @@
 @media (max-width: 359px) {
   .mtl-nav__links { gap: 3px; }
   .mtl-brand__tag { font-size: .5625rem; }
-  .mtl-motion-toggle { width: 40px; }
   .mtl-mobile-nav { padding-inline: 8px; gap: 0; }
   .mtl-mobile-nav a { font-size: .6875rem; }
   .mtl-hero__eyebrow { font-size: .625rem; }
@@ -142,11 +138,11 @@
 .mtl-root [data-motion-zone]:not([data-motion-visible]) *::before,
 .mtl-root [data-motion-zone]:not([data-motion-visible]) *::after,
 .mtl-root[data-tab-hidden] *, .mtl-root[data-tab-hidden] *::before, .mtl-root[data-tab-hidden] *::after { animation-play-state: paused !important; }
-.mtl-root:is([data-motion-mode='paused'], [data-motion-mode='reduced'], [data-motion-mode='light']) *,
-.mtl-root:is([data-motion-mode='paused'], [data-motion-mode='reduced'], [data-motion-mode='light']) *::before,
-.mtl-root:is([data-motion-mode='paused'], [data-motion-mode='reduced'], [data-motion-mode='light']) *::after { animation: none !important; transition: none !important; }
-.mtl-root:is([data-motion-mode='paused'], [data-motion-mode='reduced'], [data-motion-mode='light']) [data-reveal],
-.mtl-root:is([data-motion-mode='paused'], [data-motion-mode='reduced'], [data-motion-mode='light']) .mtl-mask-line > span { opacity: 1; transform: none; }
+.mtl-root:is([data-motion-mode='reduced'], [data-motion-mode='light']) *,
+.mtl-root:is([data-motion-mode='reduced'], [data-motion-mode='light']) *::before,
+.mtl-root:is([data-motion-mode='reduced'], [data-motion-mode='light']) *::after { animation: none !important; transition: none !important; }
+.mtl-root:is([data-motion-mode='reduced'], [data-motion-mode='light']) [data-reveal],
+.mtl-root:is([data-motion-mode='reduced'], [data-motion-mode='light']) .mtl-mask-line > span { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .mtl-root *, .mtl-root *::before, .mtl-root *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

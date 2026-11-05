@@ -1,7 +1,7 @@
 ﻿import React, { useCallback, useEffect } from 'react';
 import LandingHero from './LandingHero';
 import { useRef, useState } from 'react';
-import { ArrowRight, BookOpen, Pause, Play, Route, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Route, Sparkles } from 'lucide-react';
 import useLandingMotion from './useLandingMotion';
 import LandingRoute from './LandingRoute';
 import LandingDemo from './LandingDemo';
@@ -27,9 +27,8 @@ import brandMark from '../../assets/landing/mew-mark.webp';
  */
 export default function LandingPage({ onStart }) {
   const rootRef = useRef(null);
-  const [motionPaused, setMotionPaused] = useState(false);
   const [showDock, setShowDock] = useState(false);
-  useLandingMotion(rootRef, motionPaused);
+  useLandingMotion(rootRef);
   // Đưa học viên từ cuối trang về đầu trang khi mở màn hình đăng nhập, để
   // LoginPage xuất hiện ở vị trí đầu thay vì giữa trang.
   const handleStart = useCallback(() => {
@@ -114,11 +113,6 @@ export default function LandingPage({ onStart }) {
             </div>
 
             <nav className="mtl-nav__links" aria-label="Điều hướng trang giới thiệu">
-              <button type="button" className="mtl-motion-toggle" onClick={() => setMotionPaused((paused) => !paused)}
-                aria-pressed={motionPaused} aria-label={motionPaused ? 'Bật chuyển động' : 'Tạm dừng chuyển động'}
-                title={motionPaused ? 'Bật chuyển động' : 'Tạm dừng chuyển động'}>
-                {motionPaused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}
-              </button>
               <a className="mtl-nav__link" href="#lo-trinh">
                 Lộ trình
               </a>

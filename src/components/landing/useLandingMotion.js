@@ -2,14 +2,14 @@ import { useEffect } from 'react';
 
 // CSS owns motion; observers toggle attributes without scroll listeners or
 // per-frame React updates on a phone.
-export default function useLandingMotion(rootRef, paused) {
+export default function useLandingMotion(rootRef) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return undefined;
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const connection = navigator.connection;
     const update = () => {
-      root.dataset.motionMode = preference.matches ? 'reduced' : paused ? 'paused' : connection?.saveData ? 'light' : 'full';
+      root.dataset.motionMode = preference.matches ? 'reduced' : connection?.saveData ? 'light' : 'full';
       root.toggleAttribute('data-tab-hidden', document.hidden);
     };
     root.setAttribute('data-motion', '');
@@ -32,5 +32,5 @@ export default function useLandingMotion(rootRef, paused) {
       connection?.removeEventListener?.('change', update);
       document.removeEventListener('visibilitychange', update);
     };
-  }, [rootRef, paused]);
+  }, [rootRef]);
 }

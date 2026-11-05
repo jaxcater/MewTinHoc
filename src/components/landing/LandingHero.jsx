@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowDown, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import usePointerParallax from './usePointerParallax';
 import mewHero from '../../assets/landing/mew-hero.webp';
 
@@ -57,7 +57,6 @@ export default function LandingHero({ onStart }) {
             Bắt đầu học ngay
             <ArrowRight size={19} className="mtl-btn__arrow" aria-hidden="true" />
           </button>
-          <a className="mtl-link mtl-hero__try" href="#thu-suc">Thử một câu trước <ArrowDown size={15} aria-hidden="true" /></a>
         </div>
 
         <p className="mtl-hero__reassurance"><Check size={14} aria-hidden="true" />Đăng nhập với Google · Lưu lại tiến độ học</p>
