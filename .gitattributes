@@ -1,0 +1,24 @@
+# Chuẩn hoá line ending cho cả Windows và VPS (Linux).
+#
+# VPS checkout bằng LF. Nếu máy Windows để core.autocrlf=true thì mọi file
+# thành CRLF → git báo "modified" hàng loạt dù nội dung y hệt, và diff giữa
+# hai môi trường trở nên vô nghĩa. Ép LF ở đây để 2 phía khớp nhau từng byte.
+* text=auto eol=lf
+
+# File nhị phân: không đụng tới
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.dat binary
+
+# Script Windows phải giữ CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
