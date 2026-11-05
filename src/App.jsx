@@ -20,6 +20,7 @@ import AnnouncementBanner from './components/AnnouncementBanner';
 import DemoLockedView, { DEMO_LOCKED_CONTENT } from './components/demo/DemoLockedView';
 import { isDemoUser, isLockedForDemo, featureFromPath } from './lib/demoAccess';
 import logoMeoCam from '../img/logomeocam.png';
+import { useDevtoolsGuard } from './lib/useDevtoolsGuard';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS.HOME);
@@ -268,7 +269,20 @@ export default function App() {
     else if (location.pathname === '/' || location.pathname === '/home') setActiveTab(TABS.HOME);
   }, [location.pathname]);
 
+  const devtoolsBlocked = useDevtoolsGuard(user);
   const isAdminRoute = location.pathname.endsWith('/admin') || window.location.hash === '#admin';
+
+  if (devtoolsBlocked) {
+    return (
+      <main className="devtools-notice" role="alert">
+        <div>
+          <h1>Vui lòng đóng công cụ dành cho nhà phát triển</h1>
+          <p>Đóng DevTools (F12) để tiếp tục học trên MewTinHoc.</p>
+          <button type="button" onClick={() => handleLogout({ silent: true })}>Đăng xuất</button>
+        </div>
+      </main>
+    );
+  }
 
   if (isAdminRoute) {
     return <AdminPage currentUser={user} />;

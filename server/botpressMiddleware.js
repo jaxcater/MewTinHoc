@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { identifyCaller } from './exam/auth.js';
+import { identifyChatCaller } from './exam/auth.js';
 import { chatQuota } from './chatQuota.js';
 import { getBotpressConfig, listBotpressFiles, processChatMessage, resetSession, diagnoseBotpressChat } from './botpressService.js';
 import { applySecurityHeaders } from './securityHeaders.js';
@@ -105,8 +105,8 @@ export async function botpressMiddleware(req, res, next) {
 
     if (url === '/quota' || url === '/api/botpress/quota') {
       if (method !== 'GET') return sendJson(res, 405, { error: 'Method Not Allowed' });
-      const caller = await identifyCaller(req);
-      return sendJson(res, 200, { quota: chatQuota.status(caller.userId) });
+      const caller = await identifyChatCaller(req);
+      return sendJson(res, 200, { quota: chatQuota.status(caller.userId, caller) });
     }
 
     if (url === '/files' || url === '/api/botpress/files') {
@@ -127,8 +127,8 @@ export async function botpressMiddleware(req, res, next) {
       const body = await parseJsonBody(req);
       const message = cleanString(body.message || body.text, MAX_MESSAGE_CHARS);
       if (!message) return sendJson(res, 400, { error: 'Tin nhắn không được để trống' });
-      const caller = await identifyCaller(req);
-      const reservation = chatQuota.consume(caller.userId);
+      const caller = await identifyChatCaller(req);
+      const reservation = chatQuota.consume(caller.userId, caller);
       if (!reservation.allowed) {
         res.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(reservation.quota.resetAt) - Date.now()) / 1000))));
         return sendJson(res, 429, {

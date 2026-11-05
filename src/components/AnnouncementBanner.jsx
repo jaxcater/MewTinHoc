@@ -6,6 +6,7 @@ import {
   dismissAnnouncementForever
 } from '../lib/announcementService.js';
 import './announcement-banner.css';
+import AnnouncementMessage from './AnnouncementMessage.jsx';
 
 const TYPE_ICONS = {
   info: Megaphone,
@@ -150,7 +151,7 @@ export default function AnnouncementBanner() {
           </button>
         </div>
 
-        <p className="ann-message">{a.message}</p>
+        <p className="ann-message"><AnnouncementMessage message={a.message} /></p>
 
         <div className="ann-foot">
           <input

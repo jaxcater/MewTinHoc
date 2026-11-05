@@ -34,6 +34,7 @@ import { fetchAiStatus, requestAiReview } from '../../lib/aiReviewApi.js';
 import useCountdown from './useCountdown.js';
 import AiReviewPanel from './AiReviewPanel.jsx';
 import QuestionNavigator from './QuestionNavigator.jsx';
+import ExamAnswerSummary from './ExamAnswerSummary.jsx';
 import './exam-room.css';
 import './gen-exam.css';
 
@@ -67,6 +68,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
   const storageUserId = userId || 'guest';
 
   const [activePart, setActivePart] = useState('partI');
+  const [summaryTarget, setSummaryTarget] = useState(null);
   const [mcqAnswers, setMcqAnswers] = useState({});
   const [tfAnswers, setTfAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -129,6 +131,22 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
   const totalTfStatements = totalTf * 4;
 
   const isSubmitted = Boolean(result);
+
+  const navigateFromSummary = (part, index) => {
+    setActivePart(part);
+    setSummaryTarget(`exam-question-${part}-${index}`);
+  };
+
+  useEffect(() => {
+    if (!summaryTarget) return undefined;
+    const frame = requestAnimationFrame(() => {
+      const question = document.getElementById(summaryTarget);
+      question?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      question?.focus({ preventScroll: true });
+      setSummaryTarget(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [summaryTarget, activePart, isSubmitted]);
 
   const countdown = useCountdown(
     exam.durationMinutes || 50,
@@ -516,8 +534,15 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
           >
             Phần II · Đúng/Sai
           </button>
+          <button type="button" className="exam-room__part-btn"
+            aria-pressed={activePart === 'summary'} onClick={() => setActivePart('summary')}>
+            Tóm tắt bài làm
+          </button>
         </div>
 
+        {activePart === 'summary' ? (
+          <ExamAnswerSummary exam={exam} mcqAnswers={mcqAnswers} tfAnswers={tfAnswers} onNavigate={navigateFromSummary} />
+        ) : (
         <div className="exam-room__questions">
           {activePart === 'partI'
             ? exam.partI.map((question, index) => {
@@ -527,6 +552,8 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
                   <article
                     className="exam-q"
                     key={question.no}
+                    id={`exam-question-partI-${index}`}
+                    tabIndex={-1}
                     data-answered="true"
                     data-result={detail.isCorrect ? 'correct' : 'wrong'}
                   >
@@ -576,6 +603,8 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
                   <article
                     className="exam-q"
                     key={question.no}
+                    id={`exam-question-partII-${index}`}
+                    tabIndex={-1}
                     data-answered="true"
                     data-result={detail.correctStatementCount === 4 ? 'correct' : 'wrong'}
                   >
@@ -624,6 +653,8 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
                 );
               })}
         </div>
+
+        )}
 
         {onExit && (
           <div className="exam-room__actions">
@@ -688,8 +719,15 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
         >
           Phần II · Đúng/Sai ({answeredTf}/{totalTfStatements})
         </button>
+        <button type="button" className="exam-room__part-btn"
+          aria-pressed={activePart === 'summary'} onClick={() => setActivePart('summary')}>
+          Tóm tắt bài làm
+        </button>
       </div>
 
+      {activePart === 'summary' ? (
+        <ExamAnswerSummary exam={exam} mcqAnswers={mcqAnswers} tfAnswers={tfAnswers} onNavigate={navigateFromSummary} />
+      ) : (
       <div className="exam-room__workspace">
       <QuestionNavigator exam={exam} mcqAnswers={mcqAnswers} tfAnswers={tfAnswers}
         activePart={activePart} onChangePart={setActivePart} />
@@ -773,6 +811,8 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
       </div>
 
       </div>
+
+      )}
 
       {submitError && (
         <div className="exam-alert" data-tone="error">

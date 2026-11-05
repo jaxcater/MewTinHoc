@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 export const CHAT_DAILY_LIMIT = 5;
+const UNLIMITED_QUOTA = Object.freeze({ unlimited: true, limit: null, used: 0, remaining: null, resetAt: null });
 const DEFAULT_DIRECTORY = new URL('../var/chat-usage/', import.meta.url);
 
 // Each account has its own file; updates are synchronous and atomic in one Node process.
@@ -27,12 +28,13 @@ export function createChatQuota(directory = process.env.CHAT_USAGE_DIR || DEFAUL
     return { file, day, used, resetAt };
   }
   function view(record) {
-    return { limit: CHAT_DAILY_LIMIT, used: record.used,
+    return { unlimited: false, limit: CHAT_DAILY_LIMIT, used: record.used,
       remaining: Math.max(0, CHAT_DAILY_LIMIT - record.used), resetAt: record.resetAt };
   }
   return {
-    status(userId) { return view(read(userId)); },
-    consume(userId) {
+    status(userId, { isAdmin = false } = {}) { return isAdmin === true ? { ...UNLIMITED_QUOTA } : view(read(userId)); },
+    consume(userId, { isAdmin = false } = {}) {
+      if (isAdmin === true) return { allowed: true, quota: { ...UNLIMITED_QUOTA } };
       const record = read(userId);
       if (record.used >= CHAT_DAILY_LIMIT) return { allowed: false, quota: view(record) };
       record.used += 1;

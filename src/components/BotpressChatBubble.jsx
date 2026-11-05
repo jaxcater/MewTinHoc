@@ -214,7 +214,7 @@ function FormattedMessage({ text, isUser = false }) {
 
 export default function BotpressChatBubble({ user, onRequestUpgrade }) {
   const [chatQuota, setChatQuota] = useState(null);
-  const quotaExhausted = Boolean(chatQuota?.remaining === 0 && Date.parse(chatQuota.resetAt) > Date.now());
+  const quotaExhausted = Boolean(!chatQuota?.unlimited && chatQuota?.remaining === 0 && Date.parse(chatQuota.resetAt) > Date.now());
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedCurl, setCopiedCurl] = useState(false);
@@ -289,7 +289,7 @@ export default function BotpressChatBubble({ user, onRequestUpgrade }) {
     refresh();
     const timer = setInterval(refresh, 60000);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [isOpen, chatLocked, user?.id, fetchBackend]);
+  }, [isOpen, chatLocked, user?.id, user?.isAdmin, user?.is_admin, fetchBackend]);
 
   // Kiểm tra trạng thái Backend khi mở component
   const checkBackendStatus = useCallback(async () => {
@@ -837,9 +837,11 @@ BOTPRESS_BOT_ID=your_bot_id_here`}
               </div>
 
               <div role="status" style={{ padding: '8px 16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                {quotaExhausted
+                {chatQuota?.unlimited
+                  ? 'Tài khoản Admin: không giới hạn lượt chat.'
+                  : quotaExhausted
                   ? 'Đã hết 5 lượt chat hôm nay. Hạn mức đặt lại lúc 0 giờ Việt Nam.'
-                  : (chatQuota ? 'Còn ' + chatQuota.remaining + '/5 lượt chat hôm nay.' : 'Giới hạn 5 lượt chat mỗi ngày.')}
+                  : (chatQuota ? 'Còn ' + chatQuota.remaining + '/' + chatQuota.limit + ' lượt chat hôm nay.' : 'Đang kiểm tra hạn mức chat…')}
               </div>
               {/* Input Box */}
               <div className="botpress-input-box">

@@ -20,6 +20,7 @@
     "@botpress/client": "^2.8.0",
     "@supabase/supabase-js": "^2.117.3",
     "canvas-confetti": "^1.9.4",
+    "disable-devtool": "^0.3.9",
     "framer-motion": "^14.7.1",
     "lucide-react": "^1.56.0",
     "pdfjs-dist": "3.11.174",

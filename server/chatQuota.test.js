@@ -52,3 +52,20 @@ test('back-to-back requests share one reservation count', async (t) => {
   assert.equal(results.filter((result) => result.allowed).length, 5);
   assert.equal(quota.status('student').remaining, 0);
 });
+
+test('verified admins can exceed five messages without reading or changing quota files', (t) => {
+  const { quota, directory } = fixture(t);
+  for (let i = 0; i < 5; i += 1) quota.consume('admin');
+  const before = fs.readdirSync(directory).map((file) => fs.readFileSync(path.join(directory, file), 'utf8'));
+  for (let i = 0; i < 12; i += 1) {
+    const result = quota.consume('admin', { isAdmin: true });
+    assert.equal(result.allowed, true);
+    assert.equal(result.quota.unlimited, true);
+    assert.equal(result.quota.remaining, null);
+  }
+  assert.equal(quota.status('admin', { isAdmin: true }).limit, null);
+  assert.deepEqual(fs.readdirSync(directory).map((file) => fs.readFileSync(path.join(directory, file), 'utf8')), before);
+  // Revoking admin immediately restores the existing ordinary quota.
+  assert.equal(quota.consume('admin', { isAdmin: false }).allowed, false);
+  assert.equal(quota.consume('admin', { isAdmin: 'true' }).allowed, false);
+});

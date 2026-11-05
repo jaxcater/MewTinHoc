@@ -6,6 +6,9 @@
 //  Không tin bất kỳ user id nào do client tự gửi lên.
 // ============================================================
 import { RATE_LIMIT } from './config.js';
+import { loadRepoEnv } from '../envLoader.js';
+
+loadRepoEnv();
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL ||
@@ -89,6 +92,23 @@ export async function identifyCaller(req) {
   // Khách / demo: định danh theo IP và bị giới hạn chặt hơn
   const ip = getClientIp(req);
   return { userId: `anon:${ip}`, isAnonymous: true, ipLimit: true };
+}
+
+// Chat exemptions use only the authenticated account's persisted profile.
+// Never accept admin flags from request bodies or user-editable Auth metadata.
+export async function identifyChatCaller(req) {
+  const caller = await identifyCaller(req);
+  if (caller.isAnonymous) return { ...caller, isAdmin: false };
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(caller.userId)}&select=is_admin`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${getBearerToken(req)}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    const profiles = response.ok ? await response.json() : null;
+    return { ...caller, isAdmin: Array.isArray(profiles) && profiles.length === 1 && profiles[0].is_admin === true };
+  } catch {
+    return { ...caller, isAdmin: false };
+  }
 }
 
 /** Giới hạn riêng cho khách chưa đăng nhập */

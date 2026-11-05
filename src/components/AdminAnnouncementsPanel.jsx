@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Megaphone, Send, Trash2, Eye, EyeOff, Copy, Check, Loader2, Star } from 'lucide-react';
+import AnnouncementMessage from './AnnouncementMessage.jsx';
 import {
   ANNOUNCEMENT_TYPES,
   ANNOUNCEMENT_LIMITS,
@@ -217,9 +218,21 @@ export default function AdminAnnouncementsPanel() {
               maxLength={ANNOUNCEMENT_LIMITS.message}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Nội dung ngắn gọn gửi tới học viên..."
+              placeholder="Nội dung gửi tới học viên. Có thể dán link https://... vào đây."
+              aria-describedby="ann-message-link-hint"
               style={{ ...inputStyle, resize: 'vertical' }}
             />
+            <p id="ann-message-link-hint" style={{ margin: '0.35rem 0 0', fontSize: '0.76rem', color: '#6B7280' }}>
+              Dán một hoặc nhiều liên kết bắt đầu bằng https:// hoặc http://. Học viên bấm vào sẽ mở trong tab mới.
+            </p>
+            {message.trim() && (
+              <div style={{ marginTop: '0.65rem', padding: '0.75rem', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '8px' }}>
+                <span style={labelStyle}>Xem trước nội dung</span>
+                <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                  <AnnouncementMessage message={message} />
+                </p>
+              </div>
+            )}
           </div>
 
           <label
@@ -319,8 +332,8 @@ export default function AdminAnnouncementsPanel() {
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: '2px', overflowWrap: 'anywhere' }}>
-                      {r.message.length > 120 ? `${r.message.slice(0, 120)}…` : r.message}
+                    <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: '2px', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>
+                      <AnnouncementMessage message={r.message} />
                     </div>
                     <div style={{ fontSize: '0.7rem', color: '#9CA3AF', marginTop: '2px' }}>
                       {new Date(r.created_at).toLocaleString('vi-VN')}
