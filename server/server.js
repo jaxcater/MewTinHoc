@@ -42,6 +42,24 @@ function safeDistPath(requestUrl) {
 async function dispatch(req, res) {
   applySecurityHeaders(res, req);
 
+  // Chặn hẳn các thư mục dữ liệu nhạy cảm. dethicosan/ và sourcedethi/ nằm
+  // ngay cạnh dist/ nên về lý thuyết không nằm trong docroot, nhưng chặn
+  // tường minh ở đây là lớp phòng thủ thứ hai nếu cấu hình proxy đổi.
+  // Trả 404 (không phải 403) để không xác nhận sự tồn tại của thư mục.
+  {
+    let blockedPath = '';
+    try {
+      blockedPath = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname);
+    } catch {
+      blockedPath = '';
+    }
+    if (/^\/(?:dethicosan|sourcedethi)(?:\/|$)/i.test(blockedPath)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not found');
+      return;
+    }
+  }
+
   // API gen đề phải đứng TRƯỚC static handler, nếu không POST sẽ rơi
   // vào SPA fallback và trả về index.html.
   if (req.url?.startsWith('/api/exams')) {
