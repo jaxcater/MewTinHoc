@@ -659,13 +659,33 @@ export async function loadQuestionPool() {
   const mcqByTopic = {};
   const dedupeStats = {};
 
+  // Dedupe PHẢI chạy toàn cục, không chỉ trong từng chủ đề.
+  //
+  // Nguồn thực tế có nhiều câu trùng nội dung nhưng bị xếp vào hai chủ đề
+  // khác nhau (C1↔C5, C2↔C5, C2↔C3, C3↔C5, C4↔C5). Nếu chỉ dedupe theo
+  // từng chủ đề thì một đề vẫn có thể bốc cùng một câu 2 lần — học viên
+  // thấy câu lặp trong đề. Vì vậy dùng MỘT Set chung cho mọi chủ đề, và
+  // giữ bản ghi ở chủ đề xuất hiện trước theo TOPIC_ORDER để ổn định.
+  const seenStems = new Set();
+  const excluded = [];
+
   for (const topic of Object.keys(SOURCE_BASENAMES).filter((key) => key.startsWith('C'))) {
     const fromSource = sourceMcq.filter((item) => item.topic === topic);
     const fromBank = bank.mcq.filter((item) => item.topic === topic);
-    const { list, removed } = dedupe(
-      [...fromSource, ...fromBank],
-      (item) => normalizeKey(item.stem),
-    );
+
+    const list = [];
+    let removed = 0;
+    for (const item of [...fromSource, ...fromBank]) {
+      const key = normalizeKey(item.stem);
+      if (seenStems.has(key)) {
+        removed += 1;
+        excluded.push({ topic, stem: item.stem.slice(0, 60) });
+        continue;
+      }
+      seenStems.add(key);
+      list.push(item);
+    }
+
     mcqByTopic[topic] = list;
     dedupeStats[topic] = {
       source: fromSource.length,
@@ -673,6 +693,13 @@ export async function loadQuestionPool() {
       unique: list.length,
       removed,
     };
+  }
+
+  if (excluded.length) {
+    console.warn(
+      `[exam] ⚠ Loại ${excluded.length} câu trùng nội dung giữa các chủ đề ` +
+        '(giữ bản ghi ở chủ đề xuất hiện trước).',
+    );
   }
 
   const tfCommon = dedupe(sourceTf.chung, (item) => normalizeKey(item.scenario));

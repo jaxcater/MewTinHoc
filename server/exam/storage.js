@@ -19,7 +19,7 @@ import {
   TMP_DIR,
   ensureDirs,
 } from './config.js';
-import { readSealedFile, sealJson } from './crypto.js';
+import { keyHealthCheck, readSealedFile, sealJson } from './crypto.js';
 import { gradeExam } from './grading.js';
 
 /** Tên file trong pool: ict-<uuid>.dat (mã hoá) hoặc .json (bản cũ) */
@@ -84,6 +84,32 @@ export function countPool() {
   };
 }
 
+/**
+ * Cách ly 1 file đề không đọc được thay vì xoá.
+ *
+ * Lý do: nếu khoá mã hoá bị sai/lệch, toàn bộ kho sẽ "hỏng" cùng lúc.
+ * Xoá là mất dữ liệu không cứu được; chuyển sang tmp/quarantine/ để
+ * admin còn khôi phục được sau khi sửa khoá.
+ *
+ * @returns {boolean} true nếu đã cách ly thành công
+ */
+export function quarantinePoolFile(filePath, reason = 'hỏng') {
+  try {
+    const dir = path.join(TMP_DIR, 'quarantine');
+    fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+    const target = path.join(dir, path.basename(filePath));
+    fs.renameSync(filePath, target);
+    console.warn(
+      `[exam] Cách ly đề lỗi (${reason}) → ${target}. ` +
+        'KHÔNG xoá: kiểm tra EXAM_KEY_SECRET/.key-secret rồi khôi phục.',
+    );
+    return true;
+  } catch (err) {
+    console.error(`[exam] Không cách ly được ${filePath}: ${err.message}`);
+    return false;
+  }
+} 
+
 /** Kho có đang thiếu đề so với mục tiêu không */
 export function needsRefill() {
   const counts = countPool();
@@ -116,6 +142,17 @@ export function claimExam(track) {
   if (track !== 'ict' && track !== 'cs') return null;
   const pool = listPool();
   const candidates = pool[track];
+  if (candidates.length === 0) return null;
+
+  // Chốt an toàn: nếu khoá mã hoá sai thì MỌI file đều không đọc được.
+  // Khi đó cách ly từng file sẽ dọn sạch kho — phải dừng và báo lỗi.
+  if (keyHealthCheck() === 'bad-key') {
+    console.error(
+      '[exam] Khoá mã hoá không khớp với dữ liệu trong kho. ' +
+        'Dừng claim để bảo vệ đề. Kiểm tra EXAM_KEY_SECRET / .key-secret.',
+    );
+    return null;
+  }
 
   // Xáo thứ tự để không phải luôn lấy đề đầu tiên (giảm khả năng đoán)
   for (let i = candidates.length - 1; i > 0; i -= 1) {
@@ -125,6 +162,18 @@ export function claimExam(track) {
 
   for (const candidate of candidates) {
     const sessionPath = path.join(SESSION_DIR, `${candidate.examId}${SEALED_EXT}`);
+
+    // Đọc & kiểm tra TRƯỚC khi rename: nếu file hỏng (sai khoá mã hoá,
+    // ghi dở, định dạng lạ) thì chuyển sang khu cách ly chứ KHÔNG xoá.
+    //
+    // Trước đây file hỏng bị unlink ngay sau khi rename. Khi khoá mã hoá
+    // trong RAM khác .key-secret trên đĩa, MỌI file đều "hỏng" → một lần
+    // học viên bấm tạo đề là xoá sạch cả kho. Đó là lỗi mất dữ liệu.
+    if (!readExamFile(candidate.path)?.publicExam) {
+      quarantinePoolFile(candidate.path, 'không giải mã được');
+      continue;
+    }
+
     try {
       // rename nguyên tử: nếu 2 process cùng rename, chỉ 1 thành công
       fs.renameSync(candidate.path, sessionPath);
@@ -140,12 +189,9 @@ export function claimExam(track) {
 
     const payload = readExamFile(sessionPath);
     if (!payload?.publicExam) {
-      // File hỏng: dọn luôn để không kẹt kho
-      try {
-        fs.unlinkSync(sessionPath);
-      } catch {
-        /* ignore */
-      }
+      // Hi hữu: file đọc được lúc kiểm tra nhưng hỏng sau khi rename.
+      // Vẫn không xoá — đưa vào khu cách ly để chẩn đoán về sau.
+      quarantinePoolFile(sessionPath, 'hỏng sau khi claim');
       continue;
     }
 
@@ -307,6 +353,8 @@ export function pruneTmp() {
   }
   let removed = 0;
   for (const name of entries) {
+    // Bỏ qua khu cách ly: đó là đề hỏng cần giữ lại để chẩn đoán/khôi phục
+    if (name === 'quarantine') continue;
     try {
       fs.unlinkSync(path.join(TMP_DIR, name));
       removed += 1;

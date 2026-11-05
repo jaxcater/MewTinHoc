@@ -16,7 +16,8 @@
 // ============================================================
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import { SECRET_FILE, ensureDirs } from './config.js';
+import path from 'node:path';
+import { POOL_DIR, SECRET_FILE, SESSION_DIR, ensureDirs } from './config.js';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_BYTES = 12;
@@ -25,7 +26,14 @@ const MAGIC = 'MTH1'; // nhận diện file đã mã hoá
 
 let cachedKey = null;
 
-/** Lấy (hoặc tạo) khoá 32 byte */
+/**
+ * Lấy (hoặc tạo) khoá 32 byte.
+ *
+ * QUY TẮC AN TOÀN: chỉ TẠO khoá mới khi thư mục kho đề chưa có đề nào.
+ * Nếu đã có đề mà không đọc được khoá, ném lỗi thay vì lặng lẽ sinh khoá
+ * mới — vì khoá mới khiến toàn bộ đề cũ không giải mã được, và
+ * claimExam() trước đây xoá luôn file hỏng → mất sạch kho.
+ */
 function getKey() {
   if (cachedKey) return cachedKey;
 
@@ -37,25 +45,50 @@ function getKey() {
   }
 
   ensureDirs();
+  let readError = null;
   try {
     const existing = fs.readFileSync(SECRET_FILE);
     if (existing.length === 32) {
       cachedKey = existing;
       return cachedKey;
     }
-  } catch {
-    /* chưa có -> tạo mới */
+    readError = new Error(`độ dài ${existing.length} byte, cần 32`);
+  } catch (err) {
+    readError = err;
+  }
+
+  // Chưa có đề nào trong kho → an toàn để tạo khoá mới
+  const poolHasExams = listSealedFiles().length > 0;
+  if (poolHasExams) {
+    throw new Error(
+      `Không đọc được khoá mã hoá đáp án (${readError.message}) nhưng kho đã có đề. ` +
+        'Từ chối sinh khoá mới để không làm hỏng dữ liệu cũ. ' +
+        `Hãy sửa quyền/khôi phục ${SECRET_FILE} hoặc đặt EXAM_KEY_SECRET.`,
+    );
   }
 
   const generated = crypto.randomBytes(32);
-  try {
-    fs.writeFileSync(SECRET_FILE, generated, { mode: 0o600 });
-  } catch (err) {
-    console.warn(`[exam] Không ghi được file khoá: ${err.message}`);
-  }
+  fs.writeFileSync(SECRET_FILE, generated, { mode: 0o600 });
   cachedKey = generated;
   return cachedKey;
 }
+
+/** Đếm nhanh số file đề đã mã hoá đang có (không đọc nội dung) */
+function listSealedFiles() {
+  const dirs = [POOL_DIR, SESSION_DIR];
+  const found = [];
+  for (const dir of dirs) {
+    try {
+      for (const name of fs.readdirSync(dir)) {
+        if (name.endsWith('.dat')) found.push(name);
+      }
+    } catch {
+      /* thư mục chưa có */
+    }
+  }
+  return found;
+}
+
 
 /**
  * Mã hoá object thành buffer: MAGIC | iv | tag | ciphertext
@@ -110,6 +143,35 @@ export function readSealedFile(filePath) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Kiểm tra khoá hiện tại có giải mã được dữ liệu trên đĩa không.
+ *
+ * Dùng để phân biệt "1 file hỏng" với "khoá sai". Nếu khoá sai thì
+ * mọi file đều hỏng cùng lúc — lúc đó TUYỆT ĐỐI không được cách ly/xoá
+ * hàng loạt, mà phải dừng lại và báo lỗi cấu hình.
+ *
+ * @returns {'ok'|'bad-key'|'no-data'}
+ */
+export function keyHealthCheck() {
+  const candidates = [];
+  for (const dir of [POOL_DIR, SESSION_DIR]) {
+    try {
+      for (const name of fs.readdirSync(dir)) {
+        if (name.endsWith('.dat')) candidates.push(path.join(dir, name));
+      }
+    } catch {
+      /* thư mục chưa có */
+    }
+  }
+  if (candidates.length === 0) return 'no-data';
+
+  // Thử tối đa 3 file là đủ để kết luận
+  for (const file of candidates.slice(0, 3)) {
+    if (readSealedFile(file)) return 'ok';
+  }
+  return 'bad-key';
 }
 
 export const _internal = { MAGIC, ALGORITHM };

@@ -132,6 +132,24 @@ server.listen(PORT, process.env.HOST || '127.0.0.1', async () => {
     console.warn(`[exam] Không kiểm tra được bố cục: ${err.message}`);
   }
 
+  // Kiểm tra khoá mã hoá đáp án có khớp dữ liệu trên đĩa không.
+  // Nếu lệch, mọi đề đều không đọc được — phải biết ngay lúc khởi động,
+  // đừng đợi học viên bấm tạo đề rồi mới phát hiện.
+  try {
+    const { keyHealthCheck } = await import('./exam/crypto.js');
+    const keyState = keyHealthCheck();
+    if (keyState === 'bad-key') {
+      console.error(
+        '[exam] ⛔ Khoá mã hoá KHÔNG khớp với đề trong kho — tính năng tạo đề sẽ từ chối chạy. ' +
+          'Kiểm tra EXAM_KEY_SECRET và dethicosan/.key-secret (không khớp thì đề cũ không đọc được).',
+      );
+    } else if (keyState === 'ok') {
+      console.log('[exam] Khoá mã hoá: khớp dữ liệu trong kho');
+    }
+  } catch (err) {
+    console.warn(`[exam] Không kiểm tra được khoá mã hoá: ${err.message}`);
+  }
+
   // Kiểm tra cấu hình đánh giá AI 1 lần lúc khởi động — cảnh báo sớm thay vì
   // để học viên bấm nút rồi mới biết thiếu khoá.
   try {
