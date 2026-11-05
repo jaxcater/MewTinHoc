@@ -10,15 +10,34 @@ import { loadRepoEnv } from '../envLoader.js';
 
 loadRepoEnv();
 
+/**
+ * Bỏ qua giá trị placeholder trong .env.local.
+ *
+ * Trước đây .env.local mẫu có `VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co`.
+ * Vì biến đó có mặt (dù là rác), nó THẮNG giá trị mặc định đúng → mọi lần xác
+ * minh token đều gọi tới một domain không tồn tại, âm thầm biến mọi user đã
+ * đăng nhập thành "khách" và hạ giới hạn xuống 3 đề/ngày.
+ */
+function readEnvValue(...names) {
+  for (const name of names) {
+    const value = String(process.env[name] || '').trim();
+    if (!value) continue;
+    // Placeholder kiểu YOUR_..., $YOUR_..., <...>, changeme, xxx
+    if (/^(?:your[_-]|<|\$your|changeme|todo|xxx)/i.test(value)) continue;
+    if (value.includes('YOUR_PROJECT_ID') || value.includes('YOUR_PUBLISHABLE_KEY')) continue;
+    return value;
+  }
+  return '';
+}
+
 const SUPABASE_URL =
-  process.env.SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
+  readEnvValue('SUPABASE_URL', 'VITE_SUPABASE_URL') ||
   'https://vxqvjffssebnuxtslghp.supabase.co';
 
 const SUPABASE_ANON_KEY =
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  readEnvValue('SUPABASE_ANON_KEY', 'VITE_SUPABASE_PUBLISHABLE_KEY') ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4cXZqZmZzc2VibnV4dHNsZ2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MDk5NjgsImV4cCI6MjEwNzM4NTk2OH0.KZUQnisFgnoo_ZHUk7Wn9LfbLAzuzSztwYRLh1VHp6U';
+
 
 /** Cache kết quả xác minh token 5 phút để không gọi Supabase mỗi request */
 const tokenCache = new Map();
