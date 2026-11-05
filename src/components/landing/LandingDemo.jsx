@@ -41,8 +41,13 @@ export default function LandingDemo() {
   const isRight = picked === SAMPLE_QUESTION.answer;
 
   return (
-    <section className="mtl-section mtl-section--demo" aria-label="Thử một câu hỏi thật" ref={sectionRef}>
+    <section id="thu-suc" className="mtl-section mtl-section--demo" aria-labelledby="demo-heading" ref={sectionRef}>
       <div className="mtl-shell">
+        <div className="mtl-section__head">
+          <div data-reveal><span className="mtl-eyebrow">02 / HỌC BẰNG CÁCH THỬ</span>
+            <h2 className="mtl-h2" id="demo-heading">Một câu hỏi.<br />Một điều hiểu rõ hơn.</h2></div>
+          <p className="mtl-p" data-reveal style={{ '--i': 1 }}>Chạm vào đáp án bạn chọn. Xem giải thích ngay tại đây, trước khi bắt đầu hành trình của mình.</p>
+        </div>
         <div className="mtl-demo__grid">
           <div className="mtl-quiz" data-reveal style={{ '--i': 0 }}>
             <div className="mtl-quiz__top">
@@ -103,7 +108,7 @@ export default function LandingDemo() {
             <div className="mtl-ai-note">
               <div className="mtl-ai-note__head">
                 <Sparkles size={14} aria-hidden="true" />
-                Nhận xét của AI
+                Nhận xét minh hoạ
               </div>
               <p className="mtl-ai-note__text">
                 {answered

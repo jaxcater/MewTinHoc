@@ -29,6 +29,7 @@ export default function LandingBank() {
       <div className="mtl-shell">
         <div className="mtl-bank">
           <div className="mtl-bank__copy" data-reveal style={{ '--i': 0 }}>
+            <span className="mtl-eyebrow">03 / LUYỆN ĐÚNG TRỌNG TÂM</span>
             <h2 className="mtl-h2" id="bank-heading">
               Kho đề thi
             </h2>
@@ -64,8 +65,8 @@ export default function LandingBank() {
             </div>
 
             <div className="mtl-bank__rows" aria-hidden="true">
-              {EXAM_BANK.sample.map((doc) => (
-                <div className="mtl-bank__row" key={doc.name}>
+              {EXAM_BANK.sample.map((doc, index) => (
+                <div className="mtl-bank__row" key={doc.name} style={{ '--row': index }}>
                   <span className="mtl-bank__ext">{doc.meta}</span>
                   <span className="mtl-bank__name">{doc.name}</span>
                   <span className="mtl-bank__tag">{doc.type}</span>

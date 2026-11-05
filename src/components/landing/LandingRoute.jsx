@@ -27,9 +27,11 @@ export default function LandingRoute() {
     <section className="mtl-section" aria-labelledby="route-heading" ref={sectionRef}>
       <div className="mtl-shell">
         <div className="mtl-section__head">
+          <div data-reveal><span className="mtl-eyebrow">01 / BIẾT MÌNH ĐANG Ở ĐÂU</span>
           <h2 className="mtl-h2" id="route-heading" data-reveal style={{ '--i': 0 }}>
             Mười hai tuần, ba bậc
           </h2>
+          </div>
           <p className="mtl-p" data-reveal style={{ '--i': 1 }}>
             Mỗi bậc có một mục tiêu điểm riêng để bạn biết mình đang ở đâu. Đi hết đường leo là tới
             ngưỡng điểm cao nhất.
@@ -64,6 +66,7 @@ export default function LandingRoute() {
                           week + 1 >= from && week + 1 <= to ? ' mtl-leg__tick--on' : ''
                         }`}
                         key={week}
+                        style={{ '--week': week }}
                       />
                     ))}
                   </div>

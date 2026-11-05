@@ -21,6 +21,7 @@ import DemoLockedView, { DEMO_LOCKED_CONTENT } from './components/demo/DemoLocke
 import { isDemoUser, isLockedForDemo, featureFromPath } from './lib/demoAccess';
 import logoMeoCam from '../img/logomeocam.png';
 import { useDevtoolsGuard } from './lib/useDevtoolsGuard';
+import { useUserActivityTimer } from './lib/useUserActivityTimer';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS.HOME);
@@ -202,6 +203,7 @@ export default function App() {
      ------------------------------------------------------------------ */
   const navigate = useNavigate();
   const location = useLocation();
+  useUserActivityTimer(user, location.pathname);
 
   // Bấm vào chức năng bị khoá → không điều hướng, chỉ hiện thông báo.
   const handleDemoBlocked = useCallback((feature) => {

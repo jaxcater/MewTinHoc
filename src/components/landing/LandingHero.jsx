@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowDown, ArrowRight, Check, Sparkles } from 'lucide-react';
 import usePointerParallax from './usePointerParallax';
-import mewHero from '../../assets/landing/mew-hero.png';
+import mewHero from '../../assets/landing/mew-hero.webp';
 
 /**
  * Tiêu đề chia dòng và trượt lên khỏi mặt nạ.
@@ -38,17 +38,18 @@ export default function LandingHero({ onStart }) {
 
   const lines = [
     { key: 'line-1', text: 'Ôn Tin học' },
-    { key: 'line-2', text: 'đúng cách', gradient: true },
+    { key: 'line-2', text: 'vững từng bước.', gradient: true },
   ];
 
   return (
     <div className="mtl-hero__grid" ref={parallaxRef} data-ready={ready ? '' : undefined}>
       <div className="mtl-hero__copy">
+        <span className="mtl-hero__eyebrow"><span aria-hidden="true" />Có Mew đồng hành, có hướng để đi</span>
         <SplitHeadline lines={lines} />
 
         <p className="mtl-lead">
-          Mười hai tuần, ba bậc, một đích: điểm cao môn Tin học trong kì thi tốt nghiệp THPT. Kho đề
-          đúng cấu trúc mới, AI chấm lũy tiến từng ý Đúng/Sai để bạn thấy rõ mình mất điểm ở đâu.
+          Từ hiểu bài đến tự tin vào phòng thi. Lộ trình rõ ràng, kho đề theo chủ đề
+          và AI giúp bạn nhận ra phần cần ôn tiếp.
         </p>
 
         <div className="mtl-hero__actions">
@@ -56,28 +57,14 @@ export default function LandingHero({ onStart }) {
             Bắt đầu học ngay
             <ArrowRight size={19} className="mtl-btn__arrow" aria-hidden="true" />
           </button>
-          <button type="button" className="mtl-link" onClick={onStart}>
-            Đăng nhập bằng Google
-          </button>
+          <a className="mtl-link mtl-hero__try" href="#thu-suc">Thử một câu trước <ArrowDown size={15} aria-hidden="true" /></a>
         </div>
 
-        <div className="mtl-hero__facts">
-          <div className="mtl-fact">
-            <span className="mtl-fact__value">24 + 4 câu</span>
-            <span className="mtl-fact__label">trong 50 phút</span>
-          </div>
-          <div className="mtl-fact">
-            <span className="mtl-fact__value">12 tuần</span>
-            <span className="mtl-fact__label">ba giai đoạn</span>
-          </div>
-          <div className="mtl-fact">
-            <span className="mtl-fact__value">2 định hướng</span>
-            <span className="mtl-fact__label">KHMT và THUD</span>
-          </div>
-        </div>
+        <p className="mtl-hero__reassurance"><Check size={14} aria-hidden="true" />Đăng nhập với Google · Lưu lại tiến độ học</p>
       </div>
 
       <div className="mtl-hero__stage">
+        <span className="mtl-stage-caption">GÓC HỌC TẬP CỦA BẠN</span>
         <div className="mtl-glow" aria-hidden="true" />
 
         <div className="mtl-orbit" aria-hidden="true">
@@ -115,7 +102,7 @@ export default function LandingHero({ onStart }) {
         {/* Bản xem trước tiến độ · dữ liệu thật của lộ trình, không phải ảnh giả. */}
         <div className="mtl-preview">
           <div className="mtl-preview__head">
-            <span className="mtl-preview__title">Lộ trình 12 tuần</span>
+            <span className="mtl-preview__title">Ví dụ tiến độ</span>
             <span className="mtl-preview__pct">Tuần 7/12</span>
           </div>
           <div className="mtl-preview__bar">
@@ -128,8 +115,13 @@ export default function LandingHero({ onStart }) {
 
         <div className="mtl-chip">
           <span className="mtl-chip__dot" aria-hidden="true" />
-          Chuỗi 6 ngày học
+          Mỗi ngày, tiến một bước
         </div>
+      </div>
+      <div className="mtl-hero__facts">
+        <div className="mtl-fact"><span className="mtl-fact__value">12 tuần</span><span className="mtl-fact__label">lộ trình rõ ràng</span></div>
+        <div className="mtl-fact"><span className="mtl-fact__value">24 + 4 câu</span><span className="mtl-fact__label">thi thử 50 phút</span></div>
+        <div className="mtl-fact"><span className="mtl-fact__value">2 định hướng</span><span className="mtl-fact__label">KHMT &amp; THUD</span></div>
       </div>
     </div>
   );

@@ -172,7 +172,7 @@ export const EXAM_BANK = {
 export const AI_EXAM = {
   steps: [
     'Đọc ma trận đề tốt nghiệp THPT của Bộ GD&ĐT.',
-    'Chọn câu hỏi theo phần bạn còn yếu, không theo một đề mẫu cố định.',
+    'Chọn câu hỏi theo chủ đề và định hướng bạn đã chọn.',
     'Dựng bốn ý a, b, c, d cho từng câu Đúng/Sai.',
     'Chấm lũy tiến từng ý và viết nhận xét cho từng câu.',
   ],
@@ -180,7 +180,7 @@ export const AI_EXAM = {
     { value: '24 câu', label: 'trắc nghiệm' },
     { value: '4 câu', label: 'đúng sai' },
     { value: '50 phút', label: 'một lượt làm bài' },
-    { value: '0,25 → 1,0', label: 'điểm một câu Đúng/Sai' },
+    { value: '0,1 → 1,0', label: 'điểm một câu Đúng/Sai' },
   ],
 };
 

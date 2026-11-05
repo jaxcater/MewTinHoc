@@ -1,8 +1,8 @@
 ﻿import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import useReveal from './useReveal';
-import mewClosing from '../../assets/landing/mew-closing.png';
-import brandMark from '../../../img/logomeocam.png';
+import mewClosing from '../../assets/landing/mew-closing.webp';
+import brandMark from '../../assets/landing/mew-mark.webp';
 
 /**
  * 05 · CTA cuối và footer.
@@ -20,6 +20,7 @@ export function LandingClosing({ onStart }) {
   return (
     <section
       className="mtl-section mtl-section--tight"
+      id="bat-dau"
       aria-labelledby="closing-heading"
       ref={sectionRef}
     >

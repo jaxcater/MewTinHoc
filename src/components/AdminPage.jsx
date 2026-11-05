@@ -20,6 +20,7 @@ import { isCompanyAdmin } from '../lib/roleService.js';
 import { testRoadmapStorageWrite } from '../lib/roadmapStorage.js';
 import LoadingScreen from './LoadingScreen.jsx';
 import AdminAnnouncementsPanel from './AdminAnnouncementsPanel.jsx';
+import AdminUserActivityPanel from './AdminUserActivityPanel.jsx';
 
 export default function AdminPage({ currentUser: propUser }) {
   const [currentUser] = useState(() => {
@@ -757,6 +758,8 @@ CREATE POLICY "storage_read_all" ON storage.objects
             </pre>
           </div>
         )}
+
+        <AdminUserActivityPanel />
 
         {/* Công cụ: Đăng thông báo cho toàn bộ học viên */}
         <AdminAnnouncementsPanel />

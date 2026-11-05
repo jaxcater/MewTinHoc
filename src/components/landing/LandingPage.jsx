@@ -1,5 +1,8 @@
 ﻿import React, { useCallback, useEffect } from 'react';
 import LandingHero from './LandingHero';
+import { useRef, useState } from 'react';
+import { ArrowRight, BookOpen, Pause, Play, Route, Sparkles } from 'lucide-react';
+import useLandingMotion from './useLandingMotion';
 import LandingRoute from './LandingRoute';
 import LandingDemo from './LandingDemo';
 import LandingBank from './LandingBank';
@@ -9,7 +12,8 @@ import { LandingClosing, LandingFooter } from './LandingClosing';
 import './landing.css';
 // Mobile typesetting pass: loaded second so it wins on equal specificity.
 import './landing-mobile.css';
-import brandMark from '../../../img/logomeocam.png';
+import './landing-refresh.css';
+import brandMark from '../../assets/landing/mew-mark.webp';
 
 /**
  * Landing page hiển thị khi học viên truy cập website mà chưa đăng nhập.
@@ -22,6 +26,10 @@ import brandMark from '../../../img/logomeocam.png';
  * qua đăng nhập, nên trong các mục không còn nút "Mở..." hay "Tạo...".
  */
 export default function LandingPage({ onStart }) {
+  const rootRef = useRef(null);
+  const [motionPaused, setMotionPaused] = useState(false);
+  const [showDock, setShowDock] = useState(false);
+  useLandingMotion(rootRef, motionPaused);
   // Đưa học viên từ cuối trang về đầu trang khi mở màn hình đăng nhập, để
   // LoginPage xuất hiện ở vị trí đầu thay vì giữa trang.
   const handleStart = useCallback(() => {
@@ -29,11 +37,24 @@ export default function LandingPage({ onStart }) {
     onStart();
   }, [onStart]);
 
-  // CSS chỉ ẩn nội dung chờ hiệu ứng khi root có `data-motion`. Đặt bằng JS
-  // ngay sau khi gắn, nên nếu script không chạy thì cả trang vẫn đọc được.
+  // Keep the mobile action between the hero and the closing section.
   useEffect(() => {
-    const root = document.querySelector('.mtl-root');
-    root?.setAttribute('data-motion', '');
+    const root = rootRef.current;
+    if (!root || typeof IntersectionObserver === 'undefined') return undefined;
+    const hero = root.querySelector('.mtl-hero');
+    const closing = root.querySelector('#bat-dau');
+    let heroPassed = false;
+    let closingVisible = false;
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === hero) heroPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+        if (entry.target === closing) closingVisible = entry.isIntersecting;
+      }
+      setShowDock(heroPassed && !closingVisible);
+    });
+    if (hero) observer.observe(hero);
+    if (closing) observer.observe(closing);
+    return () => observer.disconnect();
   }, []);
 
   // Khoá ảnh: chặn menu chuột phải và kéo ảnh thả sang ứng dụng khác. Chỉ áp
@@ -58,8 +79,8 @@ export default function LandingPage({ onStart }) {
   }, []);
 
   return (
-    <div className="mtl-root">
-      {/* Nền mesh gradient cam, chuyển rất chậm, nằm dưới toàn bộ nội dung. */}
+    <div className="mtl-root" ref={rootRef}>
+      {/* Static warm background: no full-page animation layers on mobile. */}
       <div className="mtl-mesh" aria-hidden="true">
         <div className="mtl-mesh__layer mtl-mesh__layer--a" />
         <div className="mtl-mesh__layer mtl-mesh__layer--b" />
@@ -93,6 +114,11 @@ export default function LandingPage({ onStart }) {
             </div>
 
             <nav className="mtl-nav__links" aria-label="Điều hướng trang giới thiệu">
+              <button type="button" className="mtl-motion-toggle" onClick={() => setMotionPaused((paused) => !paused)}
+                aria-pressed={motionPaused} aria-label={motionPaused ? 'Bật chuyển động' : 'Tạm dừng chuyển động'}
+                title={motionPaused ? 'Bật chuyển động' : 'Tạm dừng chuyển động'}>
+                {motionPaused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}
+              </button>
               <a className="mtl-nav__link" href="#lo-trinh">
                 Lộ trình
               </a>
@@ -111,6 +137,11 @@ export default function LandingPage({ onStart }) {
             </nav>
           </div>
         </div>
+          <nav className="mtl-mobile-nav" aria-label="Khám phá MewTinHoc">
+            <a href="#lo-trinh"><Route size={14} aria-hidden="true" />Lộ trình</a>
+            <a href="#thu-suc"><BookOpen size={14} aria-hidden="true" />Thử một câu</a>
+            <a href="#de-ai"><Sparkles size={14} aria-hidden="true" />Thi thử &amp; AI</a>
+          </nav>
       </header>
 
       <main>
@@ -143,6 +174,14 @@ export default function LandingPage({ onStart }) {
       </main>
 
       <LandingFooter />
+      {showDock && (
+        <aside className="mtl-mobile-dock" aria-label="Bắt đầu học">
+          <span>Học cùng Mew<strong>Từng bước vững kiến thức.</strong></span>
+          <button type="button" className="mtl-btn" onClick={handleStart}>
+            Bắt đầu <ArrowRight size={17} aria-hidden="true" />
+          </button>
+        </aside>
+      )}
     </div>
   );
 }
