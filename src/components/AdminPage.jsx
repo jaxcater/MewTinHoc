@@ -231,15 +231,25 @@ CREATE POLICY "profiles_update_admin_only" ON public.profiles
   FOR UPDATE USING (public.is_admin_user()) WITH CHECK (public.is_admin_user());
 
 -- ==============================================================
--- 5. CHO PHÉP ADMIN GHI FILE JSON LÊN SUPABASE STORAGE
+-- 4. BUCKET KHO TÀI LIỆU + CẤP QUYỀN ĐỌC/GHI TRÊN SUPABASE STORAGE
 -- (BẮT BUỘC phải có, nếu không nút "Lưu & Đồng bộ Supabase" sẽ báo lỗi 403
 --  "new row violates row-level security policy")
+-- Thiếu policy SELECT sẽ khiến mọi request JSON trả 404 NoSuchKey.
 -- ==============================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('KhoTaiLieuTinHocThiThu', 'KhoTaiLieuTinHocThiThu', false)
+ON CONFLICT (id) DO NOTHING;
+
 DROP POLICY IF EXISTS "storage_insert_admin" ON storage.objects;
 DROP POLICY IF EXISTS "storage_update_admin" ON storage.objects;
 DROP POLICY IF EXISTS "storage_read_admin" ON storage.objects;
 DROP POLICY IF EXISTS "storage_delete_admin" ON storage.objects;
 DROP POLICY IF EXISTS "storage_read_all" ON storage.objects;
+
+-- ĐỌC: cho phép cả khách (anon) vì app tải PDF/roadmap trước khi đăng nhập.
+CREATE POLICY "storage_read_all" ON storage.objects
+  FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'KhoTaiLieuTinHocThiThu');
 
 CREATE POLICY "storage_insert_admin" ON storage.objects
   FOR INSERT TO authenticated
@@ -254,12 +264,7 @@ CREATE POLICY "storage_update_admin" ON storage.objects
 -- Xoá tài liệu trong Kho đề thi -> cần quyền DELETE (khác với INSERT/UPDATE)
 CREATE POLICY "storage_delete_admin" ON storage.objects
   FOR DELETE TO authenticated
-  USING (bucket_id = 'KhoTaiLieuTinHocThiThu' AND public.is_admin_user());
-
--- Cho phép đọc tài liệu & tạo Signed URL cho bucket KhoTaiLieuTinHocThiThu (cần thiết khi để Private Bucket)
-CREATE POLICY "storage_read_all" ON storage.objects
-  FOR SELECT
-  USING (bucket_id = 'KhoTaiLieuTinHocThiThu');`;
+  USING (bucket_id = 'KhoTaiLieuTinHocThiThu' AND public.is_admin_user());`;
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlSchemaSnippet);

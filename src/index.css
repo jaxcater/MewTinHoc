@@ -6363,21 +6363,37 @@ a {
     padding: 0.45rem 0.65rem;
     gap: 0.5rem;
     justify-content: space-between;
+    /* Không bao giờ để hàng này tràn ngang: phần thương hiệu co lại được,
+       phần học viên giữ nguyên. `min-width: 0` trên brand cho phép nó co
+       lại thay vì đẩy phần bên phải ra ngoài mép màn hình.
+       `overflow-x: clip` chặn tràn ngang mà không cắt bóng đổ/ánh sáng
+       loé của logo (nếu dùng `hidden` thì chiều dọc cũng bị cắt). */
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .brand-section {
     gap: 0.5rem;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .brand-section > div:last-child {
+    min-width: 0;
+  }
+
+  /* Chữ "MewTinHoc" là một từ không ngắt được: nếu không co, nó ép hàng
+     rộng ra và đẩy widget học viên ra khỏi màn hình. */
+  .brand-title {
+    font-size: 1.05rem;
+    line-height: 1.15;
+    white-space: nowrap;
   }
 
   .brand-logo-icon {
     width: 34px;
     height: 34px;
     border-radius: 9px;
-  }
-
-  .brand-title {
-    font-size: 1.05rem;
-    line-height: 1.15;
   }
 
   .brand-tag {
@@ -6417,6 +6433,14 @@ a {
 
   .student-name {
     display: none !important; /* Chỉ hiển thị ảnh đại diện tròn gọn gàng */
+  }
+
+  /* Chip trên mobile chỉ còn ảnh tròn 32px. Nhãn "DEMO" còn nguyên sẽ tràn ra
+     ngoài chip, đẩy cả hàng đầu vượt qua mép phải màn hình và bị cắt mất
+     chữ. Ở phone, nhãn này không thêm thông tin gì: các tab khoá (biểu tượng
+     ổ khoá) và màn hình Demo đã nói rõ tình trạng. */
+  .student-demo-tag {
+    display: none !important;
   }
 
   .student-avatar {
@@ -7187,9 +7211,24 @@ a {
 @media (max-width: 640px) {
   .category-tabs {
     align-items: center;
-    justify-content: space-between;
+    /* Dải tab cuộn ngang thay vì bị cắt.
+       `overflow: hidden` + `space-between` là tổ hợp sai: khi nội dung dài
+       hơn khung, flexbox đẩy tab cuối ra ngoài mép phải và nó bị cắt mất
+       vĩnh viễn, người dùng không cuộn tới được. Ở đây tab cuộn ngang:
+       mọi nhãn luôn hiện trọn, không mất chữ nào. */
+    justify-content: flex-start;
     gap: 0.3rem;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    /* Đệm hai đầu để tab đầu/cuối không dính mép và pill active có chỗ
+       đổ bóng khi trượt. */
+    scroll-padding-inline: 4px;
+  }
+
+  .category-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-tab-btn {
@@ -7244,7 +7283,9 @@ a {
   }
 
   .nav-tab-btn.active {
-    flex: 1 1 auto;
+    /* Nhãn đang mở quyết định bề rộng của chính nó: `0 0 auto` để không bị
+       flex ép hẹp tới mức cắt cụt chữ "Trang chủ" / "Lộ trình". */
+    flex: 0 0 auto;
     min-width: 92px;
     padding-inline: 0.7rem;
   }

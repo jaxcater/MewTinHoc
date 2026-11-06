@@ -249,7 +249,7 @@
   background-color: #FFFCF7;
   background-image:
     linear-gradient(180deg, rgba(255, 252, 247, 0.6) 0%, rgba(255, 252, 247, 0.9) 100%),
-    url('./assets/cat-chat-bg.png');
+    url('../../assets/cat-chat-bg.png');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
