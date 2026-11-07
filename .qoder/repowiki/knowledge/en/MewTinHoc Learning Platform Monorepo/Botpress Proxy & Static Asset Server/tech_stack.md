@@ -1,1 +1,0 @@
-Native Node.js `http` + `fs` + `crypto` modules; optional `@botpress/client` SDK used as a fallback when `BOTPRESS_TOKEN` is configured, otherwise direct `fetch` calls to `chat.botpress.cloud` and `api.botpress.cloud`.

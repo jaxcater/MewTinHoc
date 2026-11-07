@@ -1,1 +1,0 @@
-Node.js HTTP server that serves the built frontend and proxies chat/files/status requests to Botpress Cloud while maintaining per-user conversation sessions.

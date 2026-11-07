@@ -1,6 +1,0 @@
-- User preferences and generated artifacts are persisted across sessions using named keys in `localStorage` (e.g. `tinhoc_selected_track`) and `sessionStorage` (e.g. `tinhoc_generated_exam`), initialized lazily in `useState` initializers with JSON parse/catch fallbacks.
-- Admin-only features are gated at render time via `isCompanyAdmin(user)` from `../lib/roleService`, toggling visibility of upload/rename/delete controls rather than hiding them conditionally per item.
-- Supabase Storage operations go through the centralized `examDocsStorage` helpers (`listExamDocs`, `uploadExamDocument`, `renameExamDocument`, `deleteExamDocument`, `ensureDocTypeFolder`, `normalizeFolderKey`) instead of direct SDK calls inside the component.
-- Success/error feedback is surfaced through a unified `showNotice({ type, msg })` helper that auto-dismisses after 5 seconds via a `setTimeout` ref, rather than ad-hoc alerts or toasts.
-- Long-running async flows set a per-item `busyId` / `isBusy` flag before the call and clear it in `finally`-style paths, disabling buttons and showing a spinner icon during mutation.
-- Celebratory visual feedback on completion uses `canvas-confetti` with a fixed palette of brand colors (`#EA580C`, `#FBBF24`, `#7C2D12`, `#22C55E`, etc.) triggered only when a score threshold (≥ 80%) is met.

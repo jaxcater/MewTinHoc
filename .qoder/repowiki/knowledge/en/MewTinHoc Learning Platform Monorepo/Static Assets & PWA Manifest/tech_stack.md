@@ -1,1 +1,0 @@
-Web App Manifest v2 (`site.webmanifest`) with PNG favicons in multiple sizes; no JS framework — pure static files served as-is.

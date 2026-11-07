@@ -1,0 +1,52 @@
+---
+description: MewTinHoc context pointers — read AI_CONTEXT.md and docs/code-map.md before touching code, search before reading, verify narrowly
+alwaysApply: true
+---
+
+# Context Efficiency — MewTinHoc
+
+Repo này có `AGENTS.md` ở root (Cursor cũng tự nạp file đó). File này chỉ là **con trỏ**, không lặp lại nội dung.
+
+## Đọc theo thứ tự
+
+| Bước | File | Nội dung |
+|---|---|---|
+| 1 | `AI_CONTEXT.md` | Tổng quan dự án, tech stack, kiến trúc, module quan trọng |
+| 2 | `docs/code-map.md` | Tra cứu: "sửa feature X thì tìm ở đâu?" |
+| 3 | `docs/architecture.md` | Chỉ khi sửa hệ thống — để biết **vì sao** nó được dựng như hiện tại |
+
+## Quy trình
+
+```
+AI_CONTEXT.md → docs/code-map.md → targeted search → targeted read → edit → targeted verification
+```
+
+1. **Đọc `AI_CONTEXT.md` trước** — không scan thẳng repository.
+2. **Tra `docs/code-map.md`** để định vị feature.
+3. **Search trước, read sau** — grep theo tên symbol / route / tên bảng / endpoint.
+4. **Chỉ đọc tập file nhỏ nhất cần thiết.** File lớn (`RoadmapTab.jsx`, `HomeTab.jsx`, `ExamRoom.jsx`, `index.css`, `server/exam/questionPool.js`) → đọc theo khoảng dòng liên quan.
+5. **Mở dependency trực tiếp** khi thật sự cần — mở file mà file đang sửa `import`.
+6. **Verification nhỏ nhất phù hợp** (xem `AGENTS.md`).
+
+## Verification
+
+| Sửa gì | Chạy |
+|---|---|
+| Component React / JS | `npm run lint` |
+| `server/chatQuota.js`, `server/chatAuth.test.js`, `server/userActivityStorage.test.js`, `src/lib/userActivityStorage.js`, `src/lib/useUserActivityTimer.js` | `node --test server/chatQuota.test.js server/chatAuth.test.js server/userActivityStorage.test.js` |
+| Logic đề thi `server/exam/*` | `npm run exam:check` |
+| Ảnh hưởng build | `npm run build` |
+
+## Không làm
+
+- Không scan toàn repository mặc định.
+- Không đọc lại file không thay đổi nhiều lần trong cùng task.
+- Không mở file không liên quan chỉ để tham khảo.
+- Không tự ý refactor app, đổi database/deploy, hay cài dependency mới.
+- Không đưa secret vào biến `VITE_*` (Vite nhúng thẳng vào bundle).
+
+## Không hy sinh correctness / security / dependency analysis
+
+- **Correctness** — kiểm tra path/symbol có thật trước khi ghi tài liệu.
+- **Security** — không bỏ qua kiểm tra quyền, secret, path traversal, RLS.
+- **Dependency analysis** — sửa logic dùng chung (`src/lib/`, `server/exam/`) thì phải mở các nơi đang import nó.

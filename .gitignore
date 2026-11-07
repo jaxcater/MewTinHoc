@@ -37,5 +37,8 @@ server/exam/.key-secret
 # Artifact tam cua taste-skill inspector
 .taste-skill/
 
+# Wiki sinh tự động cua Qoder (da thay bang AI_CONTEXT.md + docs/)
+.qoder/
+
 # Persistent daily chatbot usage
 var/chat-usage/

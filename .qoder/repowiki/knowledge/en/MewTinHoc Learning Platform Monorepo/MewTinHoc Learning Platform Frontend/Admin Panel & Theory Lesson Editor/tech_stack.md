@@ -1,1 +1,0 @@
-React functional components with hooks (useState/useEffect/useCallback), lucide-react for icons, direct Supabase JS client (`../supabase.js`) for profile queries, and a dedicated announcement service module for persistence abstraction.

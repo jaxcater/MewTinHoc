@@ -1,6 +1,0 @@
-- Components are written as default-exported functional components using React hooks (`useState`, `useEffect`, `useRef`, `useCallback`) rather than class components or context providers.
-- Animations are gated by `framer-motion`'s `useReducedMotion()` hook, which selects between rich variants and a `reducedMotionVariants` fallback so motion respects user preferences.
-- Admin-only features are conditionally rendered behind `isCompanyAdmin(user)` / `user?.isAdmin` checks rather than being hidden purely by CSS, keeping sensitive controls out of the DOM for non-admin users.
-- External resources (PDFs, images, logos) are loaded with explicit error handling and fallbacks — e.g., `PdfDocumentViewer` falls back from ArrayBuffer fetch to direct URL, `LoadingScreen` falls back from WebP to GIF, and the Navbar avatar falls back to `ui-avatars.com`.
-- User-facing text is written in Vietnamese, while code identifiers, comments, and variable names use English or camelCase, mixing localized strings with developer-readable code.
-- Side effects that touch global state (body overflow, focus management, keydown listeners, ResizeObserver/IntersectionObserver) are consistently cleaned up in effect return functions to avoid leaks.

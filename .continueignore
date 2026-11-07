@@ -1,0 +1,30 @@
+# ============================================================
+#  .continueignore — file KHÔNG nên vào index/context của Continue
+#  Cú pháp giống .gitignore.
+# ============================================================
+
+# --- Build output & dependencies ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# --- Artifact sinh ra bởi công cụ kiểm tra giao diện ---
+.taste-skill/
+
+# --- Wiki sinh tự động cho công cụ khác ---
+.qoder/
+
+# --- JSON lộ trình xuất từ code (nguồn thật: src/data/roadmap/) ---
+LoTrinhDayXich/
+public/LoTrinhDayXich/
+
+# --- Ảnh lớn không còn được tham chiếu ---
+img/1.png
+img/2.png
+
+# --- Log & cache ---
+*.log
+logs/
+.cache/
+coverage/

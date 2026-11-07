@@ -1,2 +1,0 @@
-- Node-side modules use ES module syntax (`type: "module"` in root package.json) and import `.js` extensions explicitly.
-- Cross-boundary communication between frontend and server goes through the `/api/botpress` and `/MewTinHoc/api/botpress` routes rather than direct HTTP calls.

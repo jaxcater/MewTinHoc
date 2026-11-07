@@ -1,1 +1,0 @@
-Deployed on GitHub Pages; `404.html` includes a repo-base path `/MewTinHoc/` to handle subpath deployments, so the repository must be named `MewTinHoc` or the script needs updating.

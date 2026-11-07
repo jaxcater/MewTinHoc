@@ -1,5 +1,0 @@
-The app is organized as a React SPA rooted at `src/main.jsx` → `src/App.jsx`, with children split by feature:
-- `components/` holds all React views (admin panel, quiz/exam tabs, login, home dashboard, PDF viewer, loading screen) plus reusable motion primitives under `components/motion/`.
-- `lib/` provides framework-agnostic utilities consumed across components: Supabase client (`supabase.js`), role gating (`roleService.js`), user progress & streak state (`userProgress.js`, `streakEvolutions.js`), announcements, roadmap storage, exam docs storage, scroll locking, and viewport helpers.
-- `data/questions/` and `data/roadmap/` are static content modules (chapter questions, CS/ICT roadmaps) imported directly by the quiz and roadmap tabs.
-- Cross-child wiring goes through `App.jsx` which mounts the tab router, applies global motion variants from `variants.ts`, and shares the Supabase client via `supabase.js`; child components reach data through the `lib/` services rather than importing Supabase directly. Assets live in `assets/` and are referenced by motion components and banners.

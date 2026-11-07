@@ -1,1 +1,0 @@
-Top-level React components that form the app shell: navigation, login page, home dashboard with streak/mastery, PDF viewer, loading screen, and admin announcement banners.

@@ -1,4 +1,0 @@
-- Global UI state (user, activeTab, toastMessage) is held in the root `App` component and passed down as props rather than using a context provider here.
-- Demo and production authentication are kept separate: demo users live in `sessionStorage['tinhoc_demo_user']` while real users are persisted under `localStorage['tinhoc_user']`, with mutual exclusion enforced in a `useEffect`.
-- Framer Motion animations are authored as named variant objects exported from `variants.ts` and composed with shared `EASINGS`, `SPRINGS`, and `DURATIONS` constants instead of inline transition configs.
-- External services (Supabase) are accessed through a thin re-export shim (`src/supabase.js`) so the rest of the app never imports directly from `lib/`.

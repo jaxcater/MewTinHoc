@@ -1,0 +1,35 @@
+﻿# ============================================================
+#  .cursorignore — file KHÔNG nên vào context/index của agent
+#  Cú pháp giống .gitignore.
+#
+#  Không ignore: source code, migrations/schema, định nghĩa API,
+#  config quan trọng, test quan trọng.
+# ============================================================
+
+# --- Build output & dependencies ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# --- Artifact sinh ra bởi công cụ kiểm tra giao diện ---
+.taste-skill/
+
+# --- Wiki sinh tự động cho công cụ khác (không phải source của app) ---
+.qoder/
+
+# --- JSON lộ trình XUẤT TỪ CODE (nguồn thật: src/data/roadmap/) ---
+# Bản trong repo chỉ là bản sao, sinh lại bằng `npm run export:roadmap`.
+LoTrinhDayXich/
+public/LoTrinhDayXich/
+
+# --- Ảnh lớn không còn được code tham chiếu ---
+img/1.png
+img/2.png
+
+# --- Log & cache ---
+*.log
+npm-debug.log*
+logs/
+.cache/
+coverage/

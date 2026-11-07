@@ -1,1 +1,0 @@
-React frontend for the MewTinHoc learning platform, wiring shared UI shells, admin tools, quiz/exam tabs, and motion assets around a Supabase-backed auth and data layer.

@@ -1,1 +1,0 @@
-`npm run dev` starts the Vite dev server with the Botpress middleware injected; `npm run server` runs the standalone Node proxy; `npm run export:roadmap` regenerates roadmap JSON consumed by the frontend.
