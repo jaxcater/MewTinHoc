@@ -135,10 +135,10 @@ export const MCQ_OPTION_COUNT = 4;
 export const DURATION_MINUTES = 50;
 
 /** Số đề mục tiêu trong kho, tách riêng từng định hướng */
-export const POOL_TARGET = Object.freeze({ ict: 15, cs: 15 });
+export const POOL_TARGET = Object.freeze({ ict: 50, cs: 50 });
 
 /** Tổng số đề mục tiêu (chỉ dùng nội bộ worker, KHÔNG trả ra API) */
-export const POOL_TOTAL_TARGET = POOL_TARGET.ict + POOL_TARGET.cs; // 30
+export const POOL_TOTAL_TARGET = POOL_TARGET.ict + POOL_TARGET.cs; // 100
 
 /** Khi kho cạn: thông điệp cho học viên (không tiết lộ số lượng còn lại) */
 export const POOL_EMPTY_MESSAGE = 'Xin hãy đợi 10 phút sau rồi quay lại';

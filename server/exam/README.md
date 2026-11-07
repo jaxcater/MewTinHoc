@@ -34,13 +34,16 @@ Có cả `C5.txt` và `C5.json` → dùng `.txt`.
 ```bash
 cd /www/wwwroot/mewtinhoc
 npm run exam:check      # xem đọc được bao nhiêu câu
-npm run exam:reset      # xoá kho cũ, sinh lại 30 đề
+npm run exam:reset      # xoá kho cũ, sinh lại 100 đề
 ```
 
 Cron bù mỗi 10 phút:
 ```cron
 */10 * * * * cd /www/wwwroot/mewtinhoc && node server/exam/worker.js >> /var/log/mewtinhoc-exam.log 2>&1
 ```
+
+Kho mục tiêu hiện là **100 đề**: 50 đề ICT + 50 đề CS. Worker chạy mỗi 10 phút,
+tự sinh bù các đề đã được học viên rút khỏi kho và dọn session cũ.
 
 Lệnh khác: `npm run exam:refill`, `npm run exam:simulate -- 2`, `npm run exam:loop`.
 

@@ -17,10 +17,10 @@ Có 3 thư mục, nằm cạnh nhau trong /www/wwwroot/:
 Luồng hoạt động:
 
   sourcedethi/  -->  [máy sinh đề]  -->  dethicosan/
-   (câu hỏi)                              (30 đề sẵn)
+  (câu hỏi)                              (100 đề sẵn: 50 ICT + 50 CS)
 
-Học sinh bấm "Tạo đề"     --> lấy 1 đề trong kho --> kho còn 29
-Mỗi 10 phút               --> máy tự sinh bù      --> kho về 30
+Học sinh bấm "Tạo đề"     --> lấy 1 đề trong kho --> kho còn 99
+Mỗi 10 phút               --> máy tự sinh bù      --> kho về 100
 
 => Bạn chỉ cần quan tâm thư mục sourcedethi/
 
@@ -48,12 +48,12 @@ Trước khi chạy lệnh, đứng ở thư mục web:
     Dấu ✗ = thiếu câu, xem PHẦN 5.
     Lệnh này chỉ đọc, không sửa gì.
 
-(3) SINH LẠI TOÀN BỘ 30 ĐỀ
+(3) SINH LẠI TOÀN BỘ 100 ĐỀ
 
     node server/exam/worker.js --reset
 
     Dùng sau khi sửa câu hỏi.
-    Mất 30 đề cũ, sinh 30 đề mới.
+    Mất 100 đề cũ, sinh 100 đề mới.
 
 (4) SINH BÙ ĐỀ CÒN THIẾU
 

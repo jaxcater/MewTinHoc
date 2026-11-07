@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================
-//  Worker: bù đề vào kho cho đủ mục tiêu (15 ICT + 15 CS)
+//  Worker: bù đề vào kho cho đủ mục tiêu (50 ICT + 50 CS)
 //
 //  Chạy định kỳ bằng cron/pm2 (KHÔNG dùng while(true) trong process API):
 //    node server/exam/worker.js              → bù tới mục tiêu rồi thoát
