@@ -1,7 +1,7 @@
 ﻿========================================
 HƯỚNG DẪN BẢO TRÌ - MEWTINHOC
 ========================================
-Cập nhật: 03/11/2026
+Cập nhật: 07/11/2026
 ========================================
 
 
@@ -36,8 +36,8 @@ Trước khi chạy lệnh, đứng ở thư mục web:
 
     ls /www/wwwroot/dethicosan/pool | wc -l
 
-    Ra 30     = đủ, tốt
-    Ra 25     = đang bù, chờ 10 phút
+    Ra 100    = đủ, tốt
+    Ra 75     = đang bù, chờ 10 phút
     Ra 0      = có lỗi, xem PHẦN 5
 
 (2) XEM CÂU HỎI CÓ ĐỌC ĐƯỢC KHÔNG
@@ -114,7 +114,7 @@ Các bước:
 
     ls /www/wwwroot/dethicosan/pool | wc -l
 
-  Phải ra 30. Xong.
+  Phải ra 100. Xong.
 
 Lưu ý:
   - Nếu để cả .txt và .json cùng tên,
@@ -241,7 +241,9 @@ Lệnh sao lưu (chạy 1 lần/tuần):
 PHẦN 7: CÁC CON SỐ CẦN NHỚ
 ----------------------------------------
 
-  30       = số đề trong kho (luôn giữ mức này)
+  100      = tổng số đề trong kho (luôn giữ mức này)
+  50 ICT   = số đề dành cho hướng Tin học ứng dụng
+  50 CS    = số đề dành cho hướng Khoa học máy tính
   10 phút  = máy tự kiểm tra và bù đề
   24       = số câu trắc nghiệm (6 điểm)
   4        = số câu đúng/sai    (4 điểm)
@@ -268,7 +270,7 @@ PHẦN 8: VIỆC CẦN LÀM MỖI TUẦN
   tail -20 /var/log/mewtinhoc-exam.log
 
 Kết quả bình thường:
-  - Số đề = 30
+  - Tổng số đề = 100
   - Log có dòng ngày giờ mới
 
 Có gì lạ thì xem lại PHẦN 5.
