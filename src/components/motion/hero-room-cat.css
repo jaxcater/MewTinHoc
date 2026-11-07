@@ -1,0 +1,124 @@
+﻿/* Mép dưới của block cam cắt thân mèo; không tạo cửa sổ hay bệ riêng. */
+.hero-welcome-card.hero-welcome-card--room {
+  overflow: hidden;
+  --cat-right: 4px;
+  --cat-bottom: -5%;
+  --cat-height: 77%;
+}
+.hero-glyph-orbit { position: absolute; inset: 0; }
+.hero-welcome-card--room .hero-lens-slot,
+.hero-welcome-card--room .hero-mobile-glasses { display: none; }
+.hero-room-cat {
+  display: none;
+  position: absolute;
+  right: var(--cat-right);
+  bottom: var(--cat-bottom);
+  height: var(--cat-height);
+  aspect-ratio: 1;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-room-cat-portrait { display: block; width: 100%; height: 100%; overflow: visible; }
+.hero-room-cat-sway,
+.hero-room-cat-breath,
+.hero-room-cat-ear,
+.hero-room-cat-eye,
+.hero-room-cat-gaze,
+.hero-room-cat-closed-eyes {
+  animation-duration: var(--cat-idle-duration);
+  animation-timing-function: var(--cat-idle-ease);
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+  transform-box: view-box;
+}
+/* Gốc tai là trục x cục bộ; uốn toàn bộ tai, không chỉ phần chóp. */
+.hero-room-cat-ear { transform-origin: 0 0; }
+.hero-room-cat-ear--left { animation-name: hero-cat-ear-left; }
+.hero-room-cat-ear--right { animation-name: hero-cat-ear-right; }
+.hero-room-cat-sway,
+.hero-room-cat-breath {
+  width: 100%;
+  height: 100%;
+  transform-box: border-box;
+  transform-origin: 50% 100%;
+}
+.hero-room-cat-sway { animation-name: hero-cat-lean; }
+.hero-room-cat-breath {
+  animation-name: hero-cat-breathe;
+  animation-duration: calc(var(--cat-idle-duration) / 2);
+}
+.hero-room-cat-eye--left { transform-origin: 540px 398px; animation-name: hero-cat-blink; }
+.hero-room-cat-eye--right { transform-origin: 838px 439px; animation-name: hero-cat-blink; }
+.hero-room-cat-gaze { animation-name: hero-cat-look; }
+.hero-room-cat-closed-eyes { opacity: 0; animation-name: hero-cat-closed; }
+.hero-room-cat[data-animate="true"] :is(.hero-room-cat-sway, .hero-room-cat-breath, .hero-room-cat-ear, .hero-room-cat-eye, .hero-room-cat-gaze, .hero-room-cat-closed-eyes) { animation-play-state: running; }
+/* Dịch đồng tử 36 đơn vị để thấy rõ ở kích thước thật. */
+@keyframes hero-cat-look {
+  0%, 12%, 47%, 64%, 100% { transform: translate(0, 0); }
+  17%, 31% { transform: translate(-36px, 5px); }
+  36%, 41% { transform: translate(-15px, -8px); }
+  70%, 83% { transform: translate(-30px, -5px); }
+  89%, 94% { transform: translate(5px, 3px); }
+}
+/* Nháy đôi rồi nháy đơn; chỉ mí mắt co lại, không co khuôn mặt. */
+@keyframes hero-cat-blink {
+  0%, 21%, 23.4%, 25%, 27.4%, 73%, 75.4%, 100% { transform: scaleY(1); }
+  22%, 22.4%, 26%, 26.4%, 74%, 74.4% { transform: scaleY(.06); }
+}
+@keyframes hero-cat-closed {
+  0%, 21%, 23.4%, 25%, 27.4%, 73%, 75.4%, 100% { opacity: 0; }
+  22%, 22.4%, 26%, 26.4%, 74%, 74.4% { opacity: 1; }
+}
+@keyframes hero-cat-ear-left {
+  0%, 9%, 18%, 56%, 66%, 100% { transform: skewX(0) scaleY(1); }
+  11%, 59% { transform: skewX(12deg) scaleY(.93); }
+  13%, 62% { transform: skewX(-7deg) scaleY(1.025); }
+  15%, 64% { transform: skewX(4deg) scaleY(.98); }
+}
+@keyframes hero-cat-ear-right {
+  0%, 37%, 47%, 85%, 96%, 100% { transform: skewX(0) scaleY(1); }
+  39%, 88% { transform: skewX(-13deg) scaleY(.92); }
+  42%, 91% { transform: skewX(7deg) scaleY(1.025); }
+  44%, 94% { transform: skewX(-4deg) scaleY(.98); }
+}
+@keyframes hero-cat-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  45% { transform: scale(1.01, 1.022); }
+}
+/* Mắt nhìn trước, cả chú mèo mới nghiêng theo; thân và đầu luôn liền nhau. */
+@keyframes hero-cat-lean {
+  0%, 13%, 48%, 64%, 100% { transform: skewX(0); }
+  22%, 32% { transform: skewX(2deg); }
+  38%, 42% { transform: skewX(-1deg); }
+  73%, 83% { transform: skewX(1.6deg); }
+  90%, 94% { transform: skewX(-1.2deg); }
+}
+@media (min-width: 769px) {
+  .hero-room-cat { display: block; }
+  .hero-welcome-card--room .hero-glyph-orbit {
+    inset: auto;
+    right: var(--cat-right);
+    bottom: var(--cat-bottom);
+    height: var(--cat-height);
+    aspect-ratio: 1;
+  }
+  .hero-welcome-card--room .hero-glyph-orbit .hero-glyph {
+    display: block;
+    --orbit-left: var(--cat-orbit-left);
+    --orbit-top: var(--cat-orbit-top);
+  }
+  .hero-welcome-card--room .hero-welcome-content { width: calc(100% - 200px); }
+  .hero-welcome-card--room .hero-glyph { opacity: .18; }
+}
+@media (min-width: 1025px) and (max-width: 1199px) {
+  .hero-welcome-card--room .hero-welcome-content { width: calc(100% - 170px); }
+}
+@media (max-width: 768px) {
+  .hero-welcome-card--room .hero-glyph[data-glyph="SELECT"],
+  .hero-welcome-card--room .hero-glyph[data-glyph="1011"] { display: none; }
+  .hero-welcome-card--room .hero-welcome-content { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-room-cat :is(.hero-room-cat-sway, .hero-room-cat-breath, .hero-room-cat-ear, .hero-room-cat-eye, .hero-room-cat-gaze, .hero-room-cat-closed-eyes) { animation: none; }
+}

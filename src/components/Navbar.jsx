@@ -54,7 +54,8 @@ export default function Navbar({
   onLogout,
   onOpenStreakDetails,
   onNavigate,
-  onOpenArena
+  onOpenArena,
+  onPrefetchTab
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -233,6 +234,8 @@ export default function Navbar({
               aria-selected={isHomeActive}
               className={`nav-tab-btn ${isHomeActive ? 'active' : ''}`}
               onClick={() => go(TABS.HOME)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.HOME)}
+              onFocus={() => onPrefetchTab?.(TABS.HOME)}
               id="tab-home"
             >
               {isHomeActive && (
@@ -255,6 +258,8 @@ export default function Navbar({
               aria-selected={isRoadmapActive}
               className={`nav-tab-btn ${isRoadmapActive ? 'active' : ''}`}
               onClick={() => go(TABS.ROADMAP)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.ROADMAP)}
+              onFocus={() => onPrefetchTab?.(TABS.ROADMAP)}
               id="tab-roadmap"
             >
               {isRoadmapActive && (
@@ -280,6 +285,8 @@ export default function Navbar({
               aria-disabled={examsLocked || undefined}
               className={`nav-tab-btn ${isExamsActive ? 'active' : ''} ${examsLocked ? 'is-demo-locked' : ''}`}
               onClick={() => go(TABS.EXAMS)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.EXAMS)}
+              onFocus={() => onPrefetchTab?.(TABS.EXAMS)}
               id="tab-exams"
               title={examsLocked ? 'Kho đề thi thử chưa mở cho tài khoản Demo' : 'Kho đề thi'}
             >
@@ -309,6 +316,8 @@ export default function Navbar({
               aria-disabled={aiExamLocked || undefined}
               className={`nav-tab-btn ${isAiExamActive ? 'active' : ''} ${aiExamLocked ? 'is-demo-locked' : ''}`}
               onClick={() => go(TABS.AI_EXAM)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.AI_EXAM)}
+              onFocus={() => onPrefetchTab?.(TABS.AI_EXAM)}
               id="tab-ai-exam"
               title={aiExamLocked ? 'Tạo bài thi thử chưa mở cho tài khoản Demo' : 'Tạo bài thi thử bằng AI'}
             >

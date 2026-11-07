@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useReducedMotion } from 'framer-motion';
 
 /**
  * Hàm Easing cubic-bezier(0.22, 1, 0.36, 1) chuẩn hóa
@@ -38,56 +39,51 @@ export default function CountUpNumber({
     ? decimals
     : (numericTarget.toString().split('.')[1] || '').length;
 
-  const [currentVal, setCurrentVal] = useState(0);
-  const rafRef = useRef(null);
-  const startTimeRef = useRef(null);
+  const numberRef = useRef(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
-    // 1. Tôn trọng prefers-reduced-motion: Bỏ qua đếm số nếu người dùng giảm chuyển động
-    const prefersReducedMotion = typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReducedMotion || duration <= 0) {
-      setCurrentVal(numericTarget);
-      return;
+    const node = numberRef.current;
+    if (!node) return undefined;
+    let frame = 0;
+    let startTime = null;
+    const write = value => {
+      const text = decimalPlaces > 0 ? value.toFixed(decimalPlaces) : Math.round(value).toString();
+      if (node.textContent !== text) node.textContent = text;
+    };
+    if (reduce || duration <= 0 || numericTarget === 0) {
+      write(numericTarget);
+      return undefined;
     }
 
-    // 2. Chạy đếm số tăng dần với requestAnimationFrame mượt 60fps
-    const startVal = 0;
-    const diff = numericTarget - startVal;
+    // Giữ nguyên đường đếm và thời lượng, chỉ cập nhật nút số thay vì render React mỗi frame.
+    write(0);
 
     const animate = (timestamp) => {
-      if (!startTimeRef.current) startTimeRef.current = timestamp;
-      const elapsed = timestamp - startTimeRef.current;
+      if (startTime === null) startTime = timestamp;
+      const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutQuint(progress);
 
-      const nextVal = startVal + diff * easedProgress;
-      setCurrentVal(nextVal);
+      write(numericTarget * easedProgress);
 
       if (progress < 1) {
-        rafRef.current = requestAnimationFrame(animate);
+        frame = requestAnimationFrame(animate);
       } else {
-        setCurrentVal(numericTarget);
+        write(numericTarget);
       }
     };
 
-    startTimeRef.current = null;
-    rafRef.current = requestAnimationFrame(animate);
+    frame = requestAnimationFrame(animate);
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(frame);
     };
-  }, [numericTarget, duration]);
-
-  // Format số theo định dạng đẹp
-  const formattedNumber = decimalPlaces > 0
-    ? currentVal.toFixed(decimalPlaces)
-    : Math.round(currentVal).toString();
+  }, [numericTarget, duration, decimalPlaces, reduce]);
 
   return (
     <span className={className} style={{ fontVariantNumeric: 'tabular-nums' }}>
-      {prefix}{formattedNumber}{suffix}
+      {prefix}<span ref={numberRef}>{decimalPlaces > 0 ? (0).toFixed(decimalPlaces) : '0'}</span>{suffix}
     </span>
   );
 }

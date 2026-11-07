@@ -10,7 +10,6 @@ import {
   BookOpen,
   ArrowRight,
   Sparkles,
-  AlertCircle,
   RotateCcw,
   FastForward,
   Code2,
@@ -18,9 +17,9 @@ import {
   Globe2,
   ShieldAlert,
   Trophy,
+  CircleAlert,
   CircleHelp
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { TABS } from './Navbar';
 import { isCompanyAdmin } from '../lib/roleService.js';
 
@@ -31,23 +30,27 @@ import {
   getEvolutionProgress
 } from '../lib/streakEvolutions';
 import StreakEvolutionArt from './StreakEvolutionArt';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import {
+  DURATIONS,
+  EASINGS,
   bannerContainerVariants,
   bannerItemVariants,
   statsRowVariants,
   statCardVariants,
   matrixGridVariants,
   matrixCardVariants,
-  streakCardVariants,
   iconHoverVariants,
   reducedMotionVariants
 } from '../variants';
 import CountUpNumber from './motion/CountUpNumber';
 import MasteryBar from './motion/MasteryBar';
-import MascotHeroCat from './motion/MascotHeroCat';
+import HeroRoomCat from './motion/HeroRoomCat';
 import HeroBannerBackground from './motion/HeroBannerBackground';
+import { useVisibleAnimations } from '../lib/useVisibleAnimations';
+import './home-performance.css';
 import StreakFlameStage from './motion/StreakFlameStage';
+import './study-streak.css';
 import { TRACK_INFO, TRACK_TYPES } from '../data/roadmap';
 import { getStationQuiz } from '../data/questions';
 
@@ -69,7 +72,6 @@ export default function HomeTab({
   progress,
   completedLessons,
   userId: suppliedUserId,
-  onCheckIn,
   onSimulateNextDay,
   onSimulateMissedDays,
   onNavigateTab
@@ -83,28 +85,31 @@ export default function HomeTab({
   const [showAllEvolutions, setShowAllEvolutions] = React.useState(false);
   const [adminPreviewMode, setAdminPreviewMode] = React.useState(false);
   const [adminPreviewStreak, setAdminPreviewStreak] = React.useState(null);
-  const [isFlaring, setIsFlaring] = React.useState(false);
   const prefersReducedMotion = useReducedMotion();
-
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#EA580C', '#FBBF24', '#7C2D12', '#FED7AA']
-    });
-  };
-
-  const handleCheckInClick = () => {
-    if (!streak.checkedToday) {
-      setIsFlaring(true);
-      triggerConfetti();
-      onCheckIn();
-      setTimeout(() => {
-        setIsFlaring(false);
-      }, 1000);
-    }
-  };
+  const dashboardRef = React.useRef(null);
+  useVisibleAnimations(dashboardRef, '.hero-welcome-card, .metric-card, .matrix-panel, .matrix-card, .streak-card');
+  const streakCardRef = React.useRef(null);
+  const streakInView = useInView(streakCardRef, { amount: 0.1 });
+  const streakHelpRef = React.useRef(null);
+  React.useEffect(() => {
+    const closeOutside = (event) => {
+      const help = streakHelpRef.current;
+      if (help?.open && !help.contains(event.target)) help.open = false;
+    };
+    const closeOnEscape = (event) => {
+      const help = streakHelpRef.current;
+      if (event.key === 'Escape' && help?.open) {
+        help.open = false;
+        help.querySelector('summary')?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, []);
 
   // Tính toán trạng thái các thứ trong tuần hiện tại theo lịch sử điểm danh thực tế
   const now = new Date();
@@ -121,7 +126,7 @@ export default function HomeTab({
     const dayDateStr = formatLocalDate(dayDate);
 
     // Chỉ sáng ngọn lửa nếu ngày đó nằm trong lịch sử đã điểm danh (checkinHistory)
-    // HOẶC hôm nay và đã bấm điểm danh
+    // HOẶC hôm nay đã nộp bài đủ điều kiện ghi nhận.
     const hasCheckedInHistory = Array.isArray(streak?.checkinHistory) && streak.checkinHistory.includes(dayDateStr);
     const checked = hasCheckedInHistory || (isToday && !!streak?.checkedToday);
 
@@ -196,7 +201,7 @@ export default function HomeTab({
   });
 
   return (
-    <div className="home-dashboard">
+    <div ref={dashboardRef} className="home-dashboard">
       <div className="home-grid">
         {/* Left Column: Hero & Key Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -205,36 +210,27 @@ export default function HomeTab({
             variants={prefersReducedMotion ? reducedMotionVariants : bannerContainerVariants}
             initial="hidden"
             animate="visible"
-            className="hero-welcome-card"
+            className="hero-welcome-card hero-welcome-card--room"
           >
             {/* Lớp nền trôi nhẹ và đốm sáng mờ ambient */}
             <HeroBannerBackground />
 
-            {/* Chú mèo đu trên khung banner (trạng thái thở 4s, nghiêng đầu, bong bóng thoại) */}
-            <MascotHeroCat />
+            {/* Mèo tranh sáp ló trực tiếp qua mép block cam trên desktop. */}
+            <HeroRoomCat />
 
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="hero-welcome-content" style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div className="hero-tag-row">
                 <motion.div variants={bannerItemVariants} className="hero-tag" style={{ margin: 0 }}>
                   <Sparkles size={14} />
                   <span>Chương trình ôn luyện bám sát ma trận 2025</span>
                 </motion.div>
-                <span className="hero-mobile-glasses" aria-hidden="true">
-                  <span className="hero-mobile-glass-lens">
-                    <span className="hero-mobile-glass-shine" />
-                  </span>
-                  <span className="hero-mobile-glass-bridge" />
-                  <span className="hero-mobile-glass-lens">
-                    <span className="hero-mobile-glass-shine hero-mobile-glass-shine--late" />
-                  </span>
-                </span>
               </div>
 
               <motion.h1 variants={bannerItemVariants} className="hero-title">
-                Chào mừng, {user?.name || 'Học viên'}! 🔥
+                Chào mừng, {user?.name || 'Học viên'}!
               </motion.h1>
               <motion.p variants={bannerItemVariants} className="hero-desc">
-                Bạn đang ở chuỗi phong độ cao! Hãy duy trì điểm danh hàng ngày, hoàn thành từng chặng trực quan và làm bài thi thử để sẵn sàng 9.5+ kỳ thi Tốt nghiệp THPTQG.
+                Giữ nhịp học mỗi ngày bằng một bài nộp. Ôn từng chặng trong lộ trình và luyện đề thi thử để sẵn sàng cho kỳ thi Tốt nghiệp THPTQG.
               </motion.p>
               <motion.div variants={bannerItemVariants} className="hero-actions">
                 <motion.button
@@ -383,128 +379,81 @@ export default function HomeTab({
 
         {/* Right Column: Chức năng Streak Học Tập (Feature Highlights) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Main Streak Card: Trượt vào từ phải 24px + fade */}
-          <motion.div
-            variants={prefersReducedMotion ? reducedMotionVariants : streakCardVariants}
-            initial="hidden"
-            animate="visible"
-            className="streak-card"
-            id="streak-card-section"
-          >
+          {/* Chuỗi học tập chỉ tăng khi nộp bài đủ điều kiện. */}
+          <motion.div ref={streakCardRef} className="streak-card streak-card--learning" id="streak-card-section"
+            data-ambient={streakInView && !prefersReducedMotion ? 'active' : 'paused'}
+            style={{ '--streak-aurora-duration': `${DURATIONS.ambientSlow * 2}s`, '--streak-aurora-ease': `cubic-bezier(${EASINGS.easeInOut.join(',')})` }}>
+            <div className="study-streak-aurora" aria-hidden="true"><span /><span /></div>
             <div className="streak-card-header">
-              <div className="streak-card-title">
-                <Flame size={22} color="var(--color-primary)" />
-                <span>Chuỗi Streak Học Tập</span>
-              </div>
-              <span style={{ fontSize: '0.72rem', background: 'var(--color-cream)', color: 'var(--color-deep)', padding: '0.2rem 0.6rem', borderRadius: '999px', fontWeight: 800 }}>
-                Học đều đặn
-              </span>
-            </div>
-
-            {/* Streak Giant Display + sân khấu ngọn lửa tiến hoá */}
-            <div className="streak-display-center">
-              {adminPreviewStreak !== null && isCompanyAdmin(user) && (
-                <div style={{
-                  position: 'absolute',
-                  top: '0.5rem',
-                  right: '0.5rem',
-                  zIndex: 10
-                }}>
-                  <button
-                    onClick={() => setAdminPreviewStreak(null)}
-                    style={{
-                      padding: '0.3rem 0.6rem',
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      background: '#DC2626',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '999px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                    }}
-                    title="Tắt chế độ xem trước Admin"
-                  >
-                    ✕ TẮT PREVIEW
-                  </button>
+              <h2 className="study-streak-title"><Flame size={19} aria-hidden="true" />Chuỗi học tập</h2>
+              <details className="study-streak-help" ref={streakHelpRef}>
+                <summary aria-label="Cách tính và duy trì streak" title="Streak hoạt động như thế nào?"><CircleAlert size={19} /></summary>
+                <div className="study-streak-help-panel">
+                  <h3>Giữ lửa như thế nào?</h3>
+                  <p>Ngày học được ghi nhận khi bạn thực hiện một trong hai cách:</p>
+                  <ul>
+                    <li>Nộp bài kiểm tra trong <strong>lộ trình học</strong> với điểm lớn hơn 10%. Không cần đạt 80%.</li>
+                    <li>Nộp một <strong>đề thi thử</strong> với điểm lớn hơn 10% (trên 1/10 điểm).</li>
+                  </ul>
+                  <p>Mỗi ngày theo giờ Việt Nam chỉ tăng <strong>1 ngày streak</strong> và nhận <strong>50 XP</strong>. Điểm từ 10% trở xuống không được tính.</p>
+                  <p>Được nghỉ tối đa <strong>{graceDays - 1} ngày</strong>. Bỏ trống {graceDays} ngày liên tiếp sẽ bắt đầu lại chuỗi.</p>
                 </div>
-              )}
-
-              {/* Sân khấu ngọn lửa chuyển động cảm xúc (lung linh 2.5s, 3 tia sáng, flare-up khi điểm danh) */}
+              </details>
+            </div>
+            <div className="study-streak-summary">
+              <div className="study-streak-total">
+                <span className={'study-streak-status ' + (streak.checkedToday ? 'is-complete' : '')}>
+                {streak.checkedToday ? <CheckCircle2 size={14} /> : <Flame size={14} />}
+                {streak.checkedToday ? 'Đã học hôm nay' : 'Chờ bạn tiếp lửa'}
+                </span>
+                <div className="study-streak-number"><span>{displayStreak}</span><span>ngày</span></div>
+                <span className="study-streak-caption">
+                  {displayStreak > 0 ? 'Từng ngày nỗ lực. Một hành trình đáng tự hào.' : 'Hành trình bền bỉ bắt đầu từ hôm nay.'}
+                </span>
+              </div>
               <StreakFlameStage
                 currentEvolution={displayEvo}
                 hasStarted={displayHasStarted}
-                isMaxEvo={displayIsMaxEvo}
                 displayStreak={displayStreak}
-                daysToNext={displayNextEvo ? displayEvoProg.daysToNext : null}
-                progressPercent={displayEvoProg.percent}
-                isFlaring={isFlaring}
                 evoVars={evoVars}
               />
-
-              <div className="streak-big-number">
-                <CountUpNumber end={displayStreak} />
-              </div>
-              <div className="streak-big-label">Ngày Học Liên Tục</div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.4rem' }}>
-                {adminPreviewStreak !== null && isCompanyAdmin(user) ? (
-                  <strong style={{ color: '#10B981' }}>🧪 Chế độ xem trước Admin đang bật</strong>
-                ) : (
-                  streak?.checkedToday
-                    ? 'Tuyệt vời! Bạn đã điểm danh hôm nay.'
-                    : (streak?.count > 0
-                      ? 'Chưa điểm danh hôm nay. Bấm nút bên dưới để nhận +1 Streak!'
-                      : 'Bạn mới bắt đầu học! Bấm điểm danh bên dưới để mở chuỗi streak 1 ngày đầu tiên.')
-                )}
-              </p>
             </div>
-
-            {/* 7-Day Calendar Streak: Ngày hôm nay có vòng sáng nhấp nhịp nhẹ (pulse 2s) */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '0.5rem' }}>
-                <span>Chu kỳ tuần này</span>
-                <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{displayCheckedDaysCount} / 7 ngày</span>
+            <div className="study-streak-milestone">
+              <div className="study-streak-milestone-heading">
+                <span>Cấp {displayEvo.tier} <span>/ {STREAK_EVOLUTIONS.length}</span></span>
+                <strong>{displayIsMaxEvo ? 'Đã đạt cấp cao nhất' : 'Còn ' + displayEvoProg.daysToNext + ' ngày tới cấp ' + displayNextEvo.tier}</strong>
               </div>
-              <div className="streak-days-row">
-                {displayDaysOfWeek.map((d, i) => (
-                  <div key={i} className={`day-bubble ${d.checked ? 'checked' : ''} ${d.isToday ? 'today' : ''}`}>
-                    <div className="day-bubble-circle">
-                      {d.checked ? '🔥' : d.name}
-                    </div>
-                    <span className="day-name">{d.name}</span>
+              <div className="study-streak-progress" role="progressbar" aria-label="Tiến độ tiến hoá streak" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(displayEvoProg.percent)}>
+                <span style={{ transform: 'scaleX(' + Math.min(1, Math.max(0, displayEvoProg.percent / 100)) + ')' }} />
+              </div>
+              <span className="study-streak-milestone-caption">{displayIsMaxEvo ? 'Tiếp tục viết nên hành trình của bạn.' : 'Tiếp theo: ' + displayNextEvo.name}</span>
+            </div>
+            {adminPreviewStreak !== null && isCompanyAdmin(user) && (
+              <button className="study-streak-preview-exit" onClick={() => setAdminPreviewStreak(null)}>Tắt xem trước</button>
+            )}
+            <div className="study-streak-week">
+              <div className="study-streak-week-heading"><span>Tuần này</span><strong>{displayCheckedDaysCount} / 7 ngày</strong></div>
+              <div className="study-streak-calendar">
+                {displayDaysOfWeek.map((day, index) => (
+                  <div key={day.name} className={'study-streak-day ' + (day.checked ? 'is-done ' : '') + (day.isToday ? 'is-today' : '')}
+                    aria-label={day.name + (day.isToday ? ', hôm nay' : '') + ': ' + (day.checked ? 'đã học' : 'chưa ghi nhận')}
+                    aria-current={day.isToday ? 'date' : undefined}>
+                    <span>{day.name}</span>
+                    <div>{day.checked ? <Flame size={19} fill="currentColor" /> : <span className="study-streak-day-dot" />}</div>
+                    <span className="study-streak-today-mark">{index === currentDayOfWeek ? 'Hôm nay' : ' '}</span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Main Check-In Button: Nâng lên 2px khi hover, active scale 0.97, bùng nổ confetti & lửa */}
-            <motion.button
-              whileHover={!streak.checkedToday ? { y: -2 } : {}}
-              whileTap={!streak.checkedToday ? { scale: 0.97 } : {}}
-              className="btn-checkin-streak"
-              onClick={handleCheckInClick}
-              disabled={streak.checkedToday}
-              id="btn-diem-danh-streak"
-            >
-              {streak.checkedToday ? (
-                <>
-                  <CheckCircle2 size={20} />
-                  <span>Đã Điểm Danh Hôm Nay!</span>
-                </>
-              ) : (
-                <>
-                  <Flame size={20} />
-                  <span>Điểm Danh Ngay</span>
-                </>
+            <div className="study-streak-next">
+              <strong>{streak.checkedToday ? 'Đã thêm một ngày đáng tự hào.' : 'Hôm nay, mình học gì nhỉ?'}</strong>
+              {streak.checkedToday && <p>Hẹn bạn ngày mai, cùng giữ ngọn lửa này nhé.</p>}
+              {!streak.checkedToday && (
+                <div className="study-streak-actions">
+                  <button onClick={() => onNavigateTab(TABS.ROADMAP)}><BookOpen size={16} />Vào lộ trình<ArrowRight size={15} /></button>
+                  <button onClick={() => onNavigateTab(TABS.AI_EXAM)}><Zap size={16} />Làm đề thi thử<ArrowRight size={15} /></button>
+                </div>
               )}
-            </motion.button>
-
-            {/* Important Rule Warning — quy tắc ân hạn 3 ngày */}
-            <div style={{ display: 'flex', gap: '0.5rem', background: '#FFF7ED', padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-              <AlertCircle size={16} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-deep)', lineHeight: 1.4 }}>
-                <strong>Quy tắc Streak:</strong> bạn được phép nghỉ tối đa <strong>{graceDays - 1} ngày</strong>. Nếu bỏ trống <strong>{graceDays} ngày liên tiếp</strong> mà không bấm điểm danh, chuỗi streak sẽ bị mất và trở về 0.
-              </div>
             </div>
 
             {/* Streak Evolution Collection - Expandable Panel */}
@@ -745,7 +694,7 @@ export default function HomeTab({
                   <button
                     className="btn-sim"
                     onClick={onSimulateNextDay}
-                    title="Giả lập hệ thống sang ngày hôm sau (được phép điểm danh tiếp)"
+                    title="Giả lập ngày hôm sau để nộp bài và ghi nhận ngày học"
                   >
                     <FastForward size={13} style={{ verticalAlign: 'middle', marginRight: '3px' }} />
                     Tua tới ngày mai (+1 ngày)
@@ -754,10 +703,10 @@ export default function HomeTab({
                     className="btn-sim"
                     onClick={onSimulateMissedDays}
                     style={{ color: '#DC2626' }}
-                    title="Giả lập học sinh bỏ lỡ 2 ngày không học -> mất streak về 0"
+                    title="Giả lập bỏ trống 3 ngày liên tiếp, chuỗi về 0"
                   >
                     <RotateCcw size={13} style={{ verticalAlign: 'middle', marginRight: '3px' }} />
-                    Bỏ lỡ 2 ngày (Mất streak)
+                    Bỏ lỡ 3 ngày (Mất streak)
                   </button>
                 </div>
               </div>

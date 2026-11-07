@@ -108,6 +108,21 @@
 
 ## Features
 
+### Hiệu năng frontend
+
+- `src/App.jsx` — lazy-load các màn, preload theo hover/focus ở `src/components/Navbar.jsx`; Suspense nằm trong PageTransition, có trạng thái thử lại khi tải chunk lỗi.
+- `src/components/RoadmapTab.jsx` — chỉ tải `PdfDocumentViewer.jsx`/PDF.js khi mở PDF.
+- `src/components/landing/usePointerParallax.js` — cập nhật transform trên từng lớp, không đổi biến CSS kế thừa của cả hero.
+- `src/components/motion/HeroBannerBackground.jsx`, `hero-banner-background.css` — giữ bốn quỹ đạo sáng bằng CSS và parallax theo con trỏ; tạm dừng khi ngoài vùng nhìn thấy.
+- `src/lib/useVisibleAnimations.js`, `src/components/home-performance.css` — pause/resume animation ngoài màn hình của HomeTab.
+- `src/components/motion/CountUpNumber.jsx` — cập nhật nút số qua ref, giữ easing/thời lượng mà không render React mỗi frame.
+- `src/lib/viewportHeight.js` — gom sự kiện viewport theo frame, chỉ ghi `--app-vh` khi chiều cao thực sự thay đổi.
+
+### Bảo vệ ảnh giao diện
+
+- `src/lib/useResourceProtection.js` — hook trong `src/App.jsx`: chặn menu lưu ảnh, nhấn giữ và kéo ảnh giao diện cho khách/học viên; admin được miễn. Giữ nguyên tải tài liệu kho đề, copy văn bản, ô nhập liệu và in báo cáo.
+- Đây là hạn chế thao tác trên ảnh giao diện, không phải kiểm soát truy cập URL ảnh.
+
 ### 1. Lộ trình học 12 tuần (Roadmap)
 
 ```
@@ -224,18 +239,21 @@ Policy     profiles: select own-or-admin, insert self (is_admin=false), update a
 ### 6. Gamification: streak / mastery / XP
 
 ```
-Frontend   src/components/HomeTab.jsx        ← streak card, điểm danh, thanh mastery
+Frontend   src/components/HomeTab.jsx        ← streak card, lịch ngày học, thanh mastery
+           src/components/StudyStreakReward.jsx ← animation ghi nhận ngày học sau khi nộp bài
            src/components/StreakEvolutionArt.jsx  ← hình 6 cấp streak
            src/components/motion/StreakFlameStage.jsx, MasteryBar.jsx
-Service    src/lib/userProgress.js   ← useUserProgress: checkIn, updateMastery,
+Service    src/lib/userProgress.js   ← useUserProgress: recordStudySubmission, updateMastery,
                                        toggleLesson, recordExamResult, simulateNextDay
            src/lib/streakEvolutions.js ← 6 cấp (0/14/30/45/60/90 ngày)
+           src/lib/streakRules.js ← chỉ nhận quiz lộ trình / đề thi thử có điểm >10%
 Rule       STREAK_GRACE_DAYS = 3 — nghỉ ≤2 ngày vẫn giữ chuỗi; để trống 3 ngày liên tiếp → về 0
 DB        user_progress, mastery_progress, roadmap_lessons, daily_checkins
 Sync      Supabase Realtime (postgres_changes) + fallback LocalStorage
 ```
 
 Ngày được tính theo **giờ địa phương VN** qua `formatLocalDate` — không dùng `toISOString()`.
+Streak không có nút điểm danh: nộp quiz lộ trình hoặc đề thi thử với điểm **lớn hơn 10%** để ghi nhận, tối đa 1 lần/ngày. Mốc 80% vẫn chỉ dùng để hoàn thành chủ đề lộ trình.
 
 ---
 

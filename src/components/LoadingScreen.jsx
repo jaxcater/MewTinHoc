@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import catCamWebp from '../assets/cat-cam-loading.webp';
 import catCamGif from '../assets/cat-cam-loading-transparent.gif';
 
@@ -28,11 +28,6 @@ export default function LoadingScreen({
 }) {
   const preset = SIZE_PRESETS[size] || SIZE_PRESETS.lg;
   const [src, setSrc] = useState(catCamWebp);
-
-  // Nếu trình duyệt quá cũ không hỗ trợ WebP thì dùng GIF
-  useEffect(() => {
-    setSrc(catCamWebp);
-  }, []);
 
   const handleError = () => {
     setSrc((prev) => (prev === catCamGif ? prev : catCamGif));

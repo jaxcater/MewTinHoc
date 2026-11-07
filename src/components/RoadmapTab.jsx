@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import PdfDocumentViewer from './PdfDocumentViewer';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Link as ChainIcon,
@@ -49,9 +48,13 @@ import AdminTheoryEditor from './AdminTheoryEditor';
 import StationQuizView from './StationQuizView';
 import { lockBodyScroll } from '../lib/scrollLock';
 
+// PDF.js chỉ cần khi học viên thực sự mở tài liệu PDF.
+const PdfDocumentViewer = lazy(() => import('./PdfDocumentViewer'));
+
 export default function RoadmapTab({
   completedLessonIds: propCompletedLessonIds,
   onToggleLesson,
+  onStudySubmission,
   user
 }) {
   const { track } = useParams();
@@ -232,6 +235,8 @@ export default function RoadmapTab({
   };
 
   const handleQuizSubmit = (station, result) => {
+    // Dùng tỷ lệ gốc để xét chính xác ngưỡng 10%.
+    void onStudySubmission?.('roadmap', result.correctCount, result.totalItems);
     const key = `${activeTrack}:${station.id}`;
     setQuizScores((prev) => {
       const next = { ...prev, [key]: { accuracy: result.accuracy, score10: result.score10, updatedAt: Date.now() } };
@@ -1373,12 +1378,14 @@ export default function RoadmapTab({
                         <small>Đọc kỹ nội dung, sau đó chuyển sang bài kiểm tra ở cuối phần lý thuyết.</small>
                       </aside>
                       <div className="pdf-iframe-shell">
+                        <Suspense fallback={<div className="pdfx-message" role="status">Đang mở tài liệu PDF...</div>}>
                         <PdfDocumentViewer
                           key={selectedStation.pdfUrl}
                           src={selectedStation.pdfUrl}
                           zoom={theoryZoom}
                           title={`${selectedStation.title} - Tài liệu ôn thi`}
                         />
+                        </Suspense>
                       </div>
                       <aside className="pdf-reading-rail pdf-reading-rail-right" aria-label="Hướng dẫn hoàn thành">
                         <div className="pdf-rail-kicker">MỤC TIÊU</div>

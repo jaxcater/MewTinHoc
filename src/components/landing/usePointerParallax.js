@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react';
 
+const DEPTH_LAYERS = [
+  ['.mtl-glow', -10], ['.mtl-orbit', -16], ['.mtl-cat', 20],
+  ['.mtl-cat__bubble', 34], ['.mtl-preview', 12], ['.mtl-chip', 44]
+];
+
 /**
  * Parallax theo con trỏ, chạy hoàn toàn ngoài React.
  *
  * Vì sao không dùng useState: mỗi lần chuột di chuyển là một lần render lại cả
- * cây component. Ở đây ta ghi thẳng toạ độ vào CSS custom property của phần tử
- * giữ (một lần mỗi animation frame), nên React không render lại lần nào.
- *
- * - `--px` / `--py` nằm trong khoảng -1..1 (chuẩn hoá theo tâm màn hình).
- * - Từng lớp con tự nhân với hệ số sâu của nó trong CSS:
- *     transform: translate3d(calc(var(--px) * 14px), calc(var(--py) * 14px), 0);
+ * cây component. Ghi transform trực tiếp trên từng lớp, tránh thay đổi biến
+ * CSS kế thừa làm cả nội dung hero phải tính lại style mỗi khung hình.
  * - Chỉ chạy khi: không bật prefers-reduced-motion, và thiết bị có chuột thật.
  * - Dừng hẳn khi tab bị ẩn để không đốt pin.
  */
@@ -22,8 +23,10 @@ export default function usePointerParallax() {
 
     const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const fineQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
-    if (!fineQuery.matches) return;
     const root = layer.closest('.mtl-root');
+    const targets = DEPTH_LAYERS.flatMap(([selector, depth]) =>
+      [...layer.querySelectorAll(selector)].map(node => ({ node, depth, original: node.style.transform }))
+    );
     let inView = true;
 
     let frame = 0;
@@ -34,12 +37,14 @@ export default function usePointerParallax() {
     let running = true;
 
     const write = () => {
-      layer.style.setProperty('--px', currentX.toFixed(4));
-      layer.style.setProperty('--py', currentY.toFixed(4));
+      for (const { node, depth } of targets) {
+        const transform = `translate3d(${(currentX * depth).toFixed(3)}px, ${(currentY * depth).toFixed(3)}px, 0)`;
+        if (node.style.transform !== transform) node.style.transform = transform;
+      }
     };
 
     const tick = () => {
-      if (!running || !inView || reduceQuery.matches || root?.dataset.motionMode !== 'full') {
+      if (!running || !inView || !fineQuery.matches || reduceQuery.matches || root?.dataset.motionMode !== 'full') {
         frame = 0;
         return;
       }
@@ -55,7 +60,7 @@ export default function usePointerParallax() {
     };
 
     const queue = () => {
-      if (!frame && running && inView && !reduceQuery.matches) frame = requestAnimationFrame(tick);
+      if (!frame && running && inView && fineQuery.matches && !reduceQuery.matches && root?.dataset.motionMode === 'full') frame = requestAnimationFrame(tick);
     };
 
     const onPointerMove = (event) => {
@@ -75,6 +80,7 @@ export default function usePointerParallax() {
     const onVisibility = () => {
       running = !document.hidden;
       if (!running && frame) { cancelAnimationFrame(frame); frame = 0; }
+      if (running) queue();
     };
 
     const onPreference = () => {
@@ -83,11 +89,14 @@ export default function usePointerParallax() {
         frame = 0;
         targetX = targetY = currentX = currentY = 0;
         write();
+      } else {
+        queue();
       }
     };
     const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
       if (!inView && frame) { cancelAnimationFrame(frame); frame = 0; }
+      if (inView) queue();
     });
     observer?.observe(layer);
 
@@ -107,6 +116,7 @@ export default function usePointerParallax() {
       reduceQuery.removeEventListener('change', onPreference);
       fineQuery.removeEventListener('change', onPreference);
       observer?.disconnect();
+      targets.forEach(({ node, original }) => { node.style.transform = original; });
     };
   }, []);
 

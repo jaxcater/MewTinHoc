@@ -1,27 +1,56 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar, { TABS } from './components/Navbar';
-import HomeTab from './components/HomeTab';
-import RoadmapTab from './components/RoadmapTab';
-import ExamRepoTab from './components/ExamRepoTab';
-import GenExamTab from './components/exam/GenExamTab';
+import StudyStreakReward from './components/StudyStreakReward';
 import LoginPage from './components/LoginPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageTransition from './components/motion/PageTransition';
 import { DEFAULT_USER } from './mockData';
-import { Flame } from 'lucide-react';
-import AdminPage from './components/AdminPage';
+import { Flame, Loader2 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useUserProgress } from './lib/userProgress';
 import { resolveUserRole, syncUserRoleToSupabase } from './lib/roleService';
-import BotpressChatBubble from './components/BotpressChatBubble';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import DemoLockedView, { DEMO_LOCKED_CONTENT } from './components/demo/DemoLockedView';
 import { isDemoUser, isLockedForDemo, featureFromPath } from './lib/demoAccess';
 import logoMeoCam from '../img/logomeocam.png';
 import { useDevtoolsGuard } from './lib/useDevtoolsGuard';
+import { useResourceProtection } from './lib/useResourceProtection';
 import { useUserActivityTimer } from './lib/useUserActivityTimer';
+
+// Chỉ nạp mã của màn hình đang mở; giữ PageTransition bên ngoài Suspense
+// để hiệu ứng vào/ra trang không bị thay thế khi chờ chunk.
+const SCREEN_LOADERS = {
+  [TABS.HOME]: () => import('./components/HomeTab'),
+  [TABS.ROADMAP]: () => import('./components/RoadmapTab'),
+  [TABS.EXAMS]: () => import('./components/ExamRepoTab'),
+  [TABS.AI_EXAM]: () => import('./components/exam/GenExamTab')
+};
+const HomeTab = lazy(SCREEN_LOADERS[TABS.HOME]);
+const RoadmapTab = lazy(SCREEN_LOADERS[TABS.ROADMAP]);
+const ExamRepoTab = lazy(SCREEN_LOADERS[TABS.EXAMS]);
+const GenExamTab = lazy(SCREEN_LOADERS[TABS.AI_EXAM]);
+const AdminPage = lazy(() => import('./components/AdminPage'));
+const BotpressChatBubble = lazy(() => import('./components/BotpressChatBubble'));
+
+class ContentLoadBoundary extends React.Component {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    if (this.state.failed) {
+      return <div role="alert" className="demo-locked-card">
+        <p>Không tải được nội dung. Vui lòng kiểm tra kết nối và thử lại.</p>
+        <button type="button" className="btn-primary-glow" onClick={() => window.location.reload()}>Tải lại trang</button>
+      </div>;
+    }
+    return this.props.children;
+  }
+}
+
+function DeferredView({ children }) {
+  return <ContentLoadBoundary><Suspense fallback={<div className="pdfx-message route-loading" role="status"><Loader2 size={22} className="pdfx-spin" /><span>Đang tải nội dung...</span></div>}>{children}</Suspense></ContentLoadBoundary>;
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS.HOME);
@@ -68,7 +97,8 @@ export default function App() {
     progress,
     completedLessons,
     streak,
-    checkIn,
+    recordStudySubmission,
+    studyReward,
     toggleLesson,
     recordExamResult,
     simulateNextDay,
@@ -237,14 +267,19 @@ export default function App() {
   }, [user, handleDemoBlocked]);
 
   const handleContentNavigate = goToTab;
-
-  // Streak Check-in: +1 streak với Supabase Realtime
-  const handleCheckIn = async () => {
-    const res = await checkIn();
-    if (res?.message) {
-      showToast(res.message);
-    }
-  };
+  const handlePrefetchTab = useCallback(tab => {
+    if (isLockedForDemo(user, tab === TABS.EXAMS ? 'exams' : tab === TABS.AI_EXAM ? 'aiExam' : tab)) return;
+    // Nạp trước khi rê chuột/focus, không đợi đến lúc chuyển màn hình.
+    SCREEN_LOADERS[tab]?.().catch(() => { /* Khi mở trang vẫn có nút thử lại. */ });
+  }, [user]);
+  useEffect(() => {
+    if (!user || !appBooting) return;
+    const tab = location.pathname.startsWith('/roadmap') ? TABS.ROADMAP
+      : location.pathname.startsWith('/ai-exam') ? TABS.AI_EXAM
+      : location.pathname.startsWith('/exams') ? TABS.EXAMS
+      : TABS.HOME;
+    handlePrefetchTab(tab);
+  }, [user, appBooting, location.pathname, handlePrefetchTab]);
 
   // Simulation: Tua nhanh 1 ngày (Hôm sau - cho phép điểm danh tiếp)
   const handleSimulateNextDay = () => {
@@ -272,6 +307,7 @@ export default function App() {
   }, [location.pathname]);
 
   const devtoolsBlocked = useDevtoolsGuard(user);
+  useResourceProtection(user);
   const isAdminRoute = location.pathname.endsWith('/admin') || window.location.hash === '#admin';
 
   if (devtoolsBlocked) {
@@ -287,7 +323,7 @@ export default function App() {
   }
 
   if (isAdminRoute) {
-    return <AdminPage currentUser={user} />;
+    return <DeferredView><AdminPage currentUser={user} /></DeferredView>;
   }
 
   // Show Login page if not logged in (and not on admin)
@@ -319,6 +355,7 @@ export default function App() {
         streak={streak}
         onLogout={handleLogout}
         onNavigate={goToTab}
+        onPrefetchTab={handlePrefetchTab}
         onOpenArena={() => showToast('Đang xây dựng')}
         onOpenStreakDetails={() => {
           setActiveTab(TABS.HOME);
@@ -338,18 +375,19 @@ export default function App() {
               path="/"
               element={
                 <PageTransition>
+                  <DeferredView>
                   <HomeTab
                     user={user}
                     streak={streak}
                     progress={progress}
                     completedLessons={completedLessons}
                     userId={user?.id}
-                    onCheckIn={handleCheckIn}
                     onSimulateNextDay={handleSimulateNextDay}
                     onSimulateMissedDays={handleSimulateMissedDays}
                     onResetSimulation={handleResetSimulation}
                     onNavigateTab={handleContentNavigate}
                   />
+                  </DeferredView>
                 </PageTransition>
               }
             />
@@ -358,11 +396,14 @@ export default function App() {
               path="/roadmap"
               element={
                 <PageTransition>
+                  <DeferredView>
                   <RoadmapTab
                     user={user}
                     completedLessonIds={completedLessons}
                     onToggleLesson={toggleLesson}
+                    onStudySubmission={recordStudySubmission}
                   />
+                  </DeferredView>
                 </PageTransition>
               }
             />
@@ -370,11 +411,14 @@ export default function App() {
               path="/roadmap/:track"
               element={
                 <PageTransition>
+                  <DeferredView>
                   <RoadmapTab
                     user={user}
                     completedLessonIds={completedLessons}
                     onToggleLesson={toggleLesson}
+                    onStudySubmission={recordStudySubmission}
                   />
+                  </DeferredView>
                 </PageTransition>
               }
             />
@@ -389,7 +433,7 @@ export default function App() {
                       onGoHome={() => navigate('/')}
                     />
                   ) : (
-                    <ExamRepoTab user={user} onRecordExamResult={recordExamResult} />
+                    <DeferredView><ExamRepoTab user={user} onRecordExamResult={recordExamResult} /></DeferredView>
                   )}
                 </PageTransition>
               }
@@ -405,11 +449,13 @@ export default function App() {
                       onGoHome={() => navigate('/')}
                     />
                   ) : (
+                    <DeferredView>
                     <GenExamTab
                       progress={progress}
                       userId={user?.id}
                       onRecordExamResult={recordExamResult}
                     />
+                    </DeferredView>
                   )}
                 </PageTransition>
               }
@@ -418,7 +464,7 @@ export default function App() {
               path="/admin"
               element={
                 <PageTransition>
-                  <AdminPage />
+                  <DeferredView><AdminPage /></DeferredView>
                 </PageTransition>
               }
             />
@@ -475,10 +521,12 @@ export default function App() {
       </footer>
 
       {/* Botpress Cloud Floating AI Chat Bubble */}
-      <BotpressChatBubble user={user} onRequestUpgrade={handleRequestUpgrade} />
+      <ContentLoadBoundary><Suspense fallback={null}><BotpressChatBubble user={user} onRequestUpgrade={handleRequestUpgrade} /></Suspense></ContentLoadBoundary>
 
       {/* Thông báo từ Admin gửi tới mọi người truy cập */}
       <AnnouncementBanner />
+
+      <StudyStreakReward reward={studyReward} />
 
       {/* Toast Notification */}
       {toastMessage && (

@@ -1,0 +1,181 @@
+{
+  "date": "2026-11-07",
+  "build": {
+    "before": {
+      "js": 1697221,
+      "css": 395578
+    },
+    "after": {
+      "js": 764852,
+      "css": 232301
+    },
+    "reduction": {
+      "js": "54.9%",
+      "css": "41.3%"
+    },
+    "files": [
+      "/assets/index-DiFZjE1u.js",
+      "/assets/createLucideIcon-gBotvnxG.js",
+      "/assets/index-CGJ5IVNb.css"
+    ]
+  },
+  "browserQA": {
+    "checks": 77,
+    "results": [
+      "All landing sections 1440",
+      "Sample question responds 1440",
+      "Track panel opens 1440",
+      "Keyboard track selection 1440",
+      "Landing CTA 1440",
+      "Direct parallax transforms 1440",
+      "No inherited per-frame variables 1440",
+      "Dashboard numbers 1440",
+      "All glyphs retained 1440",
+      "All glow layers retained 1440",
+      "No horizontal overflow 1440",
+      "Cat responsive behaviour 1440",
+      "Retained home animation 1440 heroGradientShift",
+      "Retained home animation 1440 glyphFloat",
+      "Retained home animation 1440 hero-cat-breathe",
+      "Retained home animation 1440 hero-cat-lean",
+      "Retained home animation 1440 hero-cat-ear-left",
+      "Retained home animation 1440 hero-cat-ear-right",
+      "Retained home animation 1440 hero-cat-blink",
+      "Retained home animation 1440 hero-cat-look",
+      "Retained home animation 1440 hero-cat-closed",
+      "Retained home animation 1440 btnShineSweep",
+      "Retained home animation 1440 panelOrbDrift",
+      "Retained home animation 1440 liveDotPing",
+      "Retained home animation 1440 barShimmer",
+      "Retained home animation 1440 study-streak-aurora-drift",
+      "Retained home animation 1440 study-streak-aurora-return",
+      "Retained home animation 1440 study-streak-breathe",
+      "Retained home animation 1440 study-streak-float",
+      "Retained home animation 1440 study-streak-ember",
+      "Streak help 1440",
+      "Matrix resumes on scroll 1440",
+      "Offscreen banner paused 1440",
+      "Banner resumes 1440",
+      "Reduced motion retained 1440",
+      "No runtime errors 1440",
+      "All landing sections 390",
+      "Sample question responds 390",
+      "Track panel opens 390",
+      "Keyboard track selection 390",
+      "Landing CTA 390",
+      "Dashboard numbers 390",
+      "All glyphs retained 390",
+      "All glow layers retained 390",
+      "No horizontal overflow 390",
+      "Cat responsive behaviour 390",
+      "Retained home animation 390 heroGradientShift",
+      "Retained home animation 390 glyphFloat",
+      "Retained home animation 390 hero-mobile-glass-shine",
+      "Retained home animation 390 btnShineSweep",
+      "Retained home animation 390 mobileBreathBox",
+      "Retained home animation 390 mobileAccentGrow",
+      "Retained home animation 390 panelOrbDrift",
+      "Retained home animation 390 liveDotPing",
+      "Retained home animation 390 mobileBreathTile",
+      "Retained home animation 390 mobileBarSweep",
+      "Retained home animation 390 barShimmer",
+      "Retained home animation 390 study-streak-aurora-drift",
+      "Retained home animation 390 study-streak-aurora-return",
+      "Retained home animation 390 study-streak-breathe",
+      "Retained home animation 390 study-streak-float",
+      "Retained home animation 390 study-streak-ember",
+      "Streak help 390",
+      "Matrix resumes on scroll 390",
+      "Offscreen banner paused 390",
+      "Banner resumes 390",
+      "Reduced motion retained 390",
+      "No runtime errors 390",
+      "Counter decimal final value",
+      "Counter does not render every frame",
+      "Counter update =12.345%",
+      "Counter update -4",
+      "Counter update 91.4%",
+      "Counter update 0",
+      "Viewport does not rewrite unchanged inherited height",
+      "Viewport cleanup",
+      "Counter fixture runtime"
+    ]
+  },
+  "productionChecks": 17,
+  "pdf": [
+    {
+      "width": 1440,
+      "rendered": true
+    },
+    {
+      "width": 390,
+      "rendered": true
+    }
+  ],
+  "responsive": [
+    {
+      "width": 320,
+      "home": false,
+      "overflow": false,
+      "glyphs": 0,
+      "images": 4,
+      "errors": 0
+    },
+    {
+      "width": 320,
+      "home": true,
+      "overflow": false,
+      "glyphs": 5,
+      "images": 1,
+      "errors": 0
+    },
+    {
+      "width": 768,
+      "home": false,
+      "overflow": false,
+      "glyphs": 0,
+      "images": 4,
+      "errors": 0
+    },
+    {
+      "width": 768,
+      "home": true,
+      "overflow": false,
+      "glyphs": 5,
+      "images": 1,
+      "errors": 0
+    },
+    {
+      "width": 1024,
+      "home": false,
+      "overflow": false,
+      "glyphs": 0,
+      "images": 4,
+      "errors": 0
+    },
+    {
+      "width": 1024,
+      "home": true,
+      "overflow": false,
+      "glyphs": 5,
+      "images": 1,
+      "errors": 0
+    },
+    {
+      "width": 1920,
+      "home": false,
+      "overflow": false,
+      "glyphs": 0,
+      "images": 4,
+      "errors": 0
+    },
+    {
+      "width": 1920,
+      "home": true,
+      "overflow": false,
+      "glyphs": 5,
+      "images": 1,
+      "errors": 0
+    }
+  ]
+}

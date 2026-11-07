@@ -161,6 +161,8 @@ Yêu cầu nghiệp vụ: **ẩn tình hình kho** khỏi học viên. API `clai
 - `react-router-dom` v7, **History API** (không hash).
 - `basename={import.meta.env.BASE_URL}` để chạy được cả ở subpath.
 - Toàn bộ `<Routes>` nằm **trong `src/App.jsx`** — không có cấu hình route riêng.
+- Các màn Home/Roadmap/Kho đề/Tạo đề/Admin và chat tải bằng `React.lazy`; không nạp tất cả vào bundle khởi động. Navbar preload màn theo hover/focus, vẫn giữ kiểm tra khoá Demo.
+- `Suspense` nằm trong `PageTransition` để giữ animation chuyển trang; lỗi tải màn có nút tải lại. PDF.js tải riêng khi mở tài liệu.
 - `Navbar` export hằng `TABS` (`home`, `roadmap`, `exams`, `ai_exam`); ánh xạ TABS → path nằm trong `goToTab` của `App.jsx`.
 - **Khi thêm route mới, cập nhật cả 3 nơi:** `<Routes>` trong `App.jsx`, `TABS` + `fallbackPaths` trong `Navbar.jsx`, và `goToTab` trong `App.jsx`.
 - `/admin` được render **riêng**, ngoài shell app (`isAdminRoute`).

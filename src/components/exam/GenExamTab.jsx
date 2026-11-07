@@ -158,7 +158,7 @@ export default function GenExamTab({ onRecordExamResult, progress, userId }) {
   };
 
   const handleSubmitted = (result) => {
-    onRecordExamResult?.(result.totalScore, result.accuracy);
+    onRecordExamResult?.(result.totalScore, result.accuracy, result.maxScore || 10);
   };
 
   const handleExit = () => {

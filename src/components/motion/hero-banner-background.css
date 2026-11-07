@@ -1,0 +1,24 @@
+/* Giữ nguyên 4 quỹ đạo, opacity và thời lượng; CSS chạy thay vòng lặp JS. */
+.hero-ambient-orb {
+  animation: var(--orb-name) var(--orb-duration) var(--hero-orb-ease) var(--orb-delay) infinite both;
+}
+@keyframes hero-orb-1 {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: .14; }
+  33.333% { transform: translate3d(18px, -14px, 0); opacity: .2; }
+  66.667% { transform: translate3d(-10px, 12px, 0); opacity: .15; }
+}
+@keyframes hero-orb-2 {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: .12; }
+  33.333% { transform: translate3d(-16px, 12px, 0); opacity: .18; }
+  66.667% { transform: translate3d(12px, -8px, 0); opacity: .13; }
+}
+@keyframes hero-orb-3 {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: .13; }
+  33.333% { transform: translate3d(14px, -10px, 0); opacity: .17; }
+  66.667% { transform: translate3d(-8px, 14px, 0); opacity: .12; }
+}
+@keyframes hero-orb-4 {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: .08; }
+  33.333% { transform: translate3d(-10px, 8px, 0); opacity: .15; }
+  66.667% { transform: translate3d(14px, -12px, 0); opacity: .1; }
+}

@@ -61,6 +61,13 @@ export const DURATIONS = {
   ambientSlow: 12   // 12s chu kỳ nền trôi nhẹ
 };
 
+// Phần thưởng ngày học chỉ chạy khi có bài nộp đủ điều kiện.
+export const studyRewardVariants = {
+  hidden: (reduced: boolean) => ({ opacity: 0, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(16px) scale(0.97)' }),
+  visible: { opacity: 1, transform: 'translateX(-50%) translateY(0) scale(1)', transition: { duration: 0.28, ease: EASINGS.emilOut } },
+  exit: { opacity: 0, transform: 'translateX(-50%)', transition: { duration: DURATIONS.pageExit } }
+};
+
 // 4. VARIANTS: HEADER (Fade-in + trượt xuống 12px)
 export const headerMotionVariants = {
   hidden: {

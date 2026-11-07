@@ -24,7 +24,8 @@ export function useDevtoolsGuard(user) {
         interval: 1000,
         stopIntervalTime: 5000,
         clearLog: false,
-        disableMenu: true,
+        // Menu trên ảnh do useResourceProtection xử lý; vẫn cho thao tác văn bản.
+        disableMenu: false,
         disableSelect: false,
         disableCopy: false,
         disableCut: false,

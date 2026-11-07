@@ -1,0 +1,9 @@
+/* Giữ nguyên animation và timeline, chỉ dừng việc vẽ phần đang ngoài màn hình. */
+.home-dashboard [data-animation-zone]:not([data-animation-visible]),
+.home-dashboard [data-animation-zone]:not([data-animation-visible])::before,
+.home-dashboard [data-animation-zone]:not([data-animation-visible])::after,
+.home-dashboard [data-animation-zone]:not([data-animation-visible]) *,
+.home-dashboard [data-animation-zone]:not([data-animation-visible]) *::before,
+.home-dashboard [data-animation-zone]:not([data-animation-visible]) *::after {
+  animation-play-state: paused !important;
+}

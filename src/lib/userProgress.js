@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { supabase } from '../supabase';
 import { getEvolutionByDays, getEvolutionProgress } from './streakEvolutions';
+import { qualifiesForStudyStreak, nextStudyStreak } from './streakRules';
 
 // Khối kiến thức chuẩn trong ma trận Bộ GD&ĐT
 export const MASTERY_BLOCKS = {
@@ -196,6 +197,23 @@ export function useUserProgress(user) {
   const [dbStatus, setDbStatus] = useState('checking');
   const [isRealtimeActive, setIsRealtimeActive] = useState(false);
   const realtimeChannelRef = useRef(null);
+  const progressRef = useRef(progress);
+  useLayoutEffect(() => { progressRef.current = progress; }, [progress]);
+  const [studyReward, setStudyReward] = useState(null);
+  const progressWriteRef = useRef(Promise.resolve());
+
+  // Ghi tuần tự để XP của bài nộp, ngày học và hoàn thành chủ đề không ghi đè nhau.
+  const persistProgress = useCallback((fields) => {
+    if (isSimulating || isDemo || userId === 'guest' || !supabase) return Promise.resolve();
+    const targetUserId = userId;
+    progressWriteRef.current = progressWriteRef.current.catch(() => {}).then(async () => {
+      const { error } = await supabase.from('user_progress').upsert({
+        id: targetUserId, ...fields, updated_at: new Date().toISOString()
+      });
+      if (error) console.warn('Chưa đồng bộ được tiến độ (đã lưu offline):', error.message);
+    }).catch((error) => console.warn('Lỗi đồng bộ tiến độ:', error?.message));
+    return progressWriteRef.current;
+  }, [isSimulating, isDemo, userId]);
 
   // Tính checkedToday theo effectiveToday
   const checkedToday = progress.streak_last_date === effectiveToday;
@@ -474,66 +492,61 @@ export function useUserProgress(user) {
     };
   }, [user?.id, isDemo, loadUserDataFromSupabase]);
 
-  // Hành động: Điểm danh (Check-In)
-  const checkIn = useCallback(async () => {
-    const today = effectiveToday;
-    if (progress.streak_last_date === today) {
+  // Chỉ gọi sau khi bài kiểm tra hoặc đề thi thử đã được nộp và chấm xong.
+  const recordStudySubmission = useCallback(async (source, score, maxScore) => {
+    if (!qualifiesForStudyStreak(source, score, maxScore) || userId === 'guest' || isDemo || currentUserIdRef.current !== userId) {
+      return { success: false };
+    }
+    // Lấy ngày ngay lúc nộp, kể cả khi học viên để trang mở qua nửa đêm.
+    const today = getEffectiveDate(dayOffset);
+    const current = progressRef.current;
+    if (current.streak_last_date === today) {
       return { success: false, message: 'Hôm nay bạn đã điểm danh rồi!' };
     }
 
-    let newStreak = 1;
-    if (progress.streak_last_date) {
-      const diff = getDayDiff(progress.streak_last_date, today);
-      if (diff >= 1 && diff <= STREAK_GRACE_DAYS) {
-        // Vẫn trong thời gian ân hạn (nghỉ 1..3 ngày) -> chuỗi tiếp tục tăng
-        newStreak = progress.streak_count + 1;
-      } else {
-        // Nghỉ quá lâu (hoặc dữ liệu lệch) -> chuỗi đứt, bắt đầu lại từ 1
-        newStreak = 1;
-      }
-    } else {
-      newStreak = (progress.streak_count || 0) + 1;
-    }
-
-    const newXp = (progress.xp_total || 0) + 50;
+    const newStreak = nextStudyStreak(current.streak_count || 0,
+      getDayDiff(current.streak_last_date, today), STREAK_GRACE_DAYS);
+    const newXp = (current.xp_total || 0) + 50;
 
     // Cập nhật State tức thì (Optimistic UI) — luôn an toàn cho cả chế độ mô phỏng
-    setProgress(prev => ({
-      ...prev,
+    const updated = {
+      ...current,
       streak_count: newStreak,
       streak_last_date: today,
       xp_total: newXp
-    }));
+    };
+    // Khoá đồng bộ ngay trước mọi await, tránh hai bài nộp cùng ngày cộng hai lần.
+    progressRef.current = updated;
+    setProgress(updated);
+    setStudyReward({ userId, date: today, count: newStreak, source });
 
     setCheckinHistory(prev => (prev.includes(today) ? prev : [today, ...prev]));
+    const progressWrite = persistProgress({
+      streak_count: newStreak, streak_last_date: today, xp_total: newXp
+    });
 
     // Gửi lên Supabase — CHỈ khi dùng NGÀY THẬT.
     // Khi Admin đang mô phỏng ngày thì tuyệt đối không ghi ngày ảo vào CSDL.
-    if (!isSimulating && !isDemo && user?.id && supabase) {
+    if (!isSimulating && !isDemo && userId !== 'guest' && supabase) {
       try {
-        await supabase.from('daily_checkins').upsert({
-          user_id: user.id,
+        const { error } = await supabase.from('daily_checkins').upsert({
+          user_id: userId,
           checkin_date: today
         }, { onConflict: 'user_id,checkin_date' });
 
-        await supabase.from('user_progress').upsert({
-          id: user.id,
-          streak_count: newStreak,
-          streak_last_date: today,
-          xp_total: newXp,
-          updated_at: new Date().toISOString()
-        });
+        if (error) console.warn('Chưa đồng bộ được ngày học (đã lưu offline):', error.message);
       } catch (e) {
         console.warn('Lỗi ghi Supabase khi check-in (đã lưu offline):', e);
       }
     }
+    await progressWrite;
 
     return {
       success: true,
       newStreak,
-      message: `🔥 Điểm danh thành công! Chuỗi Streak đạt ${newStreak} ngày liên tục (+50 XP).`
+      message: `Đã ghi nhận ngày học! Chuỗi đạt ${newStreak} ngày (+50 XP).`
     };
-  }, [effectiveToday, progress, user?.id, isSimulating]);
+  }, [dayOffset, userId, isDemo, isSimulating, persistProgress]);
 
   // Hành động: Cập nhật mức độ làm chủ khối kiến thức (hỗ trợ số hoặc function updater)
   const updateMastery = useCallback(async (blockKey, valOrFn) => {
@@ -574,76 +587,53 @@ export function useUserProgress(user) {
 
     // Thưởng XP khi hoàn thành bài
     if (newStatus) {
-      setProgress(prev => ({
-        ...prev,
-        xp_total: (prev.xp_total || 0) + 30
-      }));
+      const updated = { ...progressRef.current, xp_total: (progressRef.current.xp_total || 0) + 30 };
+      progressRef.current = updated;
+      setProgress(updated);
+      void persistProgress({ xp_total: updated.xp_total });
     }
 
-    if (!isDemo && user?.id && supabase) {
+    if (!isDemo && userId !== 'guest' && supabase) {
       try {
         await supabase.from('roadmap_lessons').upsert({
-          user_id: user.id,
+          user_id: userId,
           track: track.toLowerCase(),
           lesson_id: lessonId,
           completed: newStatus,
           completed_at: newStatus ? new Date().toISOString() : null
         }, { onConflict: 'user_id,track,lesson_id' });
-
-        if (newStatus) {
-          await supabase.from('user_progress').upsert({
-            id: user.id,
-            xp_total: (progress.xp_total || 0) + 30,
-            updated_at: new Date().toISOString()
-          });
-        }
       } catch (e) {
         console.warn('Lỗi ghi bài học lên Supabase:', e);
       }
     }
 
     return newStatus;
-  }, [completedLessons, user?.id, progress.xp_total]);
+  }, [completedLessons, userId, isDemo, persistProgress]);
 
   // Hành động: Ghi nhận kết quả làm bài thi thử
-  const recordExamResult = useCallback(async (score, accuracy) => {
-    setProgress(prev => {
-      const currentTotal = prev.total_exams || 0;
-      const newTotal = currentTotal + 1;
-      const newAvg = Number((((prev.avg_score || 0) * currentTotal + score) / newTotal).toFixed(2));
-      const newAcc = accuracy !== undefined ? Number(accuracy.toFixed(1)) : prev.accuracy;
-      const newXp = (prev.xp_total || 0) + 100;
-
-      const updated = {
-        ...prev,
-        total_exams: newTotal,
-        avg_score: newAvg,
-        accuracy: newAcc,
-        xp_total: newXp
-      };
-
-      if (!isDemo && user?.id && supabase) {
-        supabase
-          .from('user_progress')
-          .upsert({
-            id: user.id,
-            total_exams: newTotal,
-            avg_score: newAvg,
-            accuracy: newAcc,
-            xp_total: newXp,
-            updated_at: new Date().toISOString()
-          })
-          .then(
-            () => {},
-            (err) => console.warn('Lỗi ghi kết quả thi lên Supabase:', err?.message)
-          );
-      }
-
-      return updated;
-    });
-  }, [user?.id]);
-
-  // Công cụ kiểm thử (CHỈ ADMIN): Giả lập qua ngày mai (+1 ngày)
+  const recordExamResult = useCallback(async (score, accuracy, maxScore = 10) => {
+    if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || score < 0 || score > maxScore) return;
+    // Cập nhật ngày học trước await để hai bài nộp không cộng trùng.
+    const studyWrite = recordStudySubmission('exam', score, maxScore);
+    const current = progressRef.current;
+    const newTotal = (current.total_exams || 0) + 1;
+    const updated = {
+      ...current,
+      total_exams: newTotal,
+      avg_score: Number((((current.avg_score || 0) * (newTotal - 1) + score * 10 / maxScore) / newTotal).toFixed(2)),
+      accuracy: Number.isFinite(accuracy) ? Number(accuracy.toFixed(1)) : current.accuracy,
+      xp_total: (current.xp_total || 0) + 100
+    };
+    progressRef.current = updated;
+    setProgress(updated);
+    await Promise.all([studyWrite, persistProgress({
+      total_exams: updated.total_exams,
+      avg_score: updated.avg_score,
+      accuracy: updated.accuracy,
+      xp_total: updated.xp_total
+    })]);
+  }, [recordStudySubmission, persistProgress]);
+  // Công cụ kiểm thử (CHỈ ADMIN): giả lập ngày mai.
   // Chỉ đổi state trong RAM, KHÔNG ghi gì lên Supabase.
   const simulateNextDay = useCallback(() => {
     setDayOffset(prev => prev + 1);
@@ -704,7 +694,8 @@ export function useUserProgress(user) {
     effectiveToday,
     dayOffset,
     isSimulating,
-    checkIn,
+    recordStudySubmission,
+    studyReward: studyReward?.userId === userId ? studyReward : null,
     updateMastery,
     toggleLesson,
     recordExamResult,

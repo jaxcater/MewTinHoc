@@ -36,7 +36,6 @@ export default function StreakEvolutionArt({ id, mono = false, size = 64, style,
       className={className}
       onContextMenu={blockImageActions}
       onDragStart={blockImageActions}
-      onSelectStart={blockImageActions}
       style={{
         display: 'flex',
         alignItems: 'center',

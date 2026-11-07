@@ -17,12 +17,18 @@ export function installViewportHeight() {
 
   const root = document.documentElement;
   let frame = 0;
+  let lastHeight = 0;
 
   const apply = () => {
     frame = 0;
     const vv = window.visualViewport;
     const height = Math.round(vv?.height || window.innerHeight || root.clientHeight || 0);
-    if (height > 0) root.style.setProperty('--app-vh', `${height}px`);
+    // Thanh địa chỉ có thể phát nhiều sự kiện scroll với cùng chiều cao.
+    // Không ghi lại biến kế thừa trên cả cây DOM khi giá trị không đổi.
+    if (height > 0 && height !== lastHeight) {
+      lastHeight = height;
+      root.style.setProperty('--app-vh', `${height}px`);
+    }
   };
 
   const schedule = () => {

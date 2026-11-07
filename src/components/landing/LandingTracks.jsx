@@ -106,7 +106,7 @@ export default function LandingTracks() {
               id="track-panel"
               role="tabpanel"
               aria-labelledby={activeTrack ? `track-tab-${activeTrack.id}` : undefined}
-              inert={activeTrack ? undefined : ''}
+              inert={!activeTrack}
             >
               {activeTrack && (
                 <div key={activeTrack.id} className="mtl-major__body">

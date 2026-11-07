@@ -23,7 +23,7 @@ Tính năng chính:
 3. **Tạo đề thi thử ngẫu nhiên** theo ma trận đề chuẩn Bộ — sinh đề trên **máy chủ** (Node), đáp án **mã hoá AES-256-GCM** trên đĩa, API `claim` không bao giờ trả đáp án.
 4. **Chấm điểm + Đánh giá của AI** (Google Gemini) sau khi nộp bài.
 5. **CamCam** — chatbot hỗ trợ học tập (Botpress Cloud), có hạn mức 5 lượt/ngày.
-6. **Gamification**: streak điểm danh (ân hạn 3 ngày), 4 khối kiến thức (mastery), XP, 6 cấp hình dạng streak.
+6. **Gamification**: streak tự ghi nhận khi nộp quiz lộ trình hoặc đề thi thử với điểm >10% (mỗi ngày một lần, ân hạn 3 ngày), 4 khối kiến thức (mastery), XP, 6 cấp hình dạng streak.
 7. **Khu quản trị** (`/admin`): cấp quyền Admin, sửa lộ trình, soạn thông báo, thống kê thời gian học.
 
 Ngôn ngữ giao diện và toàn bộ comment trong mã là **tiếng Việt** — giữ nguyên khi sửa.
@@ -124,6 +124,8 @@ Phân tách trách nhiệm frontend:
 | `src/App.jsx` | **App shell**: định tuyến, vòng đời đăng nhập Supabase, toast, khoá tính năng Demo, footer, chat bubble, announcement |
 | `src/lib/userProgress.js` | Hook `useUserProgress` — streak, mastery, bài học đã hoàn thành + **Realtime Supabase** + fallback LocalStorage |
 | `src/lib/roleService.js` | Nguồn sự thật về quyền Admin (`profiles.is_admin`) |
+| `src/lib/useResourceProtection.js` | Chặn menu lưu ảnh, nhấn giữ và kéo ảnh giao diện cho khách/học viên; miễn admin. Không ảnh hưởng tải tài liệu hay sao chép nội dung học tập. |
+| `src/lib/useVisibleAnimations.js` | Tạm dừng/tiếp tục CSS animation của các khối dashboard theo vùng nhìn thấy và trạng thái tab; không unmount hay reset timeline. |
 | `src/lib/demoAccess.js` | Quy tắc tính năng nào bị khoá với tài khoản Demo |
 | `src/lib/examApi.js` | Client `/api/exams` (gắn Bearer token, phân loại lỗi) |
 | `src/lib/aiReviewApi.js` | Client `/api/ai` (timeout 75s) |
@@ -142,7 +144,8 @@ Phân tách trách nhiệm frontend:
 | File | Trách nhiệm |
 |---|---|
 | `src/components/Navbar.jsx` | Thanh điều hướng ngang; export hằng `TABS` |
-| `src/components/HomeTab.jsx` | Trang chủ: streak card, mastery, điểm danh, mô phỏng ngày (admin) |
+| `src/components/HomeTab.jsx` | Trang chủ: streak tự động, lịch ngày học, mastery, mô phỏng ngày (admin) |
+| `src/components/StudyStreakReward.jsx` | Phản hồi và animation khi bài nộp đầu tiên trong ngày đủ điều kiện streak |
 | `src/components/RoadmapTab.jsx` | Lộ trình 12 tuần, chọn chặng, mở quiz/PDF, sửa lý thuyết (admin) — **file lớn ~93KB** |
 | `src/components/ExamRepoTab.jsx` | Kho đề thi thử (PDF) |
 | `src/components/exam/GenExamTab.jsx` | Luồng tạo đề: chọn hướng → `claimExam` → vào `ExamRoom` |

@@ -60,6 +60,18 @@ html, body {
   width: 100%;
 }
 
+html { -webkit-text-size-adjust: 100%; }
+
+/* Phản hồi chạm ngay, không đợi double tap; vẫn giữ cuộn và pinch zoom. */
+button, a, [role="button"], input, textarea, select { touch-action: manipulation; }
+
+@media (pointer: coarse) {
+  /* 16px tránh Safari tự phóng to trang khi mở bàn phím nhập liệu. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
 #root, .app-container {
   overflow-x: hidden;
   max-width: 100vw;
@@ -8143,6 +8155,16 @@ a {
   font-weight: 600;
   text-align: center;
   background: #3c434d;
+}
+
+/* Khung chờ chuyển trang hòa vào nền kem hiện có của web. */
+.pdfx-message.route-loading {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.route-loading .pdfx-spin {
+  color: var(--color-primary);
 }
 
 .pdfx-message--error {

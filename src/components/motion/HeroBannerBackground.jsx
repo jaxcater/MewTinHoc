@@ -4,8 +4,12 @@ import {
   useReducedMotion,
   useMotionValue,
   useSpring,
-  useTransform
+  useTransform,
+  useMotionTemplate,
+  useInView
 } from 'framer-motion';
+import { EASINGS } from '../../variants';
+import './hero-banner-background.css';
 
 // Đốm sáng ambient (giữ nguyên thông số cũ, khai báo dạng dữ liệu)
 const ORBS = [
@@ -23,13 +27,13 @@ const ORBS = [
     bg: 'radial-gradient(circle, #FFF7ED 0%, rgba(254, 215, 170, 0.4) 50%, transparent 70%)' }
 ];
 
-// Ký tự code lơ lửng: chỉ đặt ở nửa phải banner để không đè lên chữ
+// Tọa độ orbit neo theo cùng khung với mèo, không theo chiều rộng banner.
 const GLYPHS = [
-  { t: '</>', left: '70%', top: '12%', size: 20, dur: 9, delay: 0 },
-  { t: 'SELECT', left: '86%', top: '15%', size: 13, dur: 11, delay: 1.2 },
-  { t: '1011', left: '92%', top: '62%', size: 15, dur: 10, delay: 2.4 },
-  { t: 'def f():', left: '64%', top: '84%', size: 13, dur: 12, delay: 0.8 },
-  { t: ';', left: '79%', top: '84%', size: 26, dur: 8, delay: 3 }
+  { t: '</>', left: '70%', top: '12%', orbitLeft: '4%', orbitTop: '0%', size: 20, dur: 9, delay: 0 },
+  { t: 'SELECT', left: '86%', top: '15%', orbitLeft: '63%', orbitTop: '-12%', size: 13, dur: 11, delay: 1.2 },
+  { t: '1011', left: '92%', top: '62%', orbitLeft: '-5%', orbitTop: '42%', size: 15, dur: 10, delay: 2.4 },
+  { t: 'def f():', left: '64%', top: '84%', orbitLeft: '-12%', orbitTop: '80%', size: 13, dur: 12, delay: 0.8 },
+  { t: ';', left: '79%', top: '84%', orbitLeft: '88%', orbitTop: '68%', size: 26, dur: 8, delay: 3 }
 ];
 
 const PARALLAX_SPRING = { stiffness: 90, damping: 18, mass: 0.6 };
@@ -37,7 +41,9 @@ const PARALLAX_SPRING = { stiffness: 90, damping: 18, mass: 0.6 };
 export default function HeroBannerBackground() {
   const prefersReducedMotion = useReducedMotion();
   const rootRef = useRef(null);
+  const inView = useInView(rootRef, { margin: '80px 0px' });
   const [isTabVisible, setIsTabVisible] = useState(true);
+  const active = isTabVisible && inView;
 
   // Vị trí con trỏ chuẩn hoá -1..1 so với tâm banner, đi qua spring để có quán tính
   const mx = useMotionValue(0);
@@ -53,6 +59,9 @@ export default function HeroBannerBackground() {
   const nearX = useTransform(sx, (v) => v * -14);
   const nearY = useTransform(sy, (v) => v * -9);
   const lensRotate = useTransform(sx, (v) => -6 + v * 3);
+  const farTransform = useMotionTemplate`translate3d(${farX}px, ${farY}px, 0)`;
+  const midTransform = useMotionTemplate`translate3d(${midX}px, ${midY}px, 0)`;
+  const lensTransform = useMotionTemplate`translate3d(${nearX}px, ${nearY}px, 0) rotate(${lensRotate}deg)`;
 
   // Tạm dừng chuyển động nền khi người dùng ẩn tab trình duyệt (tiết kiệm CPU/pin)
   useEffect(() => {
@@ -64,7 +73,7 @@ export default function HeroBannerBackground() {
   // Parallax theo con trỏ: chỉ khi có chuột thật và không bật giảm chuyển động
   useEffect(() => {
     const host = rootRef.current?.parentElement;
-    if (!host || prefersReducedMotion) return undefined;
+    if (!host || prefersReducedMotion || !active) return undefined;
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return undefined;
 
     const onMove = (e) => {
@@ -81,20 +90,23 @@ export default function HeroBannerBackground() {
     return () => {
       host.removeEventListener('pointermove', onMove);
       host.removeEventListener('pointerleave', onLeave);
+      mx.set(0);
+      my.set(0);
     };
-  }, [prefersReducedMotion, mx, my]);
+  }, [prefersReducedMotion, active, mx, my]);
 
   return (
     <div
       ref={rootRef}
-      className={`hero-animated-bg ${!isTabVisible ? 'is-paused' : ''}`}
+      className={`hero-animated-bg ${!active ? 'is-paused' : ''}`}
       style={{
         position: 'absolute',
         inset: 0,
         overflow: 'hidden',
         borderRadius: 'inherit',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
+        '--hero-orb-ease': `cubic-bezier(${EASINGS.easeInOut.join(',')})`
       }}
       aria-hidden="true"
     >
@@ -103,19 +115,19 @@ export default function HeroBannerBackground() {
 
       {/* Tầng xa: đốm sáng mờ trôi lơ lửng rất chậm */}
       {!prefersReducedMotion && (
-        <motion.div className="hero-depth-layer" style={{ x: farX, y: farY }}>
+        <motion.div className="hero-depth-layer" style={{ transform: farTransform }}>
           {ORBS.map((orb) => (
-            <motion.div
+            <div
               key={orb.cls}
               className={`hero-ambient-orb ${orb.cls}`}
-              animate={isTabVisible ? { x: orb.x, y: orb.y, opacity: orb.o } : {}}
-              transition={{ duration: orb.dur, repeat: Infinity, ease: 'easeInOut', delay: orb.delay }}
               style={{
                 position: 'absolute',
                 ...orb.box,
                 borderRadius: '50%',
                 background: orb.bg,
-                filter: `blur(${orb.blur}px)`
+                filter: `blur(${orb.blur}px)`,
+                '--orb-duration': `${orb.dur}s`, '--orb-delay': `${orb.delay}s`,
+                '--orb-name': `hero-${orb.cls}`
               }}
             />
           ))}
@@ -123,23 +135,26 @@ export default function HeroBannerBackground() {
       )}
 
       {/* Tầng giữa: ký tự code trôi nhẹ, mỗi ký tự một nhịp riêng */}
-      <motion.div className="hero-depth-layer" style={prefersReducedMotion ? undefined : { x: midX, y: midY }}>
+      <div className="hero-glyph-orbit">
+      <motion.div className="hero-depth-layer" style={prefersReducedMotion ? undefined : { transform: midTransform }}>
         {GLYPHS.map((g) => (
           <span
             key={g.t}
             className="hero-glyph"
-            style={{ left: g.left, top: g.top, fontSize: g.size, '--dur': `${g.dur}s`, '--delay': `${g.delay}s` }}
+            data-glyph={g.t}
+            style={{ left: `var(--orbit-left, ${g.left})`, top: `var(--orbit-top, ${g.top})`, fontSize: g.size, '--cat-orbit-left': g.orbitLeft, '--cat-orbit-top': g.orbitTop, '--dur': `${g.dur}s`, '--delay': `${g.delay}s` }}
           >
             {g.t}
           </span>
         ))}
       </motion.div>
+      </div>
 
       {/* Tầng gần: cặp kính của Mew, nhìn code qua tròng kính */}
       <div className="hero-lens-slot">
         <motion.div
           className="hero-lens"
-          style={prefersReducedMotion ? { rotate: -6 } : { x: nearX, y: nearY, rotate: lensRotate }}
+          style={prefersReducedMotion ? { transform: 'rotate(-6deg)' } : { transform: lensTransform }}
         >
           <div className="hero-lens-rim">
             <span className="hero-lens-sweep" />
