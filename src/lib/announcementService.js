@@ -3,7 +3,8 @@ import { supabase } from '../supabase.js';
 /**
  * Thông báo toàn hệ thống do Admin tạo, mọi người truy cập web (kể cả chưa đăng nhập) đều nhận được.
  * Dữ liệu nằm ở bảng `public.announcements` trên Supabase.
- * Việc "không hiển thị lại" được lưu ở trình duyệt của từng học viên (localStorage).
+ * Việc "không hiển thị lại" được lưu ở trình duyệt của từng học viên (localStorage)
+ * kèm thời hạn: 24 giờ cho thông báo thường, 12 giờ cho thông báo gắn tag QUAN TRỌNG.
  */
 
 export const ANNOUNCEMENT_TYPES = {
@@ -148,21 +149,81 @@ export async function deleteAnnouncement(id) {
 
 /* ===== Ghi nhớ thông báo học viên đã chọn "không hiển thị lại" ===== */
 
-export function getDismissedIds() {
+/**
+ * Thời gian thông báo được ẩn sau khi học viên tick "Không hiển thị lại":
+ * - Thông báo thường: 24 giờ
+ * - Thông báo gắn tag QUAN TRỌNG: 12 giờ
+ * Hết thời gian này thông báo tự hiện lại (không cần học viên xoá ghi nhớ).
+ */
+export const DISMISS_TTL_NORMAL_MS = 24 * 60 * 60 * 1000;
+export const DISMISS_TTL_IMPORTANT_MS = 12 * 60 * 60 * 1000;
+
+/** localStorage lưu map { [id]: thời điểm hết hạn (ms) } */
+function readDismissMap() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    // Định dạng cũ: mảng id (ẩn vĩnh viễn) -> chuyển sang mốc hết hạn.
+    // Dùng mốc ngắn nhất (12h) vì không biết thông báo nào có tag QUAN TRỌNG.
+    if (Array.isArray(parsed)) {
+      const expiresAt = Date.now() + DISMISS_TTL_IMPORTANT_MS;
+      const migrated = {};
+      parsed.forEach((id) => {
+        if (typeof id === 'string' && id) migrated[id] = expiresAt;
+      });
+      writeDismissMap(migrated);
+      return migrated;
+    }
+    if (!parsed || typeof parsed !== 'object') return {};
+    return parsed;
   } catch {
-    return [];
+    return {};
   }
 }
 
-export function dismissAnnouncementForever(id) {
+function writeDismissMap(map) {
   try {
-    const ids = new Set(getDismissedIds());
-    ids.add(id);
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(map));
+    return true;
   } catch {
-    /* localStorage bị chặn: thông báo chỉ ẩn trong phiên hiện tại */
+    // localStorage bị chặn: thông báo chỉ ẩn trong phiên hiện tại
+    return false;
   }
+}
+
+/**
+ * Danh sách thông báo đang được ẩn kèm thời điểm hết hạn: { [id]: expiresAt }.
+ * Mục đã hết hạn bị loại bỏ (thông báo hiện lại).
+ */
+export function getDismissedMap() {
+  const map = readDismissMap();
+  const now = Date.now();
+  const valid = {};
+  let changed = false;
+  Object.entries(map).forEach(([id, expiresAt]) => {
+    const ts = Number(expiresAt);
+    if (!id || !Number.isFinite(ts)) {
+      changed = true;
+      return;
+    }
+    if (ts > now) valid[id] = ts;
+    else changed = true; // đã hết hạn -> thông báo hiện lại
+  });
+  if (changed) writeDismissMap(valid);
+  return valid;
+}
+
+/**
+ * Ghi nhớ "không hiển thị lại": ẩn thông báo trong 24h (thường) hoặc 12h (tag QUAN TRỌNG).
+ * Trả về thời điểm hết hạn (ms).
+ */
+export function dismissAnnouncement(id, { isImportant = false } = {}) {
+  const ttl = isImportant ? DISMISS_TTL_IMPORTANT_MS : DISMISS_TTL_NORMAL_MS;
+  const expiresAt = Date.now() + ttl;
+  // Dùng getDismissedMap() để loại bỏ luôn các mục đã hết hạn
+  const map = getDismissedMap();
+  map[id] = expiresAt;
+  writeDismissMap(map);
+  return expiresAt;
 }

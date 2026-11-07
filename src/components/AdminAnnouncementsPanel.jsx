@@ -136,7 +136,7 @@ export default function AdminAnnouncementsPanel() {
         <div>
           <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111827', margin: 0 }}>Thông báo cho học viên</h2>
           <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '2px 0 0 0' }}>
-            Hiển thị cho mọi người truy cập web. Học viên tick &ldquo;Không hiển thị lại&rdquo; thì thông báo đó sẽ không hiện nữa trên trình duyệt của họ.
+            Hiển thị cho mọi người truy cập web. Học viên tick &ldquo;Không hiển thị lại&rdquo; thì thông báo đó sẽ ẩn trên trình duyệt của họ: thông báo thường 24 giờ, thông báo gắn tag QUAN TRỌNG 12 giờ &mdash; hết thời gian sẽ hiện lại.
           </p>
         </div>
       </div>

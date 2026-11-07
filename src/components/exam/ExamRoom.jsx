@@ -8,6 +8,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Clock,
   Send,
+  ArrowLeft,
+  ArrowRight,
   RotateCcw,
   Check,
   X,
@@ -75,6 +77,14 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
   const [submitError, setSubmitError] = useState('');
   const [result, setResult] = useState(null);
 
+  /**
+   * Người học đã lướt tới cuối Phần II hay chưa.
+   *
+   * Nút "Nộp bài & xem đáp án" chỉ hiện khi đang ở Phần II **và** đã cuộn
+   * tới đáy — để tránh nộp nhầm khi còn đang làm Phần I.
+   */
+  const [atPartIIBottom, setAtPartIIBottom] = useState(false);
+
   // Log điểm yếu của lần nộp này
   const [log, setLog] = useState(() => readExamLog(storageUserId));
 
@@ -116,6 +126,10 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
   // Giữ tham chiếu mới nhất để tránh stale closure trong countdown
   const submitRef = useRef(null);
 
+  // Tham chiếu tới thanh hành động ở đáy — dùng làm mốc để biết người học
+  // đã lướt tới cuối Phần II hay chưa.
+  const partIIBottomRef = useRef(null);
+
   const totalMcq = exam.partI.length;
   const totalTf = exam.partII.length;
 
@@ -132,10 +146,124 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
 
   const isSubmitted = Boolean(result);
 
+  /**
+   * Tham chiếu phần đang xem.
+   *
+   * Các callback đổi phần cần biết phần hiện tại để biết có cần cuộn về
+   * đầu hay không, mà không muốn khai báo lại dependency mỗi khi state đổi.
+   */
+  const activePartRef = useRef('partI');
+
+  useEffect(() => {
+    activePartRef.current = activePart;
+  }, [activePart]);
+
+  /**
+   * Đưa vị trí cuộn về đầu trước khi nội dung phần bị thay thế.
+   *
+   * Rất quan trọng: Phần II ngắn hơn Phần I rất nhiều. Nếu đang cuộn ở đáy
+   * Phần I mà đổi sang Phần II, trình duyệt sẽ tự "kẹp" vị trí cuộn vào đáy
+   * tài liệu mới → tưởng đã lướt hết Phần II và hiện nhầm nút "Nộp bài".
+   * Cuộn về đầu ngay lập tức loại bỏ tình huống này.
+   */
+  const resetScrollForPartChange = useCallback((part) => {
+    if (activePartRef.current === part) return;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    setAtPartIIBottom(false);
+  }, []);
+
   const navigateFromSummary = (part, index) => {
+    resetScrollForPartChange(part);
     setActivePart(part);
     setSummaryTarget(`exam-question-${part}-${index}`);
   };
+
+  /**
+   * Phần cần cuộn tới sau khi đổi phần ('partI' | 'partII' | null).
+   *
+   * Dùng cùng kiểu với `summaryTarget`: đặt mục tiêu ở state, effect lo
+   * cuộn sau khi DOM đã cập nhật. Cách này chắc chắn câu hỏi đích đã tồn
+   * tại trong DOM (không phụ thuộc thứ tự `requestAnimationFrame`).
+   */
+  const [partScrollTarget, setPartScrollTarget] = useState(null);
+
+  /**
+   * Chuyển sang một phần và cuộn tới câu hỏi đầu tiên của phần đó.
+   *
+   * Người học bấm "Sang Phần II" ở cuối Phần I nên không cần tự lướt ngược
+   * lại trên để tìm nút chuyển phần — nút này thay luôn nút "Nộp bài".
+   */
+  const goToPart = useCallback(
+    (part) => {
+      resetScrollForPartChange(part);
+      setActivePart(part);
+      setPartScrollTarget(part);
+    },
+    [resetScrollForPartChange],
+  );
+
+  /**
+   * Đổi phần mà không ép cuộn — dành cho bộ điều hướng câu hỏi, vì nó tự
+   * cuộn tới câu đích rồi.
+   */
+  const changePart = useCallback(
+    (part) => {
+      resetScrollForPartChange(part);
+      setActivePart(part);
+    },
+    [resetScrollForPartChange],
+  );
+
+  useEffect(() => {
+    if (!partScrollTarget) return undefined;
+    const frame = requestAnimationFrame(() => {
+      const first = document.getElementById(
+        partScrollTarget === 'partII'
+          ? 'exam-question-partII-0'
+          : 'exam-question-partI-0',
+      );
+      // `scrollIntoView` tôn trọng `scroll-margin-top` sẵn có của câu hỏi
+      // (tránh bị thanh điều hướng dính lên đầu câu).
+      if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      setPartScrollTarget(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [partScrollTarget]);
+
+  /**
+   * Theo dõi vị trí cuộn để biết người học đã tới cuối Phần II hay chưa.
+   *
+   * Chỉ bật khi đang ở Phần II. Mốc là thanh hành động ở đáy: khi thanh này
+   * lọt vào khung nhìn tức là danh sách câu hỏi Phần II đã được lướt hết.
+   * Dùng `getBoundingClientRect` nên không phụ thuộc cửa sổ có bị resize.
+   */
+  useEffect(() => {
+    // Chỉ theo dõi khi đang ở Phần II. Khi rời Phần II, cờ được tắt qua
+    // `resetScrollForPartChange` (đã gọi sẵn ở mọi nơi đổi phần).
+    if (activePart !== 'partII') return undefined;
+    const sentinel = partIIBottomRef.current;
+    if (!sentinel) return undefined;
+
+    const check = () => {
+      const rect = sentinel.getBoundingClientRect();
+      // Thanh hành động đã lọt vào khung nhìn → đã tới đáy Phần II.
+      setAtPartIIBottom(rect.top <= window.innerHeight - 8);
+    };
+
+    // Lần đầu kiểm tra lùi một nhịp: sau khi đổi phần, trình duyệt có thể
+    // "kẹp" vị trí cuộn vào đáy tài liệu mới (ngắn hơn) → nếu kiểm tra ngay
+    // sẽ tưởng đã tới cuối và hiện nhầm nút "Nộp bài".
+    const frame = requestAnimationFrame(check);
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, [activePart, totalTf]);
 
   useEffect(() => {
     if (!summaryTarget) return undefined;
@@ -707,7 +835,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
           type="button"
           className="exam-room__part-btn"
           aria-selected={activePart === 'partI'}
-          onClick={() => setActivePart('partI')}
+          onClick={() => goToPart('partI')}
         >
           Phần I · Trắc nghiệm ({answeredMcq}/{totalMcq})
         </button>
@@ -715,12 +843,12 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
           type="button"
           className="exam-room__part-btn"
           aria-selected={activePart === 'partII'}
-          onClick={() => setActivePart('partII')}
+          onClick={() => goToPart('partII')}
         >
           Phần II · Đúng/Sai ({answeredTf}/{totalTfStatements})
         </button>
         <button type="button" className="exam-room__part-btn"
-          aria-pressed={activePart === 'summary'} onClick={() => setActivePart('summary')}>
+          aria-pressed={activePart === 'summary'} onClick={() => changePart('summary')}>
           Tóm tắt bài làm
         </button>
       </div>
@@ -730,7 +858,7 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
       ) : (
       <div className="exam-room__workspace">
       <QuestionNavigator exam={exam} mcqAnswers={mcqAnswers} tfAnswers={tfAnswers}
-        activePart={activePart} onChangePart={setActivePart} />
+        activePart={activePart} onChangePart={changePart} />
       <div className="exam-room__questions">
         {activePart === 'partI'
           ? exam.partI.map((question, index) => (
@@ -821,29 +949,74 @@ export default function ExamRoom({ exam, onSubmitted, onExit, userId, progress }
         </div>
       )}
 
-      <div className="exam-room__actions">
+      <div className="exam-room__actions" ref={partIIBottomRef}>
         <div className="exam-room__progress-text">
           Đã trả lời <strong>{answeredMcq + answeredTf}</strong> /{' '}
           {totalMcq + totalTfStatements} ý
         </div>
-        <button
-          type="button"
-          className="gx-btn gx-btn--primary"
-          onClick={confirmSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <>
-              <Check size={16} />
-              <span>Đang chấm điểm...</span>
-            </>
-          ) : (
-            <>
-              <Send size={16} />
-              <span>Nộp bài &amp; xem đáp án</span>
-            </>
-          )}
-        </button>
+
+        {/* Phần I: nút "Nộp bài" được thay bằng nút chuyển sang Phần II */}
+        {activePart === 'partI' && (
+          <button
+            type="button"
+            className="gx-btn gx-btn--primary"
+            onClick={() => goToPart('partII')}
+          >
+            <ArrowRight size={16} />
+            <span>Sang Phần II</span>
+          </button>
+        )}
+
+        {/* Phần II nhưng chưa lướt tới đáy: chỉ gợi ý quay lại, chưa cho nộp */}
+        {activePart === 'partII' && !atPartIIBottom && (
+          <>
+            <span className="exam-room__hint">
+              Lướt xuống cuối Phần II để nộp bài
+            </span>
+            <button
+              type="button"
+              className="gx-btn"
+              onClick={() => goToPart('partI')}
+            >
+              <ArrowLeft size={16} />
+              <span>Quay lại Phần I</span>
+            </button>
+          </>
+        )}
+
+        {/* Phần II + đã lướt tới đáy: mới cho nộp bài */}
+        {activePart === 'partII' && atPartIIBottom && (
+          <button
+            type="button"
+            className="gx-btn gx-btn--primary"
+            onClick={confirmSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <Check size={16} />
+                <span>Đang chấm điểm...</span>
+              </>
+            ) : (
+              <>
+                <Send size={16} />
+                <span>Nộp bài &amp; xem đáp án</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Tab "Tóm tắt bài làm": đưa người học về Phần II để nộp */}
+        {activePart === 'summary' && (
+          <button
+            type="button"
+            className="gx-btn"
+            onClick={() => goToPart('partII')}
+          >
+            <ArrowRight size={16} />
+            <span>Quay lại Phần II</span>
+          </button>
+        )}
       </div>
     </div>
   );

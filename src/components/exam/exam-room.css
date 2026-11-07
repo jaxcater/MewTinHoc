@@ -503,6 +503,15 @@
 
 .exam-room__progress-text strong { color: var(--color-primary-hover); }
 
+/* Gợi ý nhỏ: cần lướt tới cuối Phần II mới nộp được bài */
+.exam-room__hint {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
 /* ---------- Kết quả ---------- */
 .exam-result {
   display: flex;

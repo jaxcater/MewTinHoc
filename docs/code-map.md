@@ -289,6 +289,10 @@ Service    src/lib/announcementService.js         ← fetchActiveAnnouncements
 DB         bảng `announcements` (is_active, type, is_important)
 ```
 
+Tick "Không hiển thị lại" lưu trong `localStorage` (`mewtinhoc_dismissed_announcements`)
+dạng map `{ id: expiresAt }` — thông báo thường ẩn 24h, thông báo QUAN TRỌNG ẩn 12h;
+hết hạn thì tự hiện lại.
+
 ---
 
 ## Bảng dữ liệu (Supabase Postgres)

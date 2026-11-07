@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Megaphone, PartyPopper, BellRing, CalendarHeart, X, Check, Star } from 'lucide-react';
 import {
   fetchActiveAnnouncements,
-  getDismissedIds,
-  dismissAnnouncementForever
+  getDismissedMap,
+  dismissAnnouncement,
+  DISMISS_TTL_NORMAL_MS,
+  DISMISS_TTL_IMPORTANT_MS
 } from '../lib/announcementService.js';
 import './announcement-banner.css';
 import AnnouncementMessage from './AnnouncementMessage.jsx';
@@ -26,11 +28,15 @@ const LOCK_SECONDS = 4;
  * - Thông báo thường: xếp ở góc dưới trái.
  * - Thông báo gắn tag QUAN TRỌNG: hiện giữa màn hình, làm mờ nền; hiện lần lượt từng cái.
  * - Nút X: ẩn trong phiên hiện tại (tải lại trang sẽ hiện lại).
- * - Tick "Không hiển thị lại": ghi nhớ trên trình duyệt, thông báo này sẽ không bao giờ hiện lại.
+ * - Tick "Không hiển thị lại": ghi nhớ trên trình duyệt kèm thời hạn —
+ *   thông báo thường 24 giờ, thông báo QUAN TRỌNG 12 giờ; hết hạn thì hiện lại.
  */
 export default function AnnouncementBanner() {
   const [items, setItems] = useState([]);
-  const [hiddenIds, setHiddenIds] = useState(() => new Set(getDismissedIds()));
+  // Thông báo đã tick "không hiển thị lại": map { [id]: thời điểm hết hạn (ms) }
+  const [dismissed, setDismissed] = useState(() => getDismissedMap());
+  // Thông báo bị ẩn trong phiên hiện tại (nút X / "Đã hiểu")
+  const [sessionHiddenIds, setSessionHiddenIds] = useState(() => new Set());
   const [leavingIds, setLeavingIds] = useState(() => new Set());
   // Đếm ngược mở khoá ô "Không hiển thị lại" của thông báo QUAN TRỌNG (gắn theo id để mỗi thông báo tự đếm lại)
   const [countdown, setCountdown] = useState({ id: null, left: LOCK_SECONDS });
@@ -46,11 +52,24 @@ export default function AnnouncementBanner() {
     };
   }, []);
 
+  // Đếm ngược tới thời điểm hết hạn gần nhất -> thông báo tự hiện lại
+  useEffect(() => {
+    const expiries = Object.values(dismissed);
+    if (expiries.length === 0) return undefined;
+    const nextAt = Math.min(...expiries);
+    const delay = Math.max(0, nextAt - Date.now()) + 50;
+    const timer = setTimeout(() => {
+      setDismissed(getDismissedMap());
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [dismissed]);
+
+  /** Ẩn thông báo trong phiên hiện tại (nút X, "Đã hiểu"): tải lại trang sẽ hiện lại. */
   const hide = (id) => {
     setLeavingIds((prev) => new Set(prev).add(id));
     // Chờ animation thoát xong rồi mới gỡ khỏi DOM
     setTimeout(() => {
-      setHiddenIds((prev) => new Set(prev).add(id));
+      setSessionHiddenIds((prev) => new Set(prev).add(id));
       setLeavingIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
@@ -59,13 +78,27 @@ export default function AnnouncementBanner() {
     }, LEAVE_MS);
   };
 
-  const handleNeverShow = (id, checked, locked) => {
+  const handleNeverShow = (id, checked, locked, isImportant) => {
     if (!checked || locked) return;
-    dismissAnnouncementForever(id);
-    hide(id);
+    // Ghi vào localStorage ngay (giữ nguyên nếu học viên tải lại trang)
+    dismissAnnouncement(id, { isImportant });
+    setLeavingIds((prev) => new Set(prev).add(id));
+    setTimeout(() => {
+      // Ẩn do ghi nhớ đảm nhiệm: không đánh dấu ẩn theo phiên,
+      // để thông báo tự hiện lại khi hết hạn ghi nhớ.
+      setDismissed(getDismissedMap());
+      setLeavingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, LEAVE_MS);
   };
 
-  const remaining = items.filter((a) => !hiddenIds.has(a.id));
+  const remaining = useMemo(
+    () => items.filter((a) => !dismissed[a.id] && !sessionHiddenIds.has(a.id)),
+    [items, dismissed, sessionHiddenIds]
+  );
   const modalItem = remaining.find((a) => a.is_important) || null;
   const toastItems = remaining.filter((a) => !a.is_important).slice(0, MAX_VISIBLE);
   const modalId = modalItem?.id;
@@ -116,6 +149,8 @@ export default function AnnouncementBanner() {
     // Chỉ thông báo QUAN TRỌNG bị khoá; id khác với đang đếm thì coi như chưa đếm xong (tránh nháy mở khoá ở frame đầu)
     const secondsLeft = isModal ? (countdown.id === a.id ? countdown.left : LOCK_SECONDS) : 0;
     const locked = secondsLeft > 0;
+    // Thông báo QUAN TRỌNG ẩn 12 giờ, thông báo thường ẩn 24 giờ rồi tự hiện lại
+    const ttlHours = a.is_important ? DISMISS_TTL_IMPORTANT_MS / 3600000 : DISMISS_TTL_NORMAL_MS / 3600000;
 
     return (
       <article
@@ -159,19 +194,23 @@ export default function AnnouncementBanner() {
             type="checkbox"
             className="ann-check-input"
             disabled={locked}
-            onChange={(e) => handleNeverShow(a.id, e.target.checked, locked)}
+            onChange={(e) => handleNeverShow(a.id, e.target.checked, locked, !!a.is_important)}
           />
           <label
             htmlFor={checkId}
             className="ann-check-label"
-            title={locked ? `Vui lòng đọc thông báo, có thể chọn sau ${secondsLeft} giây` : undefined}
+            title={locked
+              ? `Vui lòng đọc thông báo, có thể chọn sau ${secondsLeft} giây`
+              : `Ẩn thông báo này trong ${ttlHours} giờ, sau đó sẽ hiện lại`}
           >
             <span className="ann-check-box" aria-hidden="true">
               <Check size={12} strokeWidth={3.5} />
             </span>
             Không hiển thị lại
-            {locked && (
+            {locked ? (
               <span className="ann-lock-count" aria-hidden="true">{secondsLeft}s</span>
+            ) : (
+              <span className="ann-ttl-hint">({ttlHours}h)</span>
             )}
           </label>
           {isModal && (

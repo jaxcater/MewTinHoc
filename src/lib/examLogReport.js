@@ -10,6 +10,11 @@
 //      bundle) → chậm và dễ vỡ khi localStorage chưa sẵn sàng.
 //    - Trang báo cáo tự chứa nên in ra PDF được, không phụ thuộc app.
 //
+//  NÚT "QUAY VỀ": trang báo cáo có nút quay về dạng sticky ở đầu trang.
+//  Học viên ghim app lên màn hình chính (PWA standalone) không thể đóng
+//  tab, nên nút này: (1) đóng tab báo cáo nếu được, (2) nếu không đóng
+//  được thì tự điều hướng về app ngay trong tab đó → không bị kẹt.
+//
 //  AN TOÀN: mọi nội dung đề bài đều do người khác nhập → BẮT BUỘC
 //  escape trước khi chèn vào HTML, nếu không là lỗ XSS.
 // ============================================================
@@ -28,6 +33,33 @@ function esc(value) {
 /** `code` trong đề bài → <code> */
 function richText(value) {
   return esc(value).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+/** Escape chuỗi để nhúng an toàn vào thẻ <script> (chặn `</script>`) */
+function escForScript(value) {
+  return JSON.stringify(String(value ?? '')).replace(/</g, '\\u003c');
+}
+
+/**
+ * Đường dẫn tuyệt đối trong app (tôn trọng BASE_URL khi deploy dưới subpath).
+ * Trang báo cáo có thể nằm ở `about:blank` hoặc `blob:` → buộc phải có
+ * origin tuyệt đối, nếu không link tương đối sẽ trỏ sai chỗ.
+ */
+function appUrl(path = '') {
+  const base = String((import.meta.env && import.meta.env.BASE_URL) || '/').replace(/\/+$/, '');
+  const suffix = String(path || '').replace(/^\/+/, '');
+  const appPath = suffix ? `${base}/${suffix}` : base || '/';
+
+  let origin = '';
+  try {
+    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+      origin = window.location.origin !== 'null' ? window.location.origin : '';
+    }
+  } catch {
+    origin = '';
+  }
+
+  return origin ? `${origin}${appPath}` : appPath;
 }
 
 function mcqCard(item) {
@@ -154,10 +186,30 @@ export function buildExamLogReportHtml(log) {
   }
   .wrap { max-width: 820px; margin: 0 auto; }
   .head { margin-bottom: 1.75rem; }
+  .head__top {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; flex-wrap: wrap; gap: .6rem;
+    align-items: center; justify-content: space-between;
+    margin: 0 0 1.25rem; padding: .75rem 0;
+    background: var(--ground);
+    border-bottom: 1px solid var(--line);
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: .45rem;
+    min-height: 44px; padding: .7rem 1.15rem; border-radius: 999px;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff;
+    font-family: inherit; font-size: .9rem; font-weight: 700;
+    text-decoration: none; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(194, 65, 12, .18);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:hover { background: #9A3412; border-color: #9A3412; }
+  .back-btn:active { transform: translateY(1px); }
+  .back-btn:focus-visible { outline: 3px solid rgba(194, 65, 12, .35); outline-offset: 2px; }
   .brand {
     display: inline-flex; align-items: center; gap: .5rem;
     font-size: .82rem; font-weight: 700; letter-spacing: -.01em;
-    color: var(--accent); text-decoration: none; margin-bottom: 1rem;
+    color: var(--accent); text-decoration: none;
   }
   h1 {
     margin: 0 0 .4rem;
@@ -240,13 +292,25 @@ export function buildExamLogReportHtml(log) {
   @media print {
     body { padding: 0; background: #fff; }
     .q, .score { break-inside: avoid; }
+    .head__top { position: static; margin: 0 0 1rem; padding: 0; border-bottom: 0; }
+    .back-btn { display: none; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="head__top">
+    <a class="back-btn" id="backBtn" href="${esc(appUrl('ai-exam'))}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+      </svg>
+      Quay về
+    </a>
+    <a class="brand" href="${esc(appUrl())}">MewTinHoc</a>
+  </div>
+
   <div class="head">
-    <a class="brand" href="/">MewTinHoc</a>
     <h1>Bài làm lần cuối — những câu đã sai</h1>
     <p class="when">
       Nộp lúc ${esc(formatDateTimeVN(log.submittedAt))} · ${esc(log.trackLabel)}${
@@ -295,6 +359,41 @@ export function buildExamLogReportHtml(log) {
     Bạn có thể in hoặc lưu thành PDF để ôn lại sau.
   </footer>
 </div>
+<script>
+(function () {
+  var BACK_PATH = ${escForScript(appUrl('ai-exam'))};
+  var HOME_PATH = ${escForScript(appUrl())};
+
+  var backBtn = document.getElementById('backBtn');
+  var brand = document.querySelector('.brand');
+  if (brand) brand.setAttribute('href', HOME_PATH);
+  if (!backBtn) return;
+  backBtn.setAttribute('href', BACK_PATH);
+
+  backBtn.addEventListener('click', function (event) {
+    event.preventDefault();
+
+    // 1) Không đóng được (PWA ghim app / tab hệ thống) → quay về app
+    //    ngay trong tab này để học viên không bị kẹt. Timer được hẹn TRƯỚC
+    //    khi đóng tab: nếu tab đóng thành công thì timer bị huỷ theo trang.
+    window.setTimeout(function () {
+      if (!window.closed) window.location.replace(BACK_PATH);
+    }, 150);
+
+    // 2) Ưu tiên đóng tab báo cáo (tab do app mở ra).
+    //    App inject __mthCloseReport để đóng chắc chắn, kể cả khi
+    //    trình duyệt chặn window.close() trong chính tab con.
+    try {
+      if (typeof window.__mthCloseReport === 'function') {
+        window.__mthCloseReport();
+      }
+    } catch (e) { /* bỏ qua */ }
+    try {
+      window.close();
+    } catch (e) { /* bỏ qua */ }
+  });
+})();
+</script>
 </body>
 </html>`;
 }
@@ -313,6 +412,20 @@ export function openExamLogReport(log) {
   if (!tab) return 'blocked';
 
   const html = buildExamLogReportHtml(log);
+
+  // Cài callback đóng tab cho trang báo cáo: nút "Quay về" gọi hàm này trước
+  // khi thử window.close() (một số trình duyệt chặn close từ chính tab con).
+  try {
+    tab.__mthCloseReport = () => {
+      try {
+        tab.close();
+      } catch {
+        /* bỏ qua */
+      }
+    };
+  } catch {
+    /* bỏ qua */
+  }
 
   try {
     tab.document.open();
