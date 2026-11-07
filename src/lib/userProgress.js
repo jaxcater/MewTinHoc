@@ -1,7 +1,7 @@
-import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { getEvolutionByDays, getEvolutionProgress } from './streakEvolutions';
-import { qualifiesForStudyStreak, nextStudyStreak } from './streakRules';
+import { qualifiesForStudyStreak, nextStudyStreak, resolveStudyStreak } from './streakRules';
 
 // Khối kiến thức chuẩn trong ma trận Bộ GD&ĐT
 export const MASTERY_BLOCKS = {
@@ -42,14 +42,13 @@ const DEFAULT_MASTERY = {
  */
 export const STREAK_GRACE_DAYS = 3;
 
-// Helper: định dạng một đối tượng Date thành 'YYYY-MM-DD' theo GIỜ ĐỊA PHƯƠNG.
-// Không dùng toISOString() vì hàm đó quy đổi sang UTC -> bị lệch 1 ngày vào
-// khoảng 00:00-06:59 giờ Việt Nam (UTC+7).
+// Ngày học luôn theo Việt Nam, kể cả khi thiết bị dùng múi giờ khác.
 export const formatLocalDate = (date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(date);
+  const part = type => parts.find(item => item.type === type).value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
 };
 
 // Helper: lấy ngày hôm nay (hoặc ngày đã dịch bởi dayOffset) theo giờ địa phương
@@ -101,6 +100,20 @@ export function useUserProgress(user) {
   const [hydratedUserId, setHydratedUserId] = useState(userId);
   const currentUserIdRef = useRef(userId);
   const loadRequestIdRef = useRef(0);
+
+  // Trang để mở qua nửa đêm hoặc vừa quay lại từ chế độ ngủ vẫn đổi ngày.
+  const [, setClockTick] = useState(0);
+  useEffect(() => {
+    const updateClock = () => setClockTick(value => value + 1);
+    const timer = setInterval(updateClock, 60_000);
+    window.addEventListener('focus', updateClock);
+    document.addEventListener('visibilitychange', updateClock);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', updateClock);
+      document.removeEventListener('visibilitychange', updateClock);
+    };
+  }, []);
 
   const effectiveToday = getEffectiveDate(dayOffset);
   const isSimulating = dayOffset !== 0;
@@ -216,7 +229,10 @@ export function useUserProgress(user) {
   }, [isSimulating, isDemo, userId]);
 
   // Tính checkedToday theo effectiveToday
-  const checkedToday = progress.streak_last_date === effectiveToday;
+  const resolvedProgress = useMemo(() =>
+    resolveStudyStreak(progress, checkinHistory, effectiveToday, STREAK_GRACE_DAYS),
+  [progress, checkinHistory, effectiveToday]);
+  const checkedToday = resolvedProgress.streak_last_date === effectiveToday;
 
   // Dọn khoá mô phỏng cũ (nếu phiên bản trước đã lỡ lưu) để F5 luôn về ngày thật
   useEffect(() => {
@@ -225,51 +241,20 @@ export function useUserProgress(user) {
     } catch { /* ignore */ }
   }, []);
 
-  // TỰ ĐỘNG HẾT HẠN STREAK: nếu đã bỏ lỡ >= 2 ngày thì chuỗi về 0.
-  // Chỉ chạy với ngày THỰC (bỏ qua khi đang mô phỏng) để không đụng dữ liệu Supabase.
-  const lastExpiredRef = useRef(null);
-  useEffect(() => {
-    if (isSimulating) return;
+  // Hết hạn chỉ thay đổi giá trị hiển thị, không ghi cache cũ về Supabase.
 
-    const last = progress.streak_last_date;
-    if (!last) return;
-
-    const diff = getDayDiff(last, effectiveToday);
-    // Còn trong thời gian ân hạn -> chuỗi chưa đứt, không làm gì cả.
-    if (diff <= STREAK_GRACE_DAYS) return;
-
-    const count = progress.streak_count || 0;
-
-    // Chỉ cần ghi Supabase 1 lần cho mỗi cặp (ngày điểm danh cuối, số streak)
-    const signature = `${last}|${count}`;
-    if (lastExpiredRef.current === signature) return;
-    lastExpiredRef.current = signature;
-
-    if (count > 0) {
-      setProgress(prev => ({ ...prev, streak_count: 0 }));
-
-      if (!isDemo && user?.id && supabase) {
-        supabase
-          .from('user_progress')
-          .upsert({ id: user.id, streak_count: 0, updated_at: new Date().toISOString() })
-          .then(() => {}, (e) => console.warn('Lỗi đồng bộ streak hết hạn:', e?.message));
-      }
-    }
-  }, [isSimulating, progress.streak_last_date, progress.streak_count, effectiveToday, user?.id]);
-  // Lưu cache LocalStorage mỗi khi state đổi — nhưng BỎ QUA khi đang mô phỏng,
-  // để dữ liệu giả không dính vào bộ nhớ trình duyệt và sống sót qua F5.
   useEffect(() => {
     if (isSimulating || hydratedUserId !== userId) return;
 
-    storage.setItem(progressKey, JSON.stringify(progress));
+    storage.setItem(progressKey, JSON.stringify(resolvedProgress));
     storage.setItem(`tinhoc_streak_${userId}`, JSON.stringify({
-      count: progress.streak_count,
-      checkedToday: progress.streak_last_date === effectiveToday,
-      lastCheckInDate: progress.streak_last_date,
+      count: resolvedProgress.streak_count,
+      checkedToday,
+      lastCheckInDate: resolvedProgress.streak_last_date,
       dayOffset,
       checkinHistory
     }));
-  }, [progress, effectiveToday, dayOffset, progressKey, checkinHistory, isSimulating, hydratedUserId, userId]);
+  }, [resolvedProgress, checkedToday, dayOffset, progressKey, checkinHistory, isSimulating, hydratedUserId, userId, storage]);
 
   useEffect(() => {
     if (hydratedUserId !== userId) return;
@@ -295,11 +280,10 @@ export function useUserProgress(user) {
       return;
     }
 
-    const targetProgressKey = `tinhoc_user_progress_${targetUserId}`;
     const targetMasteryKey = `tinhoc_mastery_progress_${targetUserId}`;
     const targetLessonsKey = `tinhoc_completed_lessons_${targetUserId}`;
-    const targetCheckinKey = `tinhoc_checkin_history_${targetUserId}`;
     const requestId = loadRequestIdRef.current + 1;
+    const progressAtLoad = progressRef.current;
     loadRequestIdRef.current = requestId;
     const isCurrentUser = () => currentUserIdRef.current === targetUserId && loadRequestIdRef.current === requestId;
 
@@ -331,8 +315,16 @@ export function useUserProgress(user) {
           accuracy: progData.accuracy != null ? parseFloat(progData.accuracy) : 0,
           xp_total: progData.xp_total ?? 0
         };
-        setProgress(loadedProgress);
-        storage.setItem(targetProgressKey, JSON.stringify(loadedProgress));
+        // Một bài nộp trong lúc SELECT đang chạy phải giữ nguyên ngày học mới.
+        setProgress(() => {
+          const local = progressRef.current;
+          if (local !== progressAtLoad && local.streak_last_date >= (loadedProgress.streak_last_date || '')) {
+            return { ...loadedProgress, streak_count: local.streak_count,
+              streak_last_date: local.streak_last_date,
+              xp_total: Math.max(local.xp_total || 0, loadedProgress.xp_total) };
+          }
+          return loadedProgress;
+        });
       } else {
         // Người dùng mới -> tự tạo dòng mặc định
         if (isCurrentUser()) {
@@ -344,7 +336,7 @@ export function useUserProgress(user) {
             avg_score: DEFAULT_PROGRESS.avg_score,
             accuracy: DEFAULT_PROGRESS.accuracy,
             xp_total: DEFAULT_PROGRESS.xp_total
-          });
+          }, { onConflict: 'id', ignoreDuplicates: true });
           if (seedProgErr) console.warn('Không tạo được user_progress mặc định:', seedProgErr.message);
         }
       }
@@ -380,24 +372,44 @@ export function useUserProgress(user) {
       }
 
       // 4. Tải daily_checkins
-      const { data: checkinData, error: checkinErr } = await supabase
-        .from('daily_checkins')
-        .select('checkin_date')
-        .eq('user_id', targetUserId)
-        .order('checkin_date', { ascending: false })
-        .limit(30);
-
-      if (!checkinErr && checkinData && isCurrentUser()) {
-        const loadedCheckins = checkinData.map(r => r.checkin_date);
-        setCheckinHistory(loadedCheckins);
-        storage.setItem(targetCheckinKey, JSON.stringify(loadedCheckins));
+      const loadedCheckins = [];
+      const pageSize = 500;
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+          .from('daily_checkins')
+          .select('checkin_date')
+          .eq('user_id', targetUserId)
+          .order('checkin_date', { ascending: false })
+          .range(offset, offset + pageSize - 1);
+        if (!isCurrentUser()) return;
+        if (error) throw error;
+        loadedCheckins.push(...(data || []).map(row => row.checkin_date));
+        if (!data || data.length < pageSize) break;
+      }
+      setCheckinHistory(prev => [...new Set([...prev, ...loadedCheckins])].sort().reverse());
+      // Sửa dữ liệu đã hỏng chỉ từ lịch sử server đã tải đủ.
+      // So sánh giá trị cũ ngay tại UPDATE để không đè bài nộp từ tab khác.
+      if (progData) {
+        const repaired = resolveStudyStreak(progData, loadedCheckins, getEffectiveDate(), STREAK_GRACE_DAYS);
+        if (repaired.streak_count > (progData.streak_count || 0)) {
+          let repairQuery = supabase.from('user_progress').update({
+            streak_count: repaired.streak_count,
+            streak_last_date: repaired.streak_last_date,
+            updated_at: new Date().toISOString()
+          }).eq('id', targetUserId).eq('streak_count', progData.streak_count);
+          repairQuery = progData.streak_last_date == null
+            ? repairQuery.is('streak_last_date', null)
+            : repairQuery.eq('streak_last_date', progData.streak_last_date);
+          const { error } = await repairQuery;
+          if (error) console.warn('Chưa đồng bộ được streak phục hồi:', error.message);
+        }
       }
 
     } catch (err) {
       console.warn('Lỗi kết nối Supabase, chuyển sang Offline LocalStorage:', err);
       if (isCurrentUser()) setDbStatus('fallback');
     }
-  }, [loadRequestIdRef, isDemo]);
+  }, [loadRequestIdRef, isDemo, storage]);
 
   // Thiết lập Supabase Realtime Subscription
   useEffect(() => {
@@ -499,7 +511,7 @@ export function useUserProgress(user) {
     }
     // Lấy ngày ngay lúc nộp, kể cả khi học viên để trang mở qua nửa đêm.
     const today = getEffectiveDate(dayOffset);
-    const current = progressRef.current;
+    const current = resolveStudyStreak(progressRef.current, checkinHistory, today, STREAK_GRACE_DAYS);
     if (current.streak_last_date === today) {
       return { success: false, message: 'Hôm nay bạn đã điểm danh rồi!' };
     }
@@ -546,7 +558,7 @@ export function useUserProgress(user) {
       newStreak,
       message: `Đã ghi nhận ngày học! Chuỗi đạt ${newStreak} ngày (+50 XP).`
     };
-  }, [dayOffset, userId, isDemo, isSimulating, persistProgress]);
+  }, [dayOffset, userId, isDemo, isSimulating, persistProgress, checkinHistory]);
 
   // Hành động: Cập nhật mức độ làm chủ khối kiến thức (hỗ trợ số hoặc function updater)
   const updateMastery = useCallback(async (blockKey, valOrFn) => {
@@ -642,8 +654,7 @@ export function useUserProgress(user) {
 
   // Công cụ kiểm thử (CHỈ ADMIN): Bỏ trống đủ 3 ngày liên tiếp -> mất streak.
   // Với quy tắc khoảng cách tối đa 3 ngày, phải nhảy tới 4 ngày mới đủ điều kiện đứt chuỗi.
-  // Cũng chỉ diễn ra trong RAM. Việc ghi streak = 0 lên Supabase để cho
-  // useEffect "tự động hết hạn" đảm nhiệm khi ngày thật sự trôi qua.
+  // Chỉ diễn ra trong RAM; hết hạn không ghi số 0 lên Supabase.
   const simulateMissedDays = useCallback(() => {
     setDayOffset(prev => prev + (STREAK_GRACE_DAYS + 1));
     setProgress(prev => ({
@@ -672,18 +683,18 @@ export function useUserProgress(user) {
 
   // Đối tượng streak format tương thích với Navbar và HomeTab
   const streakCompatible = {
-    count: progress.streak_count,
+    count: resolvedProgress.streak_count,
     checkedToday,
-    lastCheckInDate: progress.streak_last_date,
+    lastCheckInDate: resolvedProgress.streak_last_date,
     dayOffset,
     checkinHistory,
     graceDays: STREAK_GRACE_DAYS,
-    currentEvolution: getEvolutionByDays(progress.streak_count),
-    evolutionProgress: getEvolutionProgress(progress.streak_count)
+    currentEvolution: getEvolutionByDays(resolvedProgress.streak_count),
+    evolutionProgress: getEvolutionProgress(resolvedProgress.streak_count)
   };
 
   return {
-    progress,
+    progress: resolvedProgress,
     mastery,
     completedLessons,
     checkinHistory,
