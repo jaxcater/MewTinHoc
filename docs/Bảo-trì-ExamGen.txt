@@ -1,0 +1,299 @@
+﻿========================================
+HƯỚNG DẪN BẢO TRÌ - MEWTINHOC
+========================================
+Cập nhật: 03/11/2026
+========================================
+
+
+PHẦN 1: HIỂU NHANH HỆ THỐNG
+----------------------------------------
+
+Có 3 thư mục, nằm cạnh nhau trong /www/wwwroot/:
+
+  mewtinhoc/     = code web (không sửa tay)
+  sourcedethi/   = câu hỏi gốc (BẠN SỬA CÁI NÀY)
+  dethicosan/    = kho đề đã sinh (MÁY TỰ QUẢN)
+
+Luồng hoạt động:
+
+  sourcedethi/  -->  [máy sinh đề]  -->  dethicosan/
+   (câu hỏi)                              (30 đề sẵn)
+
+Học sinh bấm "Tạo đề"     --> lấy 1 đề trong kho --> kho còn 29
+Mỗi 10 phút               --> máy tự sinh bù      --> kho về 30
+
+=> Bạn chỉ cần quan tâm thư mục sourcedethi/
+
+
+PHẦN 2: 5 LỆNH DÙNG HẰNG NGÀY
+----------------------------------------
+
+Trước khi chạy lệnh, đứng ở thư mục web:
+
+  cd /www/wwwroot/mewtinhoc
+
+(1) XEM KHO CÒN BAO NHIÊU ĐỀ
+
+    ls /www/wwwroot/dethicosan/pool | wc -l
+
+    Ra 30     = đủ, tốt
+    Ra 25     = đang bù, chờ 10 phút
+    Ra 0      = có lỗi, xem PHẦN 5
+
+(2) XEM CÂU HỎI CÓ ĐỌC ĐƯỢC KHÔNG
+
+    node server/exam/worker.js --check
+
+    Nhìn từng dòng. Dấu ✓ = tốt.
+    Dấu ✗ = thiếu câu, xem PHẦN 5.
+    Lệnh này chỉ đọc, không sửa gì.
+
+(3) SINH LẠI TOÀN BỘ 30 ĐỀ
+
+    node server/exam/worker.js --reset
+
+    Dùng sau khi sửa câu hỏi.
+    Mất 30 đề cũ, sinh 30 đề mới.
+
+(4) SINH BÙ ĐỀ CÒN THIẾU
+
+    node server/exam/worker.js
+
+    Chỉ sinh thêm, không xoá đề cũ.
+
+(5) XEM MÁY CÓ TỰ CHẠY KHÔNG
+
+    tail -5 /var/log/mewtinhoc-exam.log
+
+    Thấy dòng có ngày giờ trong 10 phút
+    gần nhất = máy đang chạy tốt.
+
+    Báo "No such file or directory" = máy
+    chưa từng chạy, xem PHẦN 5 - LỖI 2.
+
+LỆNH THÊM (chỉ dùng khi cần thử):
+
+    node server/exam/worker.js --simulate 2
+
+    Sinh thử 2 đề, in ra cấu trúc để xem.
+    Không ghi vào kho, không ảnh hưởng gì.
+
+
+PHẦN 3: CẬP NHẬT CÂU HỎI MỚI
+----------------------------------------
+
+QUAN TRỌNG: tên file giữ nguyên.
+Chỉ đổi đuôi .json thành .txt
+
+  10 file cần có trong sourcedethi/:
+
+    C1.txt
+    C2.txt
+    C3.txt
+    C4.txt
+    C5.txt
+    C6.txt
+    C7.txt
+    dungsaiChung.txt
+    dungsaiCS.txt
+    dungsaiICT.txt
+
+Các bước:
+
+  Bước 1. Xoá 10 file .json cũ
+
+  Bước 2. Upload 10 file .txt mới
+
+  Bước 3. Chạy:
+
+    cd /www/wwwroot/mewtinhoc
+    node server/exam/worker.js --check
+    node server/exam/worker.js --reset
+
+  Bước 4. Kiểm tra:
+
+    ls /www/wwwroot/dethicosan/pool | wc -l
+
+  Phải ra 30. Xong.
+
+Lưu ý:
+  - Nếu để cả .txt và .json cùng tên,
+    máy sẽ dùng .txt. Nhưng nên xoá .json
+    cho gọn.
+  - BẮT BUỘC chạy --reset, nếu không
+    học sinh vẫn nhận đề cũ.
+  - Nội dung bên trong file .txt giữ
+    nguyên như .json cũ, không cần sửa.
+
+
+PHẦN 4: KIỂM TRA WEB CÓ AN TOÀN
+----------------------------------------
+
+Chạy 2 lệnh, mỗi lệnh phải ra 404:
+
+  curl -o /dev/null -w "%{http_code}\n" https://mewtinhoc.online/dethicosan/pool/
+
+  curl -o /dev/null -w "%{http_code}\n" https://mewtinhoc.online/sourcedethi/C1.json
+
+  Ra 404 = tốt, học sinh không tải được đáp án.
+  Ra 200 = NGUY HIỂM, báo ngay kỹ thuật.
+
+Lưu ý: nếu ra 200 thì thử tải đúng 1 file
+thật trong kho (xem tên bằng lệnh ls).
+Nếu file .dat tải được = đang lộ, phải chặn.
+Nếu chỉ trả về trang web = bình thường.
+
+
+PHẦN 5: KHI CÓ LỖI
+----------------------------------------
+
+LỖI 1: Học sinh báo "Xin hãy đợi 10 phút"
+
+  Nguyên nhân: kho đề trống, hoặc thiếu
+  câu hỏi nên không sinh được đề.
+
+  Sửa:
+    cd /www/wwwroot/mewtinhoc
+    node server/exam/worker.js --check
+    node server/exam/worker.js --reset
+
+  Nếu vẫn lỗi: xem output của --check,
+  dòng nào có dấu ✗ là chỗ cần sửa.
+
+
+LỖI 2: Kho đề tụt dần, không tự bù
+
+  Nguyên nhân: máy tự động (cron) bị tắt.
+
+  Kiểm tra:
+    crontab -l
+
+  Phải thấy dòng có chữ worker.js.
+  Không thấy = cần cài lại, xem bên dưới.
+
+  Chạy thử tay trước:
+    cd /www/wwwroot/mewtinhoc
+    node server/exam/worker.js
+
+  Nếu chạy tay OK mà cron không chạy,
+  cài lại cron bằng lệnh:
+    crontab -e
+
+  Thêm dòng này vào cuối file
+  (giữ nguyên đường dẫn node):
+
+  */10 * * * * cd /www/wwwroot/mewtinhoc && /www/server/nodejs/v22.22.1/bin/node server/exam/worker.js >> /var/log/mewtinhoc-exam.log 2>&1
+
+  Lưu: Ctrl+O, Enter, Ctrl+X
+
+  Kiểm tra lại: crontab -l
+
+
+LỖI 3: Sửa câu hỏi xong mà đề không đổi
+
+  Nguyên nhân: quên chạy --reset.
+
+  Sửa:
+    node server/exam/worker.js --reset
+
+
+LỖI 4: Báo "Worker khác đang chạy" mãi
+
+  Nguyên nhân: lần chạy trước bị treo.
+
+  Sửa:
+    rm -f /www/wwwroot/dethicosan/.worker.lock
+
+  Rồi chạy lại.
+  File này tự hết hạn sau 5 phút.
+
+
+LỖI 5: Web không vào được
+
+  Nguyên nhân: web server bị tắt.
+  Không phải lỗi câu hỏi.
+
+  Báo kỹ thuật, không tự sửa.
+
+
+LỖI 6: Đề bị lặp lại nhiều
+
+  Sửa:
+    rm -f /www/wwwroot/dethicosan/rotation.json
+    node server/exam/worker.js --reset
+
+
+PHẦN 6: SAO LƯU
+----------------------------------------
+
+Chỉ cần sao lưu 1 thư mục:
+
+  sourcedethi/
+
+Đó là câu hỏi gốc. Kho đề sinh lại được
+bất cứ lúc nào, không cần sao lưu.
+
+Lệnh sao lưu (chạy 1 lần/tuần):
+
+  cp -r /www/wwwroot/sourcedethi /root/backup-sourcedethi-$(date +%F)
+
+
+PHẦN 7: CÁC CON SỐ CẦN NHỚ
+----------------------------------------
+
+  30       = số đề trong kho (luôn giữ mức này)
+  10 phút  = máy tự kiểm tra và bù đề
+  24       = số câu trắc nghiệm (6 điểm)
+  4        = số câu đúng/sai    (4 điểm)
+  50 phút  = thời gian làm bài
+
+Phân bổ 24 câu trắc nghiệm:
+
+  C5: 7 câu     C1: 4 câu     C2: 4 câu
+  C7: 3 câu     C3: 2 câu     C4: 2 câu
+  C6: 2 câu
+
+Nếu 1 chủ đề thiếu câu, máy tự chia lại
+sang chủ đề khác. Vẫn đủ 24 câu.
+
+Chỉ báo lỗi khi TỔNG 7 chủ đề dưới 24 câu.
+
+
+PHẦN 8: VIỆC CẦN LÀM MỖI TUẦN
+----------------------------------------
+
+5 phút mỗi tuần, chạy 2 lệnh:
+
+  ls /www/wwwroot/dethicosan/pool | wc -l
+  tail -20 /var/log/mewtinhoc-exam.log
+
+Kết quả bình thường:
+  - Số đề = 30
+  - Log có dòng ngày giờ mới
+
+Có gì lạ thì xem lại PHẦN 5.
+
+
+PHẦN 9: NGUYÊN TẮC AN TOÀN
+----------------------------------------
+
+1. KHÔNG sửa gì trong dethicosan/ bằng tay.
+   Máy tự quản. Sửa tay dễ hỏng đề.
+
+2. KHÔNG đưa sourcedethi/ hay dethicosan/
+   vào trong thư mục mewtinhoc/.
+
+3. KHÔNG đổi EXAM_KEY_SECRET sau khi đã
+   sinh đề (đề cũ sẽ không đọc được).
+
+4. Sao lưu sourcedethi/ trước khi sửa.
+
+5. Sửa câu hỏi xong PHẢI chạy --reset.
+
+
+========================================
+HẾT
+========================================
+Cần hỗ trợ: liên hệ kỹ thuật,
+kèm theo output của lệnh bị lỗi.
+========================================
