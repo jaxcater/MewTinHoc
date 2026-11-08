@@ -17,6 +17,16 @@ Hướng dẫn cho mọi AI coding agent làm việc trong repo này.
 
 ---
 
+## Ngôn ngữ
+
+- **Trả lời bằng tiếng Việt.** Dùng tiếng Việt cho mọi câu trả lời, giải thích, comment trong code và tài liệu Markdown.
+- Giữ **tiếng Anh** cho: tên biến / hàm / component / file, thông báo lỗi hiển thị cho người dùng cuối, tên thư viện, và thuật ngữ kỹ thuật không dịch được.
+- Nếu người dùng yêu cầu ngôn ngữ khác trong một câu lệnh cụ thể, làm theo yêu cầu đó cho lượt đó.
+
+Chi tiết ở `C:\Users\Jax\.cursor\rules\language.mdc` (rule global, áp dụng cho mọi project).
+
+---
+
 ## Quy trình làm việc
 
 ```

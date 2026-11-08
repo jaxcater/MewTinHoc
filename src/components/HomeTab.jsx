@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
 import {
   Flame,
@@ -18,7 +19,8 @@ import {
   ShieldAlert,
   Trophy,
   CircleAlert,
-  CircleHelp
+  CircleHelp,
+  BellRing
 } from 'lucide-react';
 import { TABS } from './Navbar';
 import { isCompanyAdmin } from '../lib/roleService.js';
@@ -30,6 +32,7 @@ import {
   getEvolutionProgress
 } from '../lib/streakEvolutions';
 import StreakEvolutionArt from './StreakEvolutionArt';
+import StudyStreakReward from './StudyStreakReward';
 import { motion, useInView, useReducedMotion } from 'framer-motion';
 import {
   DURATIONS,
@@ -85,6 +88,7 @@ export default function HomeTab({
   const [showAllEvolutions, setShowAllEvolutions] = React.useState(false);
   const [adminPreviewMode, setAdminPreviewMode] = React.useState(false);
   const [adminPreviewStreak, setAdminPreviewStreak] = React.useState(null);
+  const [adminRewardPreview, setAdminRewardPreview] = React.useState(null);
   const prefersReducedMotion = useReducedMotion();
   const dashboardRef = React.useRef(null);
   useVisibleAnimations(dashboardRef, '.hero-welcome-card, .metric-card, .matrix-panel, .matrix-card, .streak-card');
@@ -456,6 +460,21 @@ export default function HomeTab({
               )}
             </div>
 
+            {isCompanyAdmin(user) && (
+              <div className="study-streak-test">
+                <button type="button" onClick={() => {
+                  if (!isCompanyAdmin(user)) return;
+                  // Chỉ tạo dữ liệu hiển thị, không gọi luồng ghi nhận ngày học.
+                  setAdminRewardPreview(previous => {
+                    const sequence = (previous?.sequence || 0) + 1;
+                    return { userId: user.id, date: `preview-${sequence}`, sequence,
+                      count: Math.max(1, displayStreak), source: 'roadmap' };
+                  });
+                }}><BellRing size={15} aria-hidden="true" />Test thông báo streak</button>
+                <span>Chỉ xem thử · Không cộng điểm</span>
+              </div>
+            )}
+
             {/* Streak Evolution Collection - Expandable Panel */}
             <div style={{ 
               borderTop: '1px solid var(--color-border)', 
@@ -716,6 +735,10 @@ export default function HomeTab({
 
         </div>
       </div>
+      {isCompanyAdmin(user) && adminRewardPreview?.userId === user?.id && createPortal(
+        <StudyStreakReward reward={adminRewardPreview} isPreview />,
+        document.body
+      )}
     </div>
   );
 }

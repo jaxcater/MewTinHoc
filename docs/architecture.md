@@ -62,7 +62,7 @@ Một repository duy nhất chứa cả frontend (React SPA) và backend (Node `
 ### Tài khoản Demo
 
 - Cờ `isDemo` do `src/App.jsx` gắn khi đăng nhận nhanh; lưu ở `sessionStorage` (không `localStorage`) để tự hủy khi đóng tab.
-- Demo chỉ dùng Trang chủ + Lộ trình. Quy tắc khoá gom một chỗ: `src/lib/demoAccess.js`.
+- Demo dùng Trang chủ + Lộ trình; Bảng thành tích chỉ hiện giới thiệu và bộ huy hiệu, không gọi RPC. Quy tắc khoá tính năng học nâng cao gom một chỗ: `src/lib/demoAccess.js`.
 - Nội dung thông báo khoá: `src/components/demo/DemoLockedView.jsx` (`DEMO_LOCKED_CONTENT`).
 - Demo **không** ghi vào Supabase (mọi `upsert` đều có guard `!isDemo`).
 
@@ -90,6 +90,14 @@ Một repository duy nhất chứa cả frontend (React SPA) và backend (Node `
 ---
 
 ## 4. API Architecture
+
+### Bảng thành tích EXP
+
+Route `/leaderboard` lazy-load `LeaderboardTab`. Client gọi trực tiếp Supabase RPC `get_exp_leaderboard`, chỉ cấp EXECUTE cho `authenticated` và kiểm tra `auth.uid()` trong hàm. RPC `SECURITY DEFINER` khóa `search_path`, chỉ trả tên hiển thị đã loại phần domain email, UUID, EXP, hạng và URL avatar Google HTTPS lấy từ metadata Auth (`avatar_url`/`picture`, dự phòng identity Google). Không trả toàn bộ metadata, không mở quyền SELECT bảng Auth hay mở rộng SELECT/RLS của `profiles`/`user_progress`.
+
+Hàm xếp hạng toàn bộ học viên có EXP > 0 bằng `RANK()` theo `xp_total DESC`, dùng UUID tăng dần để ổn định thứ tự đồng điểm, sau đó mới phân trang. Một snapshot trả danh sách, top 5, tổng, vị trí cá nhân và mức EXP kế tiếp. Poll mỗi phút khi tab đang hiển thị, không subscribe hồ sơ toàn cục. Demo không truy vấn bảng thật. Không thêm endpoint Node hay env VPS. SQL và hướng dẫn: `docs/leaderboard.sql`, `docs/leaderboard-deploy.md`.
+
+Nguồn EXP vẫn là `userProgress.js` ghi tiến độ từ client; RPC đọc không cung cấp tính chống gian lận. Cần ledger điểm do server xác minh trước khi dùng cho giải thưởng có giá trị.
 
 ### Nguyên tắc
 
@@ -163,7 +171,7 @@ Yêu cầu nghiệp vụ: **ẩn tình hình kho** khỏi học viên. API `clai
 - Toàn bộ `<Routes>` nằm **trong `src/App.jsx`** — không có cấu hình route riêng.
 - Các màn Home/Roadmap/Kho đề/Tạo đề/Admin và chat tải bằng `React.lazy`; không nạp tất cả vào bundle khởi động. Navbar preload màn theo hover/focus, vẫn giữ kiểm tra khoá Demo.
 - `Suspense` nằm trong `PageTransition` để giữ animation chuyển trang; lỗi tải màn có nút tải lại. PDF.js tải riêng khi mở tài liệu.
-- `Navbar` export hằng `TABS` (`home`, `roadmap`, `exams`, `ai_exam`); ánh xạ TABS → path nằm trong `goToTab` của `App.jsx`.
+- `Navbar` export hằng `TABS` (`home`, `roadmap`, `exams`, `ai_exam`, `leaderboard`); ánh xạ TABS → path nằm trong `goToTab` của `App.jsx`.
 - **Khi thêm route mới, cập nhật cả 3 nơi:** `<Routes>` trong `App.jsx`, `TABS` + `fallbackPaths` trong `Navbar.jsx`, và `goToTab` trong `App.jsx`.
 - `/admin` được render **riêng**, ngoài shell app (`isAdminRoute`).
 - `public/404.html` giữ lại như fallback cho SPA deep-link (không còn workflow Pages dùng, nhưng vẫn hữu ích nếu sau này deploy static).

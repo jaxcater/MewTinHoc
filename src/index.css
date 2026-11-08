@@ -7223,20 +7223,28 @@ a {
 @media (max-width: 640px) {
   .category-tabs {
     align-items: center;
-    /* Dải tab cuộn ngang thay vì bị cắt.
-       `overflow: hidden` + `space-between` là tổ hợp sai: khi nội dung dài
-       hơn khung, flexbox đẩy tab cuối ra ngoài mép phải và nó bị cắt mất
-       vĩnh viễn, người dùng không cuộn tới được. Ở đây tab cuộn ngang:
-       mọi nhãn luôn hiện trọn, không mất chữ nào. */
     justify-content: flex-start;
     gap: 0.3rem;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    /* Đệm hai đầu để tab đầu/cuối không dính mép và pill active có chỗ
-       đổ bóng khi trượt. */
-    scroll-padding-inline: 4px;
+    /* Đệm giữ trọn góc bo, bóng và viền focus; nhãn LEARNING nằm ngoài vùng cuộn. */
+    padding: 8px 14px 12px;
+    scroll-padding-inline: 14px;
+    --nav-fade-start: 0px;
+    --nav-fade-end: 0px;
+    /* Tab và lớp chọn mờ dần khi đi khỏi khung, tránh cạnh cắt thẳng sát nhãn. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--nav-fade-start), #000 calc(100% - var(--nav-fade-end)), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 var(--nav-fade-start), #000 calc(100% - var(--nav-fade-end)), transparent);
+  }
+
+  .category-tabs[data-overflow-start="true"] {
+    --nav-fade-start: 14px;
+  }
+
+  .category-tabs[data-overflow-end="true"] {
+    --nav-fade-end: 14px;
   }
 
   .category-tabs::-webkit-scrollbar {

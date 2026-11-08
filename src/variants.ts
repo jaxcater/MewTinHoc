@@ -61,11 +61,21 @@ export const DURATIONS = {
   ambientSlow: 12   // 12s chu kỳ nền trôi nhẹ
 };
 
+// Vinh danh hiện nhẹ một lần khi có dữ liệu; không di chuyển các con số đang đọc.
+export const leaderboardHonorsVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04 } }
+};
+export const leaderboardHonorVariants = {
+  hidden: { opacity: 0, transform: 'translateY(8px)' },
+  visible: { opacity: 1, transform: 'translateY(0)', transition: { duration: DURATIONS.tabSwitch, ease: EASINGS.emilOut } }
+};
+
 // Phần thưởng ngày học chỉ chạy khi có bài nộp đủ điều kiện.
 export const studyRewardVariants = {
-  hidden: (reduced: boolean) => ({ opacity: 0, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(16px) scale(0.97)' }),
-  visible: { opacity: 1, transform: 'translateX(-50%) translateY(0) scale(1)', transition: { duration: 0.28, ease: EASINGS.emilOut } },
-  exit: { opacity: 0, transform: 'translateX(-50%)', transition: { duration: DURATIONS.pageExit } }
+  hidden: (reduced: boolean) => ({ opacity: 0, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(24px) scale(0.95)' }),
+  visible: (reduced: boolean) => ({ opacity: 1, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(0) scale(1)', transition: { duration: DURATIONS.tabSwitch, ease: EASINGS.emilOut } }),
+  exit: (reduced: boolean) => ({ opacity: 0, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(12px) scale(0.98)', transition: { duration: DURATIONS.pageExit, ease: EASINGS.emilOut } })
 };
 
 // 4. VARIANTS: HEADER (Fade-in + trượt xuống 12px)

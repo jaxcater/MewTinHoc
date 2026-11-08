@@ -84,6 +84,7 @@
 | `/exams` | `ExamRepoTab` (khoá nếu Demo) |
 | `/ai-exam` | `GenExamTab` (khoá nếu Demo) |
 | `/admin` | `AdminPage` |
+| `/leaderboard` | `LeaderboardTab` (Demo chỉ xem giới thiệu, không gọi RPC) |
 | `*` | → redirect `/` |
 
 Điều hướng dùng **History API** (không hash). Khi đổi route nhớ cập nhật cả `Navbar` (`TABS`) và `App.jsx` (`goToTab`).
@@ -312,6 +313,15 @@ dạng map `{ id: expiresAt }` — thông báo thường ẩn 24h, thông báo Q
 hết hạn thì tự hiện lại.
 
 ---
+
+### 11. Bảng thành tích EXP
+
+- `src/components/LeaderboardTab.jsx`, `src/components/leaderboard.css` — UI cam, huy hiệu top 5, danh sách và vị trí cá nhân.
+- `src/lib/useLeaderboard.js` — tải/hủy request, phân trang, poll mỗi phút khi tab hiển thị, giữ snapshot khi lỗi.
+- `src/lib/leaderboardService.js`, `src/lib/leaderboardModel.js` — gọi RPC, kiểm tra dữ liệu và URL avatar Google trả về, tính khoảng EXP để vượt nhóm trên.
+- `docs/leaderboard.sql` — RPC `get_exp_leaderboard(p_limit, p_offset)`: snapshot nhất quán, `RANK()` theo EXP, chỉ authenticated, không trả email; không nới RLS các bảng gốc.
+- `src/assets/leaderboard/rank-badges.png` — atlas cúp/huy hiệu hạng 1–5, kiểu cũ đã bỏ mèo phía trên; `RankBadge` trong `LeaderboardTab.jsx` cắt theo ranh giới từng hình bằng SVG.
+- `server/leaderboard.test.js` — kiểm tra dữ liệu bảng và edge case; `docs/leaderboard-deploy.md` — SQL, VPS và giới hạn nguồn EXP client hiện tại.
 
 ## Bảng dữ liệu (Supabase Postgres)
 

@@ -25,6 +25,7 @@ Tính năng chính:
 5. **CamCam** — chatbot hỗ trợ học tập (Botpress Cloud), có hạn mức 5 lượt/ngày.
 6. **Gamification**: streak tự ghi nhận khi nộp quiz lộ trình hoặc đề thi thử với điểm >10% (mỗi ngày một lần, ân hạn 3 ngày), 4 khối kiến thức (mastery), XP, 6 cấp hình dạng streak.
 7. **Khu quản trị** (`/admin`): cấp quyền Admin, sửa lộ trình, soạn thông báo, thống kê thời gian học.
+8. **Bảng thành tích** (`/leaderboard`): xếp hạng EXP toàn thời gian từ Supabase qua RPC chỉ đọc, đồng EXP cùng hạng; avatar Google từ metadata Auth, huy hiệu top 5 và vị trí cá nhân. Cài đặt SQL: `docs/leaderboard.sql`; vận hành: `docs/leaderboard-deploy.md`.
 
 Ngôn ngữ giao diện và toàn bộ comment trong mã là **tiếng Việt** — giữ nguyên khi sửa.
 

@@ -1,11 +1,16 @@
 ---
-description: MewTinHoc context pointers — read AI_CONTEXT.md and docs/code-map.md before touching code, search before reading, verify narrowly
+description: MewTinHoc context pointers — read AI_CONTEXT.md and docs/code-map.md before touching code, search before reading, verify narrowly, trả lời bằng tiếng Việt
 alwaysApply: true
 ---
 
 # Context Efficiency — MewTinHoc
 
 Repo này có `AGENTS.md` ở root (Cursor cũng tự nạp file đó). File này chỉ là **con trỏ**, không lặp lại nội dung.
+
+## Ngôn ngữ
+
+- **Trả lời bằng tiếng Việt.** Xem `C:\Users\Jax\.cursor\rules\language.mdc` để biết chi tiết khi nào giữ tiếng Anh (tên symbol, thông báo lỗi, thuật ngữ kỹ thuật không dịch được).
+- Comment trong code và tài liệu Markdown viết bằng tiếng Việt, trừ khi cần giữ nguyên tiếng Anh để nhất quán với file/component đó.
 
 ## Đọc theo thứ tự
 

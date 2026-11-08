@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
@@ -11,6 +11,7 @@ import {
   Layers,
   ShieldCheck,
   Swords,
+  Trophy,
   Lock
 } from 'lucide-react';
 import logoMeoCam from '../../img/logomeocam.png';
@@ -42,7 +43,8 @@ export const TABS = {
   HOME: 'home',
   ROADMAP: 'roadmap',
   EXAMS: 'exams',
-  AI_EXAM: 'ai_exam'
+  AI_EXAM: 'ai_exam',
+  LEADERBOARD: 'leaderboard'
 };
 
 export default function Navbar({
@@ -60,15 +62,48 @@ export default function Navbar({
   const navigate = useNavigate();
   const location = useLocation();
   const prefersReducedMotion = useReducedMotion();
+  const tabsRef = useRef(null);
+
+  // Chỉ làm mờ mép còn nội dung khuất; cập nhật DOM để không render lại khi vuốt.
+  useEffect(() => {
+    const tabs = tabsRef.current;
+    if (!tabs) return;
+
+    const updateScrollEdges = () => {
+      const remaining = tabs.scrollWidth - tabs.clientWidth - tabs.scrollLeft;
+      tabs.dataset.overflowStart = String(tabs.scrollLeft > 1);
+      tabs.dataset.overflowEnd = String(remaining > 1);
+    };
+
+    const observer = new ResizeObserver(updateScrollEdges);
+    observer.observe(tabs);
+    for (const tab of tabs.children) observer.observe(tab);
+    tabs.addEventListener('scroll', updateScrollEdges, { passive: true });
+    updateScrollEdges();
+
+    return () => {
+      observer.disconnect();
+      tabs.removeEventListener('scroll', updateScrollEdges);
+    };
+  }, []);
+
+  // Deep link trên điện thoại phải đưa tab đang chọn vào vùng cuộn nhìn thấy.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      tabsRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.pathname]);
 
   // URL là nguồn sự thật để tab không bị giữ trạng thái cũ sau khi điều hướng từ Home.
   const isHomeActive = location.pathname === '/' || location.pathname === '/home';
   const isRoadmapActive = location.pathname.startsWith('/roadmap');
   const isExamsActive = location.pathname.startsWith('/exams');
   const isAiExamActive = location.pathname.startsWith('/ai-exam');
+  const isLeaderboardActive = location.pathname.startsWith('/leaderboard');
 
-  // Tài khoản Demo chỉ đi được Trang chủ và Lộ trình; hai tab còn lại
-  // vẫn hiện ra nhưng được đánh dấu khoá để học viên biết trước.
+  // Demo dùng Trang chủ/Lộ trình và xem giới thiệu Bảng thành tích.
+  // Các chức năng học nâng cao vẫn được đánh dấu khoá.
   const isDemo = isDemoUser(user);
   const examsLocked = isLockedForDemo(user, DEMO_FEATURE.EXAMS);
   const aiExamLocked = isLockedForDemo(user, DEMO_FEATURE.AI_EXAM);
@@ -84,7 +119,8 @@ export default function Navbar({
       [TABS.HOME]: '/',
       [TABS.ROADMAP]: '/roadmap',
       [TABS.EXAMS]: '/exams',
-      [TABS.AI_EXAM]: '/ai-exam'
+      [TABS.AI_EXAM]: '/ai-exam',
+      [TABS.LEADERBOARD]: '/leaderboard'
     };
     navigate(fallbackPaths[tabKey] || '/');
   };
@@ -227,7 +263,7 @@ export default function Navbar({
           </div>
 
           {/* Horizontal Function Tabs */}
-          <nav className="category-tabs" role="tablist">
+          <motion.nav layoutScroll className="category-tabs" role="tablist" ref={tabsRef}>
             {/* Tab: Trang chủ */}
             <button
               role="tab"
@@ -342,6 +378,16 @@ export default function Navbar({
                 )}
               </span>
             </button>
+            <button type="button" role="tab" aria-selected={isLeaderboardActive}
+              className={`nav-tab-btn ${isLeaderboardActive ? 'active' : ''}`}
+              style={isLeaderboardActive ? { background: 'var(--color-primary-hover)', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' } : undefined}
+              onClick={() => go(TABS.LEADERBOARD)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.LEADERBOARD)}
+              onFocus={() => onPrefetchTab?.(TABS.LEADERBOARD)} id="tab-leaderboard">
+              {isLeaderboardActive && <motion.div layoutId="active-tab-highlight" className="nav-tab-active-pill"
+                style={{ borderRadius: 14, background: 'var(--color-primary-hover)', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }} transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill} />}
+              <span className="nav-tab-inner"><Trophy size={17} /><span className="nav-tab-label">Bảng thành tích</span></span>
+            </button>
             <button
               type="button"
               className="nav-tab-btn is-demo-locked"
@@ -358,7 +404,7 @@ export default function Navbar({
                 </span>
               </span>
             </button>
-          </nav>
+          </motion.nav>
         </div>
       </div>
     </motion.header>
