@@ -59,9 +59,11 @@ export function cleanExplanation(text) {
     .trim();
 }
 
-/** Bỏ tiền tố "A. ", "B) " ở đầu phương án */
+/** Bỏ nhãn phương án cũ trước khi đảo; giữ đường dẫn như C:\\ hoặc D:/ */
 export function stripOptionPrefix(option) {
-  return String(option || '').replace(/^\s*[A-D]\s*[.)]\s*/i, '').trim();
+  return String(option ?? '')
+    .replace(/^\s*[A-D]\s*(?:[.)]|[:：](?![\\/]))\s*/i, '')
+    .trim();
 }
 
 // ------------------------------------------------------------
@@ -290,7 +292,7 @@ function parseLabelledText(text) {
   const labels = {
     stem: /^\s*(?:c[âa]u\s*h[ỏo]i|cau\s*hoi)\s*[:：]\s*(.+)$/i,
     scenario: /^\s*(?:t[ìi]nh\s*hu[ốo]ng|tinh\s*huong)\s*[:：]\s*(.+)$/i,
-    option: /^\s*([A-D])\s*[.)]\s*(.+)$/i,
+    option: /^\s*([A-D])\s*[.):：]\s*(.+)$/i,
     answer: /^\s*(?:[đd][áa]p\s*[áa]n|dap\s*an|answer)\s*[:：]\s*(.+)$/i,
     explanation: /^\s*(?:gi[ảa]i\s*th[íi]ch|giai\s*thich|explanation)\s*[:：]\s*(.+)$/i,
     // đúng/sai: "a) Nội dung — Đúng" hoặc "a) Nội dung (Sai)"
@@ -402,7 +404,7 @@ function extractOptions(record) {
   if (!Array.isArray(raw)) return [];
   return raw.map((option) => {
     if (option && typeof option === 'object') {
-      return String(option.text ?? option.noi_dung ?? option.label ?? '').trim();
+      return stripOptionPrefix(option.text ?? option.noi_dung ?? option.label ?? '');
     }
     return stripOptionPrefix(option);
   });

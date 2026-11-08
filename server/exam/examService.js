@@ -13,6 +13,7 @@ import {
   POOL_EMPTY_MESSAGE,
   POOL_TARGET,
   RATE_LIMIT,
+  SOURCE_BASENAMES,
   describeLayout,
   ensureDirs,
 } from './config.js';
@@ -75,9 +76,21 @@ export async function getPool({ forceReload = false } = {}) {
  * Thiếu câu KHÔNG phải lỗi chặn: builder sẽ tái phân bổ. Chỉ chặn khi
  * tổng số câu không đủ 24.
  */
-export function validatePool(pool) {
+export function validatePool(pool, { requireSourceFiles = false } = {}) {
   const problems = [];
   const warnings = [];
+
+  // Deploy phải kiểm tra nguồn VPS, không để ngân hàng fallback che file thiếu/hỏng.
+  if (requireSourceFiles) {
+    for (const [topic, basename] of Object.entries(SOURCE_BASENAMES)) {
+      const file = pool.stats?.files?.find((item) => item.topic === topic);
+      if (!file || file.accepted === 0) {
+        problems.push(`Nguồn ${basename}: thiếu file hoặc không có câu hỏi đọc được`);
+      } else if (file.rejected > 0) {
+        problems.push(`Nguồn ${file.file}: có ${file.rejected} bản ghi sai định dạng`);
+      }
+    }
+  }
 
   const totalMcq = Object.values(pool.mcq || {}).reduce(
     (sum, list) => sum + list.length,

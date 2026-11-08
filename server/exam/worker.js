@@ -5,18 +5,27 @@
 //  Chạy định kỳ bằng cron/pm2 (KHÔNG dùng while(true) trong process API):
 //    node server/exam/worker.js              → bù tới mục tiêu rồi thoát
 //    node server/exam/worker.js --check      → chỉ in trạng thái, không ghi
+//    node server/exam/worker.js --check --strict → chặn nguồn thiếu/hỏng khi deploy
 //    node server/exam/worker.js --reset      → xoá sạch kho đề rồi bù lại
 //    node server/exam/worker.js --loop       → vòng lặp 10 phút (chỉ dev)
 //    node server/exam/worker.js --simulate 3 → sinh thử, in cấu trúc đề
 //
 //  Cron trên VPS (aaPanel hoặc crontab), mỗi 10 phút:
-//    */10 * * * * cd /www/wwwroot/mewtinhoc && node server/exam/worker.js >> /var/log/mewtinhoc-exam.log 2>&1
+//    */10 * * * * cd /www/wwwroot/MewTinHoc && node server/exam/worker.js >> /var/log/mewtinhoc-exam.log 2>&1
 // ============================================================
 import fs from 'node:fs';
+import path from 'node:path';
 import {
   DATA_ROOT,
   LOCK_FILE,
   POOL_TARGET,
+  SOURCE_DIR,
+  SOURCE_BASENAMES,
+  SOURCE_EXTENSIONS,
+  EXAM_ROOT,
+  POOL_DIR,
+  SESSION_DIR,
+  TMP_DIR,
   describeLayout,
   ensureDirs,
 } from './config.js';
@@ -101,13 +110,31 @@ async function printStatus() {
   console.log('\n=== Kho câu hỏi ===');
   console.log(describePool(pool));
 
-  const { problems, warnings, plan } = validatePool(pool);
+  const strict = hasFlag('--strict');
+  const { problems, warnings, plan } = validatePool(pool, { requireSourceFiles: strict });
+  if (strict) {
+    for (const basename of Object.values(SOURCE_BASENAMES)) {
+      const files = SOURCE_EXTENSIONS.filter((ext) => fs.existsSync(path.join(SOURCE_DIR, basename + ext)));
+      if (files.length > 1) {
+        problems.push(`Nguồn ${basename}: cùng tồn tại .txt và .json; hãy chuyển bản cũ ra thư mục sao lưu`);
+      }
+    }
+    // Chạy dưới user www để phát hiện kho đề do root tạo nhưng không ghi được.
+    ensureDirs();
+    for (const dir of [EXAM_ROOT, POOL_DIR, SESSION_DIR, TMP_DIR]) {
+      try {
+        fs.accessSync(dir, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+      } catch {
+        problems.push(`Kho đề không đủ quyền đọc/ghi/truy cập: ${dir}`);
+      }
+    }
+  }
   if (warnings.length) {
     console.log('\n⚠ CẢNH BÁO:');
     warnings.forEach((warning) => console.log('  - ' + warning));
   }
   if (problems.length) {
-    console.log('\n✗ KHÔNG ĐỦ CÂU:');
+    console.log('\n✗ KIỂM TRA KHO CÂU HỎI THẤT BẠI:');
     problems.forEach((problem) => console.log('  - ' + problem));
   } else {
     console.log('\n✓ Kho câu hỏi đủ để sinh đề');

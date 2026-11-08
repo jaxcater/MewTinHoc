@@ -2,7 +2,7 @@
 //  Cấu hình tính năng "Gen đề thi thử"
 //
 //  Bố cục production (theo yêu cầu):
-//    /www/wwwroot/mewtinhoc      ← repo web (docroot = mewtinhoc/dist)
+//    /www/wwwroot/MewTinHoc      ← repo web (docroot = MewTinHoc/dist)
 //    /www/wwwroot/sourcedethi    ← nguồn câu hỏi (.txt hoặc .json)
 //    /www/wwwroot/dethicosan     ← kho đề đã sinh (pool/, sessions/, tmp/)
 //

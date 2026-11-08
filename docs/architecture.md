@@ -273,9 +273,10 @@ Yêu cầu nghiệp vụ: **ẩn tình hình kho** khỏi học viên. API `clai
 ### A. VPS — `.github/workflows/deploy-vps.yml` (đường chính)
 
 ```
-git archive HEAD → tar → rsync (--delete, --chown=www:www) → VPS
+test pipeline đề → git archive HEAD → tar → rsync (--delete, --chown=www:www) → VPS
   → ghi .env.local từ GitHub Secrets (chmod 600, chown www:www)
-  → su www: npm ci --include=dev
+  → cố định EXAM_DATA_ROOT=/www/wwwroot trong .env.local và môi trường PM2
+  → su www: npm ci --include=dev → npm run exam:check -- --strict
   → su www: rm -rf dist && npm run build && test -f dist/index.html
   → pm2 restart mewtinhoc --update-env  (hoặc pm2 start nếu lần đầu)
   → kiểm tra pm2 online + curl / trả 200 (lặp 5 lần)
@@ -293,6 +294,13 @@ git archive HEAD → tar → rsync (--delete, --chown=www:www) → VPS
 **Vì sao `npm ci --include=dev`:** Vite nằm trong `devDependencies` nhưng cần để build.
 
 **Vì sao deploy kiểm tra HTTP chứ không tin exit code của `pm2 restart`:** `pm2 restart` báo thành công cả khi tiến trình chết ngay sau đó.
+
+**Vì sao kiểm tra nguồn trước build/restart:** HTTP 200 của SPA không chứng minh
+ngân hàng câu hỏi đọc được. Chế độ `--strict` bắt buộc đủ 10 file nguồn có câu
+dùng được, không có bản ghi sai định dạng, không đồng thời có `.txt` và `.json`
+cùng tên (tránh nguồn cũ che nguồn mới), đồng thời kiểm tra quyền đọc/ghi/truy cập
+các thư mục kho đề bằng user `www`. `sourcedethi/` và `dethicosan/` được exclude
+khỏi rsync, ngân hàng được upload riêng tại `/www/wwwroot/sourcedethi/`.
 
 ---
 

@@ -20,6 +20,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Chặn lỗi pipeline đề thi trước khi đồng bộ bất kỳ code nào lên VPS.
+      - name: Verify exam pipeline
+        run: |
+          npm ci --include=dev
+          node --test server/exam/optionLabels.test.js
+
       # Repo này là PRIVATE, nên VPS KHÔNG thể `git fetch` từ GitHub bằng
       # HTTPS (nó trả "could not read Username"). Bản cũ dựa vào git trên
       # máy chủ nên deploy luôn chết ở bước fetch. Ở đây ta đóng gói đúng
@@ -58,6 +70,8 @@ jobs:
             --exclude '.env.local' \
             --exclude '.evn.local' \
             --exclude 'var' \
+            --exclude 'sourcedethi' \
+            --exclude 'dethicosan' \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
             /tmp/site/ "root@176.111.220.220:/www/wwwroot/MewTinHoc/"
 
@@ -125,7 +139,8 @@ jobs:
             write_env GEMINI_MODEL "$ENV_GEMINI_MODEL"
             # Cố ý KHÔNG ghi EXAM_KEY_SECRET: đổi khoá này sẽ làm toàn bộ đề đã
             # sinh trong dethicosan/ không đọc được nữa.
-            # Cũng KHÔNG ghi EXAM_DATA_ROOT: mặc định đã đúng là /www/wwwroot.
+            # Web và nguồn là các thư mục anh em; PM2 cũ có thể giữ root sai.
+            write_env EXAM_DATA_ROOT /www/wwwroot
 
             chmod 600 .env.local
             # Bắt buộc: script này chạy bằng root, còn app chạy bằng www.
@@ -163,6 +178,11 @@ jobs:
 
               # Vite nằm trong devDependencies nên phải cài đầy đủ dependency.
               npm ci --include=dev
+
+              # Cùng root với app PM2, kiểm tra bằng user thực sự phục vụ web.
+              # Thiếu nguồn, nguồn hỏng, trùng .txt/.json hoặc sai quyền đều dừng deploy.
+              export EXAM_DATA_ROOT=/www/wwwroot
+              npm run exam:check -- --strict
 
               # Dọn dist cũ TRƯỚC khi build: nếu build lỗi mà dist cũ còn đó
               # thì `test -f dist/index.html` vẫn pass và deploy sẽ "xanh" với

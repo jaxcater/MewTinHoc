@@ -73,7 +73,7 @@
 | HTTP server (prod) | `server/server.js` | `npm run server`, PORT mặc định 3001 |
 | Dev server | `vite.config.js` | `npm run dev`, gắn middleware `/api/*` |
 | Cron worker | `server/exam/worker.js` | `npm run exam:refill` (cron mỗi 10 phút) |
-| CI deploy | `.github/workflows/deploy-vps.yml` | rsync → VPS → npm ci → build → PM2 restart |
+| CI deploy | `.github/workflows/deploy-vps.yml` | Test pipeline đề → rsync → VPS → npm ci → kiểm tra nguồn `exam:check -- --strict` bằng user `www` → build → PM2 restart; cố định data root `/www/wwwroot` |
 
 ### Route frontend (`src/App.jsx`)
 

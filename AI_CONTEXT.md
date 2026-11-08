@@ -109,7 +109,7 @@ Phân tách trách nhiệm frontend:
 | `server/exam/config.js` | Hằng số nghiệp vụ: ma trận đề, thời lượng, hạn mức, đường dẫn dữ liệu |
 | `server/exam/grading.js` | Chấm điểm Phần I/II + validate shape bài làm |
 | `server/exam/auth.js` | Xác minh Bearer token với Supabase; phân biệt user thật / khách theo IP |
-| `server/exam/worker.js` | Cron job bù đề (`npm run exam:refill` / `--check` / `--reset` / `--simulate`) |
+| `server/exam/worker.js` | Cron job bù đề (`npm run exam:refill` / `--check` / `--reset` / `--simulate`); deploy dùng `--check --strict` để chặn nguồn thiếu/hỏng, trùng `.txt`/`.json` và kho đề thiếu quyền |
 | `server/ai/aiMiddleware.js` | `/api/ai/status` + `/api/ai/review`, rate limit theo user/IP, **hoàn lượt khi lỗi do upstream** |
 | `server/ai/geminiService.js` | Gọi Gemini, danh sách model fallback, chuẩn hoá lỗi theo mã |
 | `server/ai/systemInstruction.js` | System prompt cho Gemini (gia sư Tin học) |

@@ -21,6 +21,7 @@ import {
 } from './config.js';
 import { keyHealthCheck, openJson, readSealedFile, sealJson } from './crypto.js';
 import { gradeExam } from './grading.js';
+import { stripOptionPrefix } from './questionPool.js';
 
 /** Tên file trong pool: ict-<uuid>.dat (mã hoá) hoặc .json (bản cũ) */
 const POOL_FILE_RE = /^(ict|cs)-([0-9a-f-]{36})\.(dat|json)$/i;
@@ -36,15 +37,30 @@ function writeBufferAtomic(targetPath, buffer) {
   fs.renameSync(tmpPath, targetPath);
 }
 
+/**
+ * Đề đã sinh có thể còn nhãn A:/B: từ nguồn cũ. Chỉ sửa nội dung trong RAM,
+ * giữ nguyên vị trí phương án và keyData để chấm đúng cả session đang làm.
+ */
+function normalizeStoredOptions(payload) {
+  if (Array.isArray(payload?.publicExam?.partI)) {
+    for (const question of payload.publicExam.partI) {
+      if (Array.isArray(question?.options)) {
+        question.options = question.options.map(stripOptionPrefix);
+      }
+    }
+  }
+  return payload;
+}
+
 /** Đọc file đề đã mã hoá; fallback đọc JSON thô cho dữ liệu cũ */
 function readExamFile(filePath) {
   const sealed = readSealedFile(filePath);
-  if (sealed) return sealed;
+  if (sealed) return normalizeStoredOptions(sealed);
 
   // Bản cũ (JSON thô) — chỉ để tương thích, worker sẽ sinh lại dần
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(raw);
+    return normalizeStoredOptions(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -269,7 +285,7 @@ export function readSession(examId) {
   const legacy = path.join(SESSION_DIR, `${examId}.json`);
   if (fs.existsSync(legacy)) {
     try {
-      return JSON.parse(fs.readFileSync(legacy, 'utf8'));
+      return normalizeStoredOptions(JSON.parse(fs.readFileSync(legacy, 'utf8')));
     } catch {
       return null;
     }
