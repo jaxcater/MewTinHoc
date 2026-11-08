@@ -37,6 +37,10 @@ server/exam/.key-secret
 # Artifact tam cua taste-skill inspector
 .taste-skill/
 
+# Artifacts sinh tu dong (anh render, screenshot, tai lieu bien tap) — khong commit
+artifacts/
+.tmp-*/
+
 # Wiki sinh tự động cua Qoder (da thay bang AI_CONTEXT.md + docs/)
 .qoder/
 
