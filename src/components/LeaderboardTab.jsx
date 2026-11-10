@@ -7,6 +7,7 @@ import { getGoogleAvatarUrl, getOvertakeGap } from '../lib/leaderboardModel';
 import { DURATIONS, EASINGS, leaderboardHonorsVariants, leaderboardHonorVariants } from '../variants';
 import badgeAtlas from '../assets/leaderboard/rank-badges.png';
 import './leaderboard.css';
+import FeatureBanner from './FeatureBanner';
 
 const number = new Intl.NumberFormat('vi-VN');
 const compact = new Intl.NumberFormat('vi-VN', { notation: 'compact', maximumFractionDigits: 1 });
@@ -68,13 +69,16 @@ export default function LeaderboardTab({ user }) {
 
   return <div className="leaderboard" style={{ '--lb-motion-duration': `${DURATIONS.micro}s`,
     '--lb-sheen-duration': `${DURATIONS.countUp}s`, '--lb-sheen-delay': `${DURATIONS.tabSwitch}s` }}>
-    <header className="lb-header">
-      <div><h1>Bảng thành tích<span className="lb-title-dot" aria-hidden="true">.</span></h1><p>Mỗi lần học, một bước tiến. Cùng Mew chinh phục đỉnh tri thức.</p></div>
+    <FeatureBanner variant="leaderboard" eyebrow="MewTinHoc · Bảng thành tích"
+      title={<>Bảng thành tích<span aria-hidden="true">.</span></>}
+      description="Mỗi lần học, một bước tiến. Cùng Mew chinh phục đỉnh tri thức.">
+      <div className="lb-banner-footer">
       <button type="button" className="lb-refresh" onClick={reload} disabled={loading || isDemo} aria-label="Làm mới bảng thành tích">
         <motion.span animate={{ rotate: loading && !reduced ? 360 : 0 }} transition={loading && !reduced ? { duration: DURATIONS.countUp, repeat: Infinity, ease: 'linear' } : motionTokens}><RefreshCw size={16} aria-hidden="true" /></motion.span>
         <span>Làm mới</span>
       </button>
-    </header>
+      </div>
+    </FeatureBanner>
 
     <div className="lb-context"><span><span className="lb-context-dot" aria-hidden="true" />EXP toàn thời gian</span></div>
 

@@ -27,8 +27,10 @@ function harness(options = {}) {
   const opts = { now: () => time, ...options };
   const service = createBattleService(storage, opts);
   const enter = (id, mode = 'random', code) => service.enter(id, mode, { name: id }, code);
-  function start() {
-    const room = enter('a'); enter('b'); enter('c');
+  function start(mode = 'random') {
+    const room = enter('a', mode);
+    enter('b', mode === 'private' ? 'join' : 'random', room.code);
+    enter('c', mode === 'private' ? 'join' : 'random', room.code);
     for (const id of ['a', 'b', 'c']) service.mutate(id, 'ready', { roomId: room.id, ready: true });
     time += 3000;
     return service.state('a');
@@ -167,9 +169,56 @@ test('hết 15 phút tự nộp cả bài trống, phục hồi trận sau resta
   assert.equal(state.results.find(p => p.id === 'b').score, 0);
 });
 
+test('phòng riêng thưởng 50/20/0 cho cả chủ phòng và người tham gia, giữ khoản thưởng sau restart', async () => {
+  let paid;
+  const h = harness({ reward: async room => { paid = room.results; return true; } });
+  const room = h.start('private');
+  // Người tham gia thắng, chủ phòng hạng ba: thưởng theo hạng của cả phòng.
+  for (const id of ['b', 'c', 'a']) {
+    h.fill(id); h.advance(10000);
+    h.service.mutate(id, 'submit', { roomId: room.id });
+  }
+  const restored = createBattleService(h.storage, h.opts);
+  assert.deepEqual(restored.state('a').results.map(p => [p.id, p.xp]), [['b', 50], ['c', 20], ['a', 0]]);
+  await restored.tick();
+  assert.deepEqual(paid.map(p => p.xp), [50, 20, 0]);
+  assert.equal(restored.state('b').rewardStatus, 'paid');
+});
+
 test('phòng chờ hết heartbeat được giải phóng', async () => {
   const h = harness(); h.enter('a', 'private'); h.advance(121000); await h.service.tick();
   assert.equal(h.service.state('a'), null);
+});
+
+test('hết lượt nhận 0 EXP vẫn giữ điểm/hạng trận; lưu biên nhận sau restart và không trả lại', async () => {
+  let awards = 0;
+  const h = harness({ reward: async room => {
+    awards++;
+    assert.deepEqual(room.results.map(p => p.xp), [50, 20, 0]);
+    return { players: [
+      { id: room.results[0].id, awardedXp: 0, limitReached: true, used: 10 },
+      { id: room.results[1].id, awardedXp: 20, limitReached: false, used: 1 },
+    ] };
+  } });
+  const room = h.start('private');
+  for (const id of ['a', 'b', 'c']) {
+    h.fill(id); h.advance(10000);
+    h.service.mutate(id, 'submit', { roomId: room.id });
+  }
+  const before = h.service.state('a').results;
+  await h.service.tick();
+  const settled = h.service.state('a');
+  assert.equal(settled.rewardStatus, 'paid');
+  assert.deepEqual(settled.results.map(p => p.awardedXp), [0, 20, 0]);
+  assert.equal(settled.results[0].rewardLimitReached, true);
+  assert.equal(settled.results[1].rewardUsed, 1);
+  assert.deepEqual(settled.results.map(p => [p.rank, p.score]), before.map(p => [p.rank, p.score]));
+  const restored = createBattleService(h.storage, h.opts);
+  await restored.tick();
+  assert.equal(awards, 1);
+  assert.equal(restored.state('a').results[0].awardedXp, 0);
+  h.service.leave('a', room.id);
+  assert.notEqual(h.enter('a', 'private').id, room.id);
 });
 
 test('lỗi ghi không làm thay đổi câu trả lời trong RAM', () => {

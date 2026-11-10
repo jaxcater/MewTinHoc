@@ -191,9 +191,14 @@ export function createBattleService(storage, { now = Date.now, reward = async ()
     rewarding.add(room.id);
     retryAfter.set(room.id, now() + 30000);
     try {
-      if (await reward(room)) {
+      const receipt = await reward(room);
+      if (receipt) {
         const current = rooms.get(room.id);
-        if (current) commit({ ...current, rewardStatus: 'paid' });
+        if (current) commit({ ...current, rewardStatus: 'paid', results: current.results.map(player => {
+          const applied = receipt.players?.find(p => p.id === player.id);
+          return { ...player, awardedXp: applied?.awardedXp ?? player.xp,
+            rewardLimitReached: applied?.limitReached ?? false, rewardUsed: applied?.used ?? null };
+        }) });
       }
     } catch (error) { console.warn('[battle] Chưa đồng bộ EXP:', error.message); }
     finally { rewarding.delete(room.id); }

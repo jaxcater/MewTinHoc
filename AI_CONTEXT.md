@@ -168,7 +168,7 @@ Phân tách trách nhiệm frontend:
 - Backend `server/battle/`: ghép/tạo phòng 3 người, cùng đề 18 MCQ + 2 đúng/sai chung trộn lẫn, 15 phút, xếp hạng chính xác + tốc độ server. Chỉ hiện kết quả khi tất cả nộp.
 - `server/exam/questionPool.js:loadBattleQuestionPool` chỉ đọc C1–C7 và dungsaiChung; kho `<DATA_ROOT>/battle` mã hoá bằng khoá riêng, mục tiêu 100 đề, runtime bù mỗi 5 phút.
 - Snapshot trận và outbox thưởng lưu mã hoá; khôi phục trận sau restart. Một tiến trình Node. API `/api/battle/*` xác thực Supabase, không gửi đáp án.
-- Hạng 1/2 nhận 100/50 EXP qua RPC service-role idempotent. Cần kích hoạt `docs/battle.sql` và `SUPABASE_SERVICE_ROLE_KEY`; chưa cấu hình thì thưởng ở trạng thái chờ đồng bộ. Hướng dẫn đầy đủ: `docs/battle-deploy.md`.
+- Hạng 1/2 nhận 100/50 EXP khi ghép ngẫu nhiên, 50/20 EXP trong phòng riêng; hạng 3 nhận 0. Mỗi tài khoản nhận EXP tối đa 10 lần/ngày cho từng chế độ, theo ngày kết thúc trận giờ VN; hạng 3 không dùng lượt. RPC service-role idempotent trả EXP thực nhận sau khi kiểm tra hạn mức trong SQL. Cần kích hoạt `docs/battle.sql` và `SUPABASE_SERVICE_ROLE_KEY`; chưa cấu hình thì thưởng ở trạng thái chờ đồng bộ. Hướng dẫn đầy đủ: `docs/battle-deploy.md`.
 
 ### Quy trình chuẩn cho mỗi task
 

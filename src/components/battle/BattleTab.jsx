@@ -1,9 +1,10 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, CheckCheck, Clock3, Copy, Flag, KeyRound, LoaderCircle, Swords, Trophy, Users, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCheck, Clock3, Copy, Flag, KeyRound, LoaderCircle, Trophy, Users, Zap } from 'lucide-react';
 import { useBattle } from '../../lib/useBattle';
 import { resolveAvatarSrc, nextAvatarFallbackSrc } from '../../lib/defaultAvatar';
 import { EASINGS, DURATIONS, SPRINGS } from '../../variants';
+import FeatureBanner from '../FeatureBanner';
 import './battle.css';
 
 function Avatar({ player, className = '' }) {
@@ -48,26 +49,36 @@ function Clock({ room, offset }) {
   </span>;
 }
 
+function ModeRewards({ privateRoom = false }) {
+  const rewards = privateRoom ? [50, 20, 0] : [100, 50, 0];
+  return <span className="battle-mode-rewards" aria-label="Thưởng EXP theo thứ hạng">
+    {rewards.map((xp, index) => <span key={index}>
+      <small>Hạng {index + 1}</small><b>+{xp}<span> EXP</span></b>
+    </span>)}
+  </span>;
+}
+
 function ModeSelection({ enter, busy }) {
   const [code, setCode] = useState('');
   return <>
-    <div className="battle-intro"><div><span className="battle-eyebrow">MewTinHoc · Đấu trường</span>
-      <h1>Kiến thức lên tiếng.<br /><span>Tốc độ tạo khác biệt.</span></h1>
-      <p>Ba người, cùng một đề. Chọn chính xác, bứt tốc đúng lúc và giành vị trí dẫn đầu.</p></div>
-      <div className="battle-emblem" aria-hidden="true"><Swords strokeWidth={1.4} /><span>3</span></div>
-    </div>
-    <div className="battle-facts"><span><Users size={17} /> 3 người / trận</span><span><Flag size={17} /> 20 câu hỏi</span><span><Clock3 size={17} /> 15 phút</span><span><Trophy size={17} /> Tối đa 100 EXP</span></div>
+    <FeatureBanner variant="arena" eyebrow="MewTinHoc · Đấu trường"
+      title={<>Kiến thức lên tiếng.<br /><span>Tốc độ tạo khác biệt.</span></>}
+      description="Ba người, cùng một đề. Chọn chính xác, bứt tốc đúng lúc và giành vị trí dẫn đầu.">
+      <div className="battle-facts"><span><Users size={17} /> 3 người / trận</span><span><Flag size={17} /> 20 câu hỏi</span><span><Clock3 size={17} /> 15 phút</span><span><Trophy size={17} /> Tối đa 100 EXP</span></div>
+    </FeatureBanner>
     <div className="battle-modes">
       <button className="battle-mode battle-mode-random" disabled={busy} onClick={() => enter('random')}>
         <div className="battle-mode-art" aria-hidden="true"><Zap size={52} strokeWidth={1.4} /><span className="battle-orbit">×3</span></div>
         <span className="battle-mode-copy"><strong>Ghép ngẫu nhiên</strong><span>Gặp hai đối thủ mới.<br />Sẵn sàng cho một cuộc đua?</span></span>
+        <ModeRewards />
         <span className="battle-mode-cta">{busy ? 'Đang kết nối…' : 'Tìm trận'}<ArrowRight size={20} /></span>
       </button>
-      <div className="battle-mode battle-mode-private">
+      <button className="battle-mode battle-mode-private" disabled={busy} onClick={() => enter('private')}>
         <div className="battle-mode-art" aria-hidden="true"><Users size={52} strokeWidth={1.4} /></div>
-        <div className="battle-mode-copy"><h2>Đấu cùng bạn bè</h2><p>Tạo phòng riêng, gửi mã mời.<br />Cùng nhau chinh phục 20 câu.</p></div>
-        <button className="battle-mode-cta" disabled={busy} onClick={() => enter('private')}>Tạo phòng<ArrowRight size={20} /></button>
-      </div>
+        <span className="battle-mode-copy"><strong>Đấu cùng bạn bè</strong><span>Tạo phòng riêng, gửi mã mời.<br />Cùng nhau chinh phục 20 câu.</span></span>
+        <ModeRewards privateRoom />
+        <span className="battle-mode-cta">{busy ? 'Đang kết nối…' : 'Tạo phòng'}<ArrowRight size={20} /></span>
+      </button>
     </div>
     <form className="battle-join" onSubmit={e => { e.preventDefault(); if (code.length === 8) enter('join', code); }}>
       <label htmlFor="battle-code"><KeyRound size={18} /> Đã có mã phòng?</label>
@@ -75,7 +86,8 @@ function ModeSelection({ enter, busy }) {
         placeholder="Nhập mã 8 ký tự" autoComplete="off" spellCheck={false} maxLength={8} />
       <button className="battle-button secondary" disabled={busy || code.length !== 8}>Vào phòng<ArrowRight size={16} /></button>
     </form>
-    <details className="battle-rules"><summary>Cách tính điểm và phần thưởng</summary><p>Mỗi câu tối đa 100 điểm chính xác + 30 điểm tốc độ. Câu đúng/sai tính 25 điểm mỗi ý đúng; thưởng tốc độ theo tỷ lệ ý đúng. Thời gian tính từ lúc bắt đầu trận đến lần đổi lựa chọn cuối cùng mà server nhận được. Sai không được điểm.</p><p>Hạng 1 nhận 100 EXP, hạng 2 nhận 50 EXP, hạng 3 nhận 0 EXP. Nếu bằng điểm, ưu tiên người nộp sớm; nếu vẫn bằng nhau, thứ tự ID tài khoản quyết định. Chỉ được nộp khi hoàn thành đủ 20 câu. Hết 15 phút, hệ thống tự nộp phần đã lưu.</p></details>
+    <p className="battle-quota-note"><Clock3 size={17} aria-hidden="true" /><span>Mỗi chế độ có tối đa 10 lượt nhận EXP/ngày, làm mới lúc 00:00 giờ Việt Nam. Hết lượt vẫn chơi bình thường; hạng 3 không dùng lượt.</span></p>
+    <details className="battle-rules"><summary>Cách tính điểm và phần thưởng</summary><p>Mỗi câu tối đa 100 điểm chính xác + 30 điểm tốc độ. Câu đúng/sai tính 25 điểm mỗi ý đúng; thưởng tốc độ theo tỷ lệ ý đúng. Thời gian tính từ lúc bắt đầu trận đến lần đổi lựa chọn cuối cùng mà server nhận được. Sai không được điểm.</p><p>Ghép ngẫu nhiên: hạng 1 nhận 100 EXP, hạng 2 nhận 50 EXP. Phòng riêng: hạng 1 nhận 50 EXP, hạng 2 nhận 20 EXP. Hạng 3 nhận 0 EXP ở cả hai chế độ.</p><p>Mỗi tài khoản được nhận EXP tối đa 10 lần mỗi ngày cho từng chế độ. Chỉ lần thực sự được cộng EXP mới dùng lượt. Tính ngày theo thời điểm kết thúc trận, giờ Việt Nam; sau giới hạn vẫn tính điểm và xếp hạng trận, nhưng nhận 0 EXP.</p><p>Nếu bằng điểm, ưu tiên người nộp sớm; nếu vẫn bằng nhau, thứ tự ID tài khoản quyết định. Chỉ được nộp khi hoàn thành đủ 20 câu. Hết 15 phút, hệ thống tự nộp phần đã lưu.</p></details>
   </>;
 }
 
@@ -83,26 +95,51 @@ function Lobby({ room, ready, leave, busy }) {
   const me = room.players.find(p => p.id === room.me);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const privateRoom = room.mode === 'private';
+  const readyCount = room.players.filter(p => p.ready).length;
   return <div className="battle-lobby">
     <button className="battle-back" onClick={leave} disabled={busy}><ArrowLeft size={17} /> Chọn chế độ khác</button>
-    <span className="battle-eyebrow">{room.mode === 'private' ? 'Phòng riêng của bạn' : 'Ghép trận ngẫu nhiên'}</span>
-    <h1>{room.players.length < 3 ? 'Chờ đồng đội vào sân.' : 'Đủ mặt. Sẵn sàng thôi!'}</h1>
-    <p>{room.mode === 'private' ? 'Gửi mã bên dưới cho hai người bạn. Mã sẽ đổi khi chủ phòng rời và tạo lại.' : 'Hệ thống đang tìm đủ ba người. Mỗi người nhấn sẵn sàng để bắt đầu.'}</p>
-    {room.mode === 'private' && <div className="battle-room-code"><span>{room.code}</span><button aria-label="Sao chép mã phòng" onClick={async () => {
-      try { await navigator.clipboard.writeText(room.code); setCopied(true); setCopyFailed(false); }
-      catch { setCopyFailed(true); }
-    }}>{copied ? <Check size={20} /> : <Copy size={20} />}</button></div>}
-    {copyFailed && <p role="status">Hãy chọn mã phòng phía trên để sao chép.</p>}
-    <div className="battle-seats">{Array.from({ length: 3 }, (_, i) => {
-      const player = room.players[i];
-      return <div className={`battle-seat ${player?.ready ? 'is-ready' : ''}`} key={player?.id || i}>
-        {player ? <Avatar player={player} /> : <div className="battle-empty-avatar"><Users size={30} /></div>}
-        <strong>{player ? player.id === room.me ? `${player.name} (Bạn)` : player.name : 'Đang chờ người chơi'}</strong>
-        <span>{player?.ready ? <><Check size={16} /> Đã sẵn sàng</> : player ? 'Chưa sẵn sàng' : 'Một chỗ dành cho đối thủ'}</span>
-      </div>;
-    })}</div>
-    <button className="battle-button" disabled={busy} onClick={() => ready(!me.ready)}>{me.ready ? 'Huỷ sẵn sàng' : 'Tôi đã sẵn sàng'}<Check size={18} /></button>
-    <p className="battle-muted" role="status">{room.players.filter(p => p.ready).length}/3 người đã sẵn sàng · 20 câu · 15 phút</p>
+    <FeatureBanner variant="arena" eyebrow={privateRoom ? 'MewTinHoc · Phòng riêng' : 'MewTinHoc · Ghép ngẫu nhiên'}
+      title={room.players.length < 3 ? <>Chờ đồng đội <span>vào sân.</span></> : <>Đủ mặt. <span>Sẵn sàng thôi!</span></>}
+      description={room.players.length === 3 ? 'Đã đủ ba người trong phòng. Cùng xác nhận sẵn sàng để bắt đầu cuộc đua.' : privateRoom ? 'Gửi mã mời cho hai người bạn. Cùng vào vị trí, sẵn sàng và bắt đầu cuộc đua.' : 'Đang tìm đủ ba người. Vào vị trí, sẵn sàng và để kiến thức lên tiếng.'}>
+      <div className="battle-facts">
+        <span><Users size={17} /> {room.players.length}/3 người đã vào</span>
+        <span><CheckCheck size={17} /> {readyCount}/3 đã sẵn sàng</span>
+        <span><Flag size={17} /> 20 câu hỏi</span><span><Clock3 size={17} /> 15 phút</span>
+      </div>
+    </FeatureBanner>
+    {privateRoom && <div className="battle-invite">
+      <div className="battle-invite-copy"><KeyRound size={22} aria-hidden="true" /><div><strong>Mã mời bạn bè</strong><p>Gửi mã này để cùng vào phòng.</p></div></div>
+      <div className="battle-room-code"><span>{room.code}</span><button aria-label="Sao chép mã phòng" onClick={async () => {
+        try { await navigator.clipboard.writeText(room.code); setCopied(true); setCopyFailed(false); }
+        catch { setCopyFailed(true); }
+      }}>{copied ? <Check size={20} /> : <Copy size={20} />}</button></div>
+      <span className="battle-copy-status" role="status">{copyFailed ? 'Hãy chọn mã phía trên để sao chép.' : copied ? 'Đã sao chép mã phòng' : 'Mã đổi khi chủ phòng tạo lại.'}</span>
+    </div>}
+    <section className="battle-lobby-team" aria-labelledby="battle-team-title">
+      <div className="battle-team-heading"><h2 id="battle-team-title">Đội hình thi đấu</h2><span>{room.players.length}/3 vị trí đã có người</span></div>
+      <div className="battle-seats">{Array.from({ length: 3 }, (_, i) => {
+        const player = room.players[i];
+        const isMe = player?.id === room.me;
+        return <article className={`battle-seat${player ? ' is-occupied' : ' is-empty'}${isMe ? ' is-me' : ''}${player?.ready ? ' is-ready' : ''}`} key={player?.id || i}>
+          <div className="battle-seat-top"><span>Vị trí {i + 1}</span>{isMe && <span className="battle-seat-you">Bạn</span>}</div>
+          <div className="battle-seat-portrait">
+            {player ? <Avatar player={player} /> : <Users size={36} aria-hidden="true" />}
+            {player?.ready && <span className="battle-seat-check" aria-hidden="true"><Check size={16} /></span>}
+          </div>
+          <strong className="battle-seat-name" title={player?.name}>{player ? player.name : 'Đang chờ người chơi'}</strong>
+          <span className="battle-seat-status">{player?.ready ? <><Check size={15} /> Đã sẵn sàng</> : player ? <><Clock3 size={15} /> Chưa sẵn sàng</> : <><Users size={15} /> Chỗ dành cho đối thủ</>}</span>
+        </article>;
+      })}</div>
+    </section>
+    <div className="battle-lobby-action">
+      <div><strong>{me.ready ? 'Bạn đã vào vị trí!' : 'Sẵn sàng cho cuộc đua?'}</strong><p role="status">{readyCount}/3 người đã sẵn sàng · Trận bắt đầu khi cả ba xác nhận.</p></div>
+      <button className={`battle-button battle-ready-toggle${me.ready ? ' secondary' : ''}`} disabled={busy} onClick={() => ready(!me.ready)}>{me.ready ? 'Huỷ sẵn sàng' : 'Tôi đã sẵn sàng'}<Check size={18} /></button>
+    </div>
+    <div className="battle-lobby-details">
+      <p className="battle-lobby-reward"><Trophy size={16} aria-hidden="true" />{privateRoom ? 'Hạng 1 +50 · Hạng 2 +20 · Hạng 3 +0 EXP' : 'Hạng 1 +100 · Hạng 2 +50 · Hạng 3 +0 EXP'}</p>
+      <p>Tối đa 10 lượt nhận EXP/ngày ở chế độ này. Hết lượt vẫn có thể thi đấu.</p>
+    </div>
   </div>;
 }
 
@@ -190,16 +227,20 @@ function Waiting({ room, reduced, offset }) {
 
 function Results({ room, leave, busy, reduced }) {
   const me = room.results.find(p => p.id === room.me);
+  const awardedXp = me.awardedXp ?? (room.rewardStatus === 'paid' || me.xp === 0 ? me.xp : null);
   return <div className="battle-end battle-results"><Celebration rank={me.rank} reduced={reduced} />
     <span className="battle-eyebrow">Đấu trường · Kết quả cuối cùng</span>
     <h1>{me.rank === 1 ? 'Ngôi đầu thuộc về bạn!' : me.rank === 2 ? 'Một màn bứt tốc đáng nhớ!' : 'Mỗi trận là một bước tiến.'}</h1>
     <p>{me.rank < 3 ? 'Chúc mừng! Kiến thức và tốc độ của bạn đã tạo nên thành quả.' : 'Bạn đã có thêm một lần thử sức. Hẹn gặp ở cuộc đua tiếp theo.'}</p>
-    <div className="battle-exp">+{me.xp}<span>EXP</span></div>
-    {me.xp > 0 && <p className="battle-muted" role="status">{room.rewardStatus === 'paid' ? 'Đã cộng vào thành tích của bạn' : 'Phần thưởng đã ghi nhận · Đang chờ đồng bộ EXP'}</p>}
+    <div className="battle-exp">{awardedXp === null ? '…' : `+${awardedXp}`}<span>EXP</span></div>
+    {me.xp > 0 && <p className="battle-muted" role="status">{me.rewardLimitReached
+      ? 'Đã đạt giới hạn 10 lượt nhận EXP/ngày ở chế độ này. Bạn vẫn có thể tiếp tục thi đấu.'
+      : room.rewardStatus === 'paid' ? 'Đã cộng vào thành tích của bạn' : 'Đang kiểm tra lượt nhận thưởng và đồng bộ EXP'}</p>}
+    {awardedXp > 0 && me.rewardUsed != null && <p className="battle-muted">Đã dùng {me.rewardUsed}/10 lượt nhận EXP của chế độ này trong ngày kết thúc trận.</p>}
     <div className="battle-ranking">{room.results.map(p => <div key={p.id} className={`battle-rank-row ${p.id === room.me ? 'is-me' : ''}`}>
       <b className="battle-place">{p.rank === 1 ? <Trophy size={24} /> : `0${p.rank}`}</b><Avatar player={p} />
       <div className="battle-rank-person"><strong>{p.name}{p.id === room.me && ' (Bạn)'}</strong><span>{p.correctUnits.toLocaleString('vi-VN')} / 20 điểm đúng quy đổi · {p.autoSubmitted ? 'Tự nộp khi hết giờ' : 'Đã nộp bài'}</span></div>
-      <div className="battle-rank-score"><b>{p.score.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}</b><span>điểm</span></div><strong className="battle-rank-xp">+{p.xp} EXP</strong>
+      <div className="battle-rank-score"><b>{p.score.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}</b><span>điểm</span></div><strong className="battle-rank-xp">{p.awardedXp != null ? `+${p.awardedXp}` : room.rewardStatus === 'paid' || p.xp === 0 ? `+${p.xp}` : '…'} EXP</strong>
     </div>)}</div>
     <p className="battle-score-detail">Điểm của bạn: {me.accuracyPoints.toLocaleString('vi-VN')} chính xác + {me.speedPoints.toLocaleString('vi-VN', { maximumFractionDigits: 2 })} tốc độ.</p>
     <button className="battle-button" disabled={busy} onClick={leave}>Về sảnh đấu<ArrowRight size={18} /></button>

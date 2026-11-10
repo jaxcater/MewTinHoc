@@ -333,7 +333,8 @@ hết hạn thì tự hiện lại.
 - `server/battle/service.js`: phòng 3 người, sẵn sàng, deadline, snapshot, outbox; `grading.js`: chính xác/tốc độ/hạng.
 - `server/battle/builder.js` + `server/exam/questionPool.js:loadBattleQuestionPool`: nguồn C1–C7 + đúng/sai chung, trộn 20 câu.
 - `server/battle/storage.js`: `<DATA_ROOT>/battle/{pool,rooms}` mã hoá; `worker.js`: `battle:check`/`battle:refill`.
-- `server/battle/rewards.js` + `docs/battle.sql`: RPC cộng EXP chống lặp, bảng `battle_rewards`, trigger tổng EXP không giảm; `docs/battle-deploy.md`: vận hành/luật/triển khai.
+- `server/battle/rewards.js` + `docs/battle.sql`: RPC cộng EXP chống lặp (ngẫu nhiên 100/50/0, phòng riêng 50/20/0), ledger `battle_rewards` + `battle_reward_entries` giới hạn 10 lượt nhận EXP/ngày/chế độ theo giờ VN và lưu biên nhận; trigger tổng EXP không giảm; `docs/battle-deploy.md`: vận hành/luật/triển khai.
+- `src/components/FeatureBanner.jsx` + `feature-banner.css`: banner tĩnh dùng chung cho Đấu trường và Bảng thành tích.
 - `server/battle/battle.test.js`: kiểm thử nguồn, sinh đề, phòng, chấm, deadline, restart và mã hoá.
 
 | Bảng | Dùng bởi | Ghi chú |

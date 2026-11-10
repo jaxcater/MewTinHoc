@@ -13,7 +13,7 @@
 - Thời gian lấy lúc server nhận lựa chọn cuối cùng trừ thời điểm bắt đầu chung. Đổi lựa chọn tính lại thời gian cho cả câu; retry cùng lựa chọn giữ thời gian. Timestamp client không được dùng để tính điểm.
 - Chỉ được tự nộp khi đủ 20 câu và 8 ý đúng/sai. Server tự nộp khi hết 15 phút, kể cả mất kết nối/đóng trình duyệt. Bài trống được 0 điểm.
 - Nộp xong hiện màn chúc mừng/chờ. Chỉ công bố điểm, hạng sau khi cả 3 đã nộp. Không gửi đáp án đúng trong API.
-- Xếp theo điểm chưa làm tròn, rồi thời điểm nộp, cuối cùng ID tài khoản để quyết định trường hợp bằng nhau tuyệt đối. Thưởng lần lượt 100/50/0 EXP. Không có mùa giải/Elo ở phiên bản này.
+- Xếp theo điểm chưa làm tròn, rồi thời điểm nộp, cuối cùng ID tài khoản để quyết định trường hợp bằng nhau tuyệt đối. Ghép ngẫu nhiên thưởng lần lượt 100/50/0 EXP; phòng riêng (cả chủ phòng và người tham gia) thưởng 50/20/0 EXP. Không có mùa giải/Elo ở phiên bản này.
 
 ## Bố cục và vận hành
 
@@ -48,11 +48,23 @@ Node cũng chặn `/battle`, `/sourcedethi`, `/dethicosan`. Route giao diện l�
 
 1. Duyệt và chạy `docs/battle.sql` trong SQL Editor. Bản tương tự đã ghép cuối `docs/supabase-setup.sql` cho cài mới. Yêu cầu bảng `user_progress` hiện tại có `id`, `xp_total`; các trường còn lại cho phép default/NULL như luồng seed của app.
 2. Cấu hình `SUPABASE_URL` và **`SUPABASE_SERVICE_ROLE_KEY`** trên server. Không đặt service role key trong biến `VITE_*`, không đưa vào trình duyệt. Workflow nhận GitHub Secret cùng tên, giữ giá trị cũ khi secret mới trống theo `write_env` hiện có.
-3. Server gọi RPC `award_battle_rewards` sau khi trận kết thúc. Ledger theo `match_id` và hai lần cộng EXP cùng transaction: retry sau timeout/restart không cộng trùng.
-4. Bảng ledger bật RLS, không cấp SELECT/INSERT/UPDATE cho `anon` hoặc `authenticated`. Chỉ `service_role` được gọi RPC cộng thưởng.
+3. Server gọi RPC `award_battle_rewards` sau khi trận kết thúc, truyền EXP gốc đã lưu, `p_mode` và `p_finished_at` (timestamp mili giây từ server). RPC trả biên nhận EXP thực nhận; retry cùng trận trả lại biên nhận mà không cộng điểm hoặc dùng lượt nữa. Client không được gọi.
+4. Hai bảng ledger `battle_rewards` và `battle_reward_entries` bật RLS, không cấp SELECT/INSERT/UPDATE cho `anon` hoặc `authenticated`. Chỉ `service_role` được gọi RPC cộng thưởng.
 5. Trigger bảo vệ tổng EXP không giảm khi client cũ ghi snapshot trước lúc nhận Realtime. Các luồng XP cũ vẫn ghi từ client; đây không phải thay đổi toàn bộ cơ chế tin cậy XP của ứng dụng. Hai thao tác học đồng thời có thể vẫn mất phần tăng từ luồng cũ nếu cùng ghi tổng đã cũ; cần chuyển toàn bộ XP sang sự kiện server nếu muốn giải quyết triệt để.
 
 Nếu chưa cấu hình SQL/secret hoặc Supabase tạm lỗi, vẫn lưu kết quả và khoản thưởng trong outbox, UI hiện **Đang chờ đồng bộ EXP**. Chỉ báo **Đã cộng** sau RPC thành công. Không có fallback cộng EXP từ client.
+
+### Cập nhật mức thưởng phòng riêng
+
+Bản `docs/battle.sql` hiện tại đã gộp mức thưởng phòng riêng và hạn mức ngày; nếu chưa chạy bản cũ, chỉ cần duyệt và chạy bản hiện tại một lần. Script cũng chạy lại được trên schema cũ: thêm ledger chi tiết và thay các RPC cũ bằng chữ ký bảy tham số. SQL và server mới cần triển khai cùng đợt (SQL trước); server cũ sẽ giữ thưởng trong outbox do chữ ký RPC cũ không còn hợp lệ. Không xoá ledger hoặc trừ EXP đã nhận. Ledger đã trả ở bản cũ giữ nguyên, không cộng lại hoặc dùng lượt hồi tố.
+
+### Hạn mức nhận EXP mỗi ngày
+
+- Mỗi tài khoản có riêng 10 lượt nhận EXP ở ghép ngẫu nhiên và 10 lượt ở phòng riêng. Lượt thứ 10 vẫn nhận đủ; từ lần tiếp theo trả 0 EXP, không khóa chơi hay thay đổi điểm/hạng trận.
+- Chỉ lần thực nhận EXP mới dùng lượt; hạng 3 không dùng lượt. Hai người hạng 1/2 kiểm tra hạn mức độc lập.
+- Tính ngày kết thúc trận theo `Asia/Ho_Chi_Minh`, chuyển ngày lúc 00:00 giờ VN. Đã xếp vào ngày nào thì retry/outbox hôm sau vẫn xét ngày đó. Nếu outbox cũ về cùng ngày, thứ tự thanh toán quyết định 10 lượt được trả.
+- SQL khóa theo tài khoản/chế độ/ngày rồi đếm ledger và cộng EXP trong một transaction, chống vượt hạn mức khi hai request cùng đến. Ledger biên nhận chống cộng trùng khi timeout hoặc restart.
+- Màn kết quả chỉ hiện EXP thực nhận sau biên nhận; hết lượt hiện +0 và lý do. Khi RPC chưa xác nhận thì hiện đang kiểm tra/đồng bộ, không hứa trước mức EXP.
 
 ## API
 
@@ -82,6 +94,8 @@ Kiểm tra thực tế bằng 3 tài khoản trước khi mở rộng: join bằ
 ## Thiết kế
 
 Taste: `pastel-consumer`, seed `1459196042`, giữ palette/type hiện có. Hai lựa chọn chế độ, đường đua avatar và 20 nút câu hỏi là các yếu tố nhận diện; mọi số liệu trận đến từ server. Gradient, glow, neumorphism và màn vinh danh là ngoại lệ theo yêu cầu của người dùng đối với quy tắc app-screen mặc định của skill.
+
+Hai màn dùng chung `FeatureBanner.jsx`; Bảng thành tích giữ hướng `accent-ladder`. Riêng Đấu trường dùng Taste `pastel-consumer`, seed `1554104602`, giữ palette/type và khôi phục huy hiệu tròn hai thanh kiếm kèm số 3. Gradient cam sáng, bóng nổi/lõm neumorphism tĩnh là ngoại lệ được người dùng yêu cầu trực tiếp. Hai thẻ chế độ có vùng thưởng ba hạng và toàn thẻ là nút; ô nhập mã lõm nhẹ. Phản hồi hover/nhấn chỉ đổi transform, có hover gating và reduced motion, không animate gradient hoặc bóng. Mức EXP của từng chế độ hiện ngay ở lựa chọn chơi và phòng chờ. Kiểm tra banner bằng fixture local với hook phòng giả lập và Bảng thành tích Demo, ở 1440/768/390px trên bản build production; ảnh và báo cáo nằm trong `artifacts/banner-review/`. Không dùng fixture để xác nhận kết nối Supabase hoặc số EXP thực nhận.
 
 Motion dùng token Emil trong `src/variants.ts`: chuyển màn 280ms, thoát 150ms; avatar chuyển bằng transform, không animate left/width. Câu hỏi đổi ngay, không chờ animation. Hiệu ứng phần thưởng chỉ chạy khi mở kết quả, hạng 1/2 có confetti lazy-load; tôn trọng reduced motion.
 

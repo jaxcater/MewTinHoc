@@ -32,5 +32,6 @@ export function rankPlayers(room) {
       completed: answeredCount(room, player) };
   });
   scores.sort((a, b) => b.score - a.score || a.submittedAt - b.submittedAt || a.id.localeCompare(b.id));
-  return scores.map((p, index) => ({ ...p, rank: index + 1, xp: [100, 50, 0][index] }));
+  const rewards = room.mode === 'private' ? [50, 20, 0] : [100, 50, 0];
+  return scores.map((p, index) => ({ ...p, rank: index + 1, xp: rewards[index] }));
 }

@@ -6171,9 +6171,9 @@ a {
 
 .doc-library-card .doc-actions {
   width: 100%;
-  min-height: 36px;
-  padding-top: 0.65rem;
-  border-top: 1px solid #f1f5f9;
+  min-height: 40px;
+  padding-top: 0.75rem;
+  margin-top: 0.15rem;
 }
 
 .doc-library-card .doc-actions > .doc-btn-download {

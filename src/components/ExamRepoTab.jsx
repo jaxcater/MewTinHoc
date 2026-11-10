@@ -24,10 +24,10 @@ import {
   Layers,
   Landmark
 } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { isCompanyAdmin } from '../lib/roleService';
 import LoadingScreen from './LoadingScreen.jsx';
 import './loading-screen.css';
+import './exam-repo.css';
 import {
   EXAM_DOCS_CONFIG,
   DOC_TYPES,
@@ -49,6 +49,8 @@ const MAX_MB = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
 const PREVIEWABLE = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
 const MOBILE_DOC_INITIAL_LIMIT = 6;
 const MOBILE_DOC_PAGE_SIZE = 4;
+const DESKTOP_DOC_PAGE_SIZE = 15;
+const INITIAL_VISIBLE_COUNTS = { mobile: MOBILE_DOC_INITIAL_LIMIT, desktop: DESKTOP_DOC_PAGE_SIZE };
 
 // Icon + màu nhận diện cho từng "loại tài liệu"
 const TYPE_VISUALS = {
@@ -101,7 +103,7 @@ export default function ExamRepoTab({ user }) {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [mobileVisibleCount, setMobileVisibleCount] = useState(MOBILE_DOC_INITIAL_LIMIT);
+  const [visibleCounts, setVisibleCounts] = useState(INITIAL_VISIBLE_COUNTS);
 
   // ── Trạng thái dành riêng cho Admin ──
   const isAdmin = isCompanyAdmin(user);
@@ -118,7 +120,6 @@ export default function ExamRepoTab({ user }) {
   const fileInputRef = useRef(null);
   const renameInputRef = useRef(null);
   const noticeTimerRef = useRef(null);
-  const reduceMotion = useReducedMotion();
 
   const showNotice = useCallback((type, msg) => {
     setNotice({ type, msg });
@@ -227,7 +228,7 @@ export default function ExamRepoTab({ user }) {
     if (type.id === activeType?.id) return;
     setActiveTypeId(type.id);
     setSearchQuery('');
-    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
     setEditingId(null);
     setConfirmDeleteId(null);
     await fetchDocs(type);
@@ -274,7 +275,7 @@ export default function ExamRepoTab({ user }) {
       showNotice(failures.length > 0 ? 'error' : 'success', parts.join(' '));
     }
     if (okCount > 0) {
-      setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+      setVisibleCounts(INITIAL_VISIBLE_COUNTS);
       await loadTypes();
       await fetchDocs(activeType);
     }
@@ -324,7 +325,7 @@ export default function ExamRepoTab({ user }) {
     }
 
     cancelRename();
-    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
     showNotice(
       'success',
       `Đã đổi tên thành "${next}${doc.loai_file ? `.${doc.loai_file}` : ''}" và đồng bộ lên Supabase.`
@@ -356,7 +357,7 @@ export default function ExamRepoTab({ user }) {
     const res = await deleteExamDocument(doc);
     setBusyId(null);
     setConfirmDeleteId(null);
-    setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
 
     if (!res.success) {
       showNotice('error', `Xoá thất bại: ${res.error}`);
@@ -392,8 +393,10 @@ export default function ExamRepoTab({ user }) {
   const filtered = docs.filter((d) =>
     (d.ten_file || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const visibleDocs = isMobileViewport ? filtered.slice(0, mobileVisibleCount) : filtered;
-  const hasMoreMobileDocs = isMobileViewport && mobileVisibleCount < filtered.length;
+  const viewportKey = isMobileViewport ? 'mobile' : 'desktop';
+  const visibleCount = visibleCounts[viewportKey];
+  const visibleDocs = filtered.slice(0, visibleCount);
+  const hasMoreDocs = visibleCount < filtered.length;
 
   const errorHint = (() => {
     if (!error) return null;
@@ -422,7 +425,7 @@ export default function ExamRepoTab({ user }) {
         <div>
           <h2 className="doc-page-title">
             <FolderOpen size={24} />
-            Kho Tài Liệu Đề Thi Thử
+            Kho Tài liệu
           </h2>
           <p className="doc-page-subtitle">
             Tải về các đề thi thử, tài liệu ôn tập chuẩn THPTQG mới nhất
@@ -444,7 +447,7 @@ export default function ExamRepoTab({ user }) {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setMobileVisibleCount(MOBILE_DOC_INITIAL_LIMIT);
+                setVisibleCounts(INITIAL_VISIBLE_COUNTS);
               }}
             />
           </div>
@@ -480,13 +483,7 @@ export default function ExamRepoTab({ user }) {
               onClick={() => handleSelectType(type)}
             >
               {isActive && (
-                <motion.span
-                  layoutId="doc-type-active"
-                  className="doc-type-card-bg"
-                  transition={reduceMotion
-                    ? { duration: 0 }
-                    : { type: 'spring', bounce: 0.18, duration: 0.45 }}
-                />
+                <span className="doc-type-card-bg" />
               )}
               <span className="doc-type-card-inner">
                 <span className="doc-type-icon" style={{ background: visual.bg, color: visual.color }}>
@@ -609,11 +606,11 @@ export default function ExamRepoTab({ user }) {
             const isConfirmingDelete = confirmDeleteId === doc.id;
 
             return (
-              <article key={doc.id} className={`doc-row doc-library-card${isEditing ? ' editing' : ''}`}>
+              <article key={doc.id} className={`doc-row doc-library-card rx-doc-card${isEditing ? ' editing' : ''}`}>
                 {/* File type icon */}
                 <button
                   type="button"
-                  className={`doc-icon-wrap${canPreview && doc.view_url ? ' doc-preview-trigger' : ''}`}
+                  className={`doc-icon-wrap rx-doc-icon${canPreview && doc.view_url ? ' doc-preview-trigger' : ''}`}
                   style={{ background: fi.bg }}
                   onClick={() => openPreview(doc)}
                   disabled={!canPreview || !doc.view_url}
@@ -642,19 +639,19 @@ export default function ExamRepoTab({ user }) {
                     canPreview && doc.view_url ? (
                       <button
                         type="button"
-                        className="doc-filename doc-filename-link"
+                        className="doc-filename doc-filename-link rx-doc-name"
                         onClick={() => openPreview(doc)}
                         title="Nhấn để xem trước tài liệu"
                       >
                         {doc.ten_file}
                       </button>
                     ) : (
-                      <div className="doc-filename">{doc.ten_file}</div>
+                      <div className="doc-filename rx-doc-name">{doc.ten_file}</div>
                     )
                   )}
 
                   <div className="doc-meta">
-                    <span className="doc-file-badge" style={{ background: fi.bg, color: fi.color }}>
+                    <span className="doc-file-badge rx-doc-badge" style={{ background: fi.bg, color: fi.color }}>
                       {fi.label}
                     </span>
                     {doc.size != null && (
@@ -725,7 +722,7 @@ export default function ExamRepoTab({ user }) {
                               {canPreview && doc.view_url && (
                                 <button
                                   type="button"
-                                  className="doc-btn-view"
+                                  className="doc-btn-view rx-doc-soft"
                                   onClick={() => openPreview(doc)}
                                   title="Xem trước"
                                 >
@@ -734,7 +731,7 @@ export default function ExamRepoTab({ user }) {
                               )}
                               <button
                                 type="button"
-                                className="doc-btn-download"
+                                className="doc-btn-download rx-doc-download"
                                 onClick={() => handleDownload(doc)}
                                 title="Tải về"
                               >
@@ -754,7 +751,7 @@ export default function ExamRepoTab({ user }) {
                             <>
                               <button
                                 type="button"
-                                className="doc-btn-icon"
+                                className="doc-btn-icon rx-doc-soft"
                                 onClick={() => startRename(doc)}
                                 title="Đổi tên tài liệu"
                               >
@@ -762,7 +759,7 @@ export default function ExamRepoTab({ user }) {
                               </button>
                               <button
                                 type="button"
-                                className="doc-btn-icon doc-btn-icon-danger"
+                                className="doc-btn-icon doc-btn-icon-danger rx-doc-soft rx-doc-soft-danger"
                                 onClick={() => handleDelete(doc)}
                                 title="Xoá tài liệu"
                               >
@@ -781,14 +778,17 @@ export default function ExamRepoTab({ user }) {
         </div>
       )}
 
-      {!isLoading && hasMoreMobileDocs && (
+      {!isLoading && hasMoreDocs && (
         <button
           type="button"
           className="doc-load-more"
-          onClick={() => setMobileVisibleCount((count) => count + MOBILE_DOC_PAGE_SIZE)}
+          onClick={() => setVisibleCounts((counts) => ({
+            ...counts,
+            [viewportKey]: counts[viewportKey] + (isMobileViewport ? MOBILE_DOC_PAGE_SIZE : DESKTOP_DOC_PAGE_SIZE)
+          }))}
         >
           <span>Xem thêm</span>
-          <span className="doc-load-more-count">Còn {filtered.length - mobileVisibleCount} tài liệu</span>
+          <span className="doc-load-more-count">Còn {filtered.length - visibleCount} tài liệu</span>
         </button>
       )}
 
@@ -828,7 +828,7 @@ export default function ExamRepoTab({ user }) {
             </div>
             <footer className="doc-preview-footer">
               <span>Chế độ xem trước · Không chỉnh sửa</span>
-              <button type="button" className="doc-btn-download doc-preview-download" onClick={() => handleDownload(previewDoc)}>
+              <button type="button" className="doc-btn-download doc-preview-download rx-doc-download" onClick={() => handleDownload(previewDoc)}>
                 <Download size={16} />
                 <span>Tải về</span>
               </button>
