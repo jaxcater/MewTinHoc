@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import { botpressMiddleware } from './server/botpressMiddleware.js'
 import { examMiddleware } from './server/exam/examMiddleware.js'
 import { aiMiddleware } from './server/ai/aiMiddleware.js'
+import { battleMiddleware, startBattleRuntime } from './server/battle/battleMiddleware.js'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,6 +13,9 @@ export default defineConfig({
     {
       name: 'botpress-backend-api',
       configureServer(server) {
+        const stopBattle = startBattleRuntime();
+        server.httpServer?.once('close', stopBattle);
+        server.middlewares.use('/api/battle', battleMiddleware);
         server.middlewares.use('/api/botpress', botpressMiddleware);
         // API gen đề thi thử — cùng pattern với botpress để dev chạy được
         server.middlewares.use('/api/exams', examMiddleware);

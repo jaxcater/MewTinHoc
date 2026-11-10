@@ -26,13 +26,15 @@ const SCREEN_LOADERS = {
   [TABS.ROADMAP]: () => import('./components/RoadmapTab'),
   [TABS.EXAMS]: () => import('./components/ExamRepoTab'),
   [TABS.AI_EXAM]: () => import('./components/exam/GenExamTab'),
-  [TABS.LEADERBOARD]: () => import('./components/LeaderboardTab')
+  [TABS.LEADERBOARD]: () => import('./components/LeaderboardTab'),
+  [TABS.ARENA]: () => import('./components/battle/BattleTab')
 };
 const HomeTab = lazy(SCREEN_LOADERS[TABS.HOME]);
 const RoadmapTab = lazy(SCREEN_LOADERS[TABS.ROADMAP]);
 const ExamRepoTab = lazy(SCREEN_LOADERS[TABS.EXAMS]);
 const GenExamTab = lazy(SCREEN_LOADERS[TABS.AI_EXAM]);
 const LeaderboardTab = lazy(SCREEN_LOADERS[TABS.LEADERBOARD]);
+const BattleTab = lazy(SCREEN_LOADERS[TABS.ARENA]);
 const AdminPage = lazy(() => import('./components/AdminPage'));
 const BotpressChatBubble = lazy(() => import('./components/BotpressChatBubble'));
 
@@ -259,6 +261,8 @@ export default function App() {
         ? '/exams'
         : tabKey === TABS.AI_EXAM
           ? '/ai-exam'
+          : tabKey === TABS.ARENA
+            ? '/arena'
           : tabKey === TABS.LEADERBOARD
             ? '/leaderboard'
             : '/';
@@ -282,6 +286,7 @@ export default function App() {
       : location.pathname.startsWith('/ai-exam') ? TABS.AI_EXAM
       : location.pathname.startsWith('/exams') ? TABS.EXAMS
       : location.pathname.startsWith('/leaderboard') ? TABS.LEADERBOARD
+      : location.pathname.startsWith('/arena') ? TABS.ARENA
       : TABS.HOME;
     handlePrefetchTab(tab);
   }, [user, appBooting, location.pathname, handlePrefetchTab]);
@@ -309,6 +314,7 @@ export default function App() {
     else if (location.pathname.startsWith('/exams')) setActiveTab(TABS.EXAMS);
     else if (location.pathname.startsWith('/ai-exam')) setActiveTab(TABS.AI_EXAM);
     else if (location.pathname.startsWith('/leaderboard')) setActiveTab(TABS.LEADERBOARD);
+    else if (location.pathname.startsWith('/arena')) setActiveTab(TABS.ARENA);
     else if (location.pathname === '/' || location.pathname === '/home') setActiveTab(TABS.HOME);
   }, [location.pathname]);
 
@@ -362,7 +368,6 @@ export default function App() {
         onLogout={handleLogout}
         onNavigate={goToTab}
         onPrefetchTab={handlePrefetchTab}
-        onOpenArena={() => showToast('Đang xây dựng')}
         onOpenStreakDetails={() => {
           setActiveTab(TABS.HOME);
           navigate('/');
@@ -466,6 +471,11 @@ export default function App() {
                 </PageTransition>
               }
             />
+            <Route path="/arena" element={
+              <PageTransition>{isLockedForDemo(user, 'arena') ? (
+                <DemoLockedView feature="arena" onUpgrade={handleRequestUpgrade} onGoHome={() => navigate('/')} />
+              ) : <DeferredView><BattleTab user={user} /></DeferredView>}</PageTransition>
+            } />
             <Route path="/leaderboard" element={
               <PageTransition><DeferredView><LeaderboardTab user={user} /></DeferredView></PageTransition>
             } />

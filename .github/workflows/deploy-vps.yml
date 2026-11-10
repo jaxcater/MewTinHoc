@@ -31,6 +31,7 @@ jobs:
         run: |
           npm ci --include=dev
           node --test server/exam/optionLabels.test.js
+          node --test server/battle/*.test.js
 
       # Repo này là PRIVATE, nên VPS KHÔNG thể `git fetch` từ GitHub bằng
       # HTTPS (nó trả "could not read Username"). Bản cũ dựa vào git trên
@@ -85,6 +86,7 @@ jobs:
           ENV_BOTPRESS_ALLOWED_ORIGIN: ${{ secrets.BOTPRESS_ALLOWED_ORIGIN }}
           ENV_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           ENV_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ENV_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ENV_EXAM_ADMIN_TOKEN: ${{ secrets.EXAM_ADMIN_TOKEN }}
           ENV_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ENV_GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
@@ -94,7 +96,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script_stop: true
           command_timeout: 20m
-          envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_EXAM_ADMIN_TOKEN,ENV_GEMINI_API_KEY,ENV_GEMINI_MODEL
+          envs: ENV_BOTPRESS_WEBHOOK_ID,ENV_BOTPRESS_ENCRYPTION_KEY,ENV_BOTPRESS_TOKEN,ENV_BOTPRESS_BOT_ID,ENV_BOTPRESS_ALLOWED_ORIGIN,ENV_SUPABASE_URL,ENV_SUPABASE_ANON_KEY,ENV_SUPABASE_SERVICE_ROLE_KEY,ENV_EXAM_ADMIN_TOKEN,ENV_GEMINI_API_KEY,ENV_GEMINI_MODEL
           script: |
             set -eu
 
@@ -134,6 +136,7 @@ jobs:
             write_env BOTPRESS_ALLOWED_ORIGIN "$ENV_BOTPRESS_ALLOWED_ORIGIN"
             write_env SUPABASE_URL "$ENV_SUPABASE_URL"
             write_env SUPABASE_ANON_KEY "$ENV_SUPABASE_ANON_KEY"
+            write_env SUPABASE_SERVICE_ROLE_KEY "$ENV_SUPABASE_SERVICE_ROLE_KEY"
             write_env EXAM_ADMIN_TOKEN "$ENV_EXAM_ADMIN_TOKEN"
             write_env GEMINI_API_KEY "$ENV_GEMINI_API_KEY"
             write_env GEMINI_MODEL "$ENV_GEMINI_MODEL"
@@ -141,6 +144,11 @@ jobs:
             # sinh trong dethicosan/ không đọc được nữa.
             # Web và nguồn là các thư mục anh em; PM2 cũ có thể giữ root sai.
             write_env EXAM_DATA_ROOT /www/wwwroot
+
+            # Kho Đấu trường nằm cạnh repo; www cần quyền tạo đề và lưu trận.
+            mkdir -p /www/wwwroot/battle
+            chown www:www /www/wwwroot/battle
+            chmod 700 /www/wwwroot/battle
 
             chmod 600 .env.local
             # Bắt buộc: script này chạy bằng root, còn app chạy bằng www.

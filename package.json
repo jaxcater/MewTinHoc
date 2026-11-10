@@ -14,6 +14,9 @@
     "exam:reset": "node server/exam/worker.js --reset",
     "exam:simulate": "node server/exam/worker.js --simulate",
     "exam:loop": "node server/exam/worker.js --loop",
+    "battle:check": "node server/battle/worker.js --check",
+    "battle:refill": "node server/battle/worker.js",
+    "battle:test": "node --test server/battle/*.test.js",
     "export:roadmap": "node scripts/exportRoadmaps.js"
   },
   "dependencies": {

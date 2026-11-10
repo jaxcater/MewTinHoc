@@ -146,6 +146,14 @@ Yêu cầu nghiệp vụ: **ẩn tình hình kho** khỏi học viên. API `clai
 
 ## 6. State Management
 
+### Đấu trường: trạng thái trận và trả thưởng
+
+`server/battle/` chạy trong cùng tiến trình Node. Máy chủ quản lý phòng 3 người và thời gian 15 phút; mọi lựa chọn có timestamp server. `GET /api/battle/state` chỉ trả public question và lựa chọn của chính người gọi, không trả đáp án/điểm đối thủ trước kết thúc. Client poll 1,2 giây. Không thêm dependency realtime.
+
+Nguồn `loadBattleQuestionPool` tái sử dụng parser đề thi nhưng chỉ chọn C1–C7, dungsaiChung. `battle/pool` có mục tiêu 100 đề (18 MCQ + 2 TF trộn chung), bù khi khởi động/mỗi 5 phút. `battle/rooms` lưu snapshot mã hoá bằng AES-256-GCM với khoá `battle/.key-secret` riêng; không đổi `EXAM_KEY_SECRET`. Trận đang chơi khôi phục deadline sau restart; phòng chờ đóng. URL giao diện `/arena`, URL kho `/battle` bị chặn HTTP.
+
+EXP từ xếp hạng dùng outbox trong snapshot và RPC `award_battle_rewards` chỉ cấp cho `service_role`. Ledger `battle_rewards` và cộng 100/50 EXP là một transaction, khóa theo `match_id`; lỗi mạng thử lại mà không cộng trùng. Phải kích hoạt SQL/secret theo `docs/battle-deploy.md`. UI chỉ báo đã cộng sau xác nhận RPC. RLS ledger không mở cho client. Trigger tổng EXP không giảm bảo vệ khỏi snapshot client cũ; các luồng XP học tập hiện tại vẫn là client-authoritative.
+
 **Không có thư viện state management** (không Redux, không Zustand, không Jotai).
 
 | Loại state | Nơi lưu | Quy tắc |

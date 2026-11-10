@@ -325,6 +325,17 @@ hết hạn thì tự hiện lại.
 
 ## Bảng dữ liệu (Supabase Postgres)
 
+### Đấu trường
+
+- `/arena` → `src/components/battle/BattleTab.jsx` + `battle.css`: chọn chế độ, phòng chờ, thi đấu, chúc mừng, kết quả.
+- `src/lib/useBattle.js` + `battleApi.js`: poll trạng thái, lưu lựa chọn, retry, rời phòng.
+- `/api/battle/*` → `server/battle/battleMiddleware.js`, gắn cả `server/server.js` và `vite.config.js`.
+- `server/battle/service.js`: phòng 3 người, sẵn sàng, deadline, snapshot, outbox; `grading.js`: chính xác/tốc độ/hạng.
+- `server/battle/builder.js` + `server/exam/questionPool.js:loadBattleQuestionPool`: nguồn C1–C7 + đúng/sai chung, trộn 20 câu.
+- `server/battle/storage.js`: `<DATA_ROOT>/battle/{pool,rooms}` mã hoá; `worker.js`: `battle:check`/`battle:refill`.
+- `server/battle/rewards.js` + `docs/battle.sql`: RPC cộng EXP chống lặp, bảng `battle_rewards`, trigger tổng EXP không giảm; `docs/battle-deploy.md`: vận hành/luật/triển khai.
+- `server/battle/battle.test.js`: kiểm thử nguồn, sinh đề, phòng, chấm, deadline, restart và mã hoá.
+
 | Bảng | Dùng bởi | Ghi chú |
 |---|---|---|
 | `profiles` | `src/lib/roleService.js`, `src/components/AdminPage.jsx` | Nguồn sự thật quyền Admin |

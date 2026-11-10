@@ -6,6 +6,7 @@ import { botpressMiddleware } from './botpressMiddleware.js';
 import { examMiddleware } from './exam/examMiddleware.js';
 import { aiMiddleware } from './ai/aiMiddleware.js';
 import { applySecurityHeaders } from './securityHeaders.js';
+import { battleMiddleware, startBattleRuntime } from './battle/battleMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,7 +54,7 @@ async function dispatch(req, res) {
     } catch {
       blockedPath = '';
     }
-    if (/^\/(?:dethicosan|sourcedethi)(?:\/|$)/i.test(blockedPath)) {
+    if (/^\/(?:dethicosan|sourcedethi|battle)(?:\/|$)/i.test(blockedPath)) {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Not found');
       return;
@@ -62,6 +63,8 @@ async function dispatch(req, res) {
 
   // API gen đề phải đứng TRƯỚC static handler, nếu không POST sẽ rơi
   // vào SPA fallback và trả về index.html.
+  if (req.url?.startsWith('/api/battle')) return battleMiddleware(req, res);
+
   if (req.url?.startsWith('/api/exams')) {
     return examMiddleware(req, res, () => {
       res.statusCode = 404;
@@ -136,6 +139,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, process.env.HOST || '127.0.0.1', async () => {
+  startBattleRuntime();
   console.log(`MewTinHoc server listening on port ${PORT}`);
 
   // Kiểm tra bố cục dữ liệu đề 1 lần lúc khởi động — cảnh báo sớm nếu

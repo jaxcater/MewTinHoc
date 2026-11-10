@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Sparkles, ArrowRight, Home, Bot, Check, ShieldAlert } from 'lucide-react';
+import { Lock, Sparkles, ArrowRight, Home, Bot, Check, ShieldAlert, Trophy } from 'lucide-react';
 import './demo-gate.css';
 
 /**
@@ -8,6 +8,14 @@ import './demo-gate.css';
  * Navbar (toast), Kho đề thi, Tạo đề AI và khung chat CamCam.
  */
 export const DEMO_LOCKED_CONTENT = {
+  arena: {
+    icon: Trophy,
+    badge: 'Đấu trường kiến thức',
+    title: 'Đăng nhập để cùng nhau tranh tài',
+    description: 'Dùng tài khoản Google để ghép trận, tạo phòng cùng bạn bè và nhận EXP khi về đích.',
+    perks: ['Ba người cùng thi đấu với một đề', '20 câu hỏi trong 15 phút', 'Hạng nhất nhận 100 EXP, hạng nhì nhận 50 EXP'],
+    toast: 'Đăng nhập bằng Google để vào Đấu trường nhé!',
+  },
   exams: {
     icon: Home,
     badge: 'Chức năng bị khoá',

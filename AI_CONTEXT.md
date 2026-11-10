@@ -162,6 +162,14 @@ Phân tách trách nhiệm frontend:
 
 ## 5. Context Strategy
 
+### Đấu trường (tháng 11/2026)
+
+- Route `/arena`: `src/components/battle/BattleTab.jsx`, CSS cạnh component; client/hook `src/lib/battleApi.js`, `src/lib/useBattle.js`.
+- Backend `server/battle/`: ghép/tạo phòng 3 người, cùng đề 18 MCQ + 2 đúng/sai chung trộn lẫn, 15 phút, xếp hạng chính xác + tốc độ server. Chỉ hiện kết quả khi tất cả nộp.
+- `server/exam/questionPool.js:loadBattleQuestionPool` chỉ đọc C1–C7 và dungsaiChung; kho `<DATA_ROOT>/battle` mã hoá bằng khoá riêng, mục tiêu 100 đề, runtime bù mỗi 5 phút.
+- Snapshot trận và outbox thưởng lưu mã hoá; khôi phục trận sau restart. Một tiến trình Node. API `/api/battle/*` xác thực Supabase, không gửi đáp án.
+- Hạng 1/2 nhận 100/50 EXP qua RPC service-role idempotent. Cần kích hoạt `docs/battle.sql` và `SUPABASE_SERVICE_ROLE_KEY`; chưa cấu hình thì thưởng ở trạng thái chờ đồng bộ. Hướng dẫn đầy đủ: `docs/battle-deploy.md`.
+
 ### Quy trình chuẩn cho mỗi task
 
 ```

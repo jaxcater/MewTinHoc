@@ -8,6 +8,7 @@ export const DEMO_FEATURE = {
   EXAMS: 'exams',
   AI_EXAM: 'aiExam',
   CHAT: 'chat',
+  ARENA: 'arena',
 };
 
 /** Tài khoản demo: cờ isDemo do App gắn khi đăng nhập nhanh. */
@@ -20,12 +21,14 @@ export function isLockedForDemo(user, feature) {
   if (!isDemoUser(user)) return false;
   return feature === DEMO_FEATURE.EXAMS
     || feature === DEMO_FEATURE.AI_EXAM
-    || feature === DEMO_FEATURE.CHAT;
+    || feature === DEMO_FEATURE.CHAT
+    || feature === DEMO_FEATURE.ARENA;
 }
 
 /** Map từ đường dẫn route → chức năng tương ứng (null nếu không bị khoá). */
 export function featureFromPath(pathname = '') {
   if (pathname.startsWith('/exams')) return DEMO_FEATURE.EXAMS;
   if (pathname.startsWith('/ai-exam')) return DEMO_FEATURE.AI_EXAM;
+  if (pathname.startsWith('/arena')) return DEMO_FEATURE.ARENA;
   return null;
 }

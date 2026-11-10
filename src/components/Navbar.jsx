@@ -44,7 +44,8 @@ export const TABS = {
   ROADMAP: 'roadmap',
   EXAMS: 'exams',
   AI_EXAM: 'ai_exam',
-  LEADERBOARD: 'leaderboard'
+  LEADERBOARD: 'leaderboard',
+  ARENA: 'arena'
 };
 
 export default function Navbar({
@@ -56,7 +57,6 @@ export default function Navbar({
   onLogout,
   onOpenStreakDetails,
   onNavigate,
-  onOpenArena,
   onPrefetchTab
 }) {
   const navigate = useNavigate();
@@ -101,6 +101,7 @@ export default function Navbar({
   const isExamsActive = location.pathname.startsWith('/exams');
   const isAiExamActive = location.pathname.startsWith('/ai-exam');
   const isLeaderboardActive = location.pathname.startsWith('/leaderboard');
+  const isArenaActive = location.pathname.startsWith('/arena');
 
   // Demo dùng Trang chủ/Lộ trình và xem giới thiệu Bảng thành tích.
   // Các chức năng học nâng cao vẫn được đánh dấu khoá.
@@ -120,7 +121,8 @@ export default function Navbar({
       [TABS.ROADMAP]: '/roadmap',
       [TABS.EXAMS]: '/exams',
       [TABS.AI_EXAM]: '/ai-exam',
-      [TABS.LEADERBOARD]: '/leaderboard'
+      [TABS.LEADERBOARD]: '/leaderboard',
+      [TABS.ARENA]: '/arena'
     };
     navigate(fallbackPaths[tabKey] || '/');
   };
@@ -390,18 +392,24 @@ export default function Navbar({
             </button>
             <button
               type="button"
-              className="nav-tab-btn is-demo-locked"
-              onClick={onOpenArena}
+              className={`nav-tab-btn ${isArenaActive ? 'active' : ''}`}
+              role="tab" aria-selected={isArenaActive}
+              onClick={() => go(TABS.ARENA)}
+              onPointerEnter={() => onPrefetchTab?.(TABS.ARENA)}
+              onFocus={() => onPrefetchTab?.(TABS.ARENA)}
               id="tab-arena"
-              aria-label="Đấu trường — Đang xây dựng"
-              title="Đấu trường — Đang xây dựng"
+              aria-label="Đấu trường"
+              title="Đấu trường"
             >
+              {isArenaActive && <motion.div layoutId="active-tab-highlight" className="nav-tab-active-pill"
+                style={{ borderRadius: 14, background: 'var(--color-primary-hover)', boxShadow: 'none' }}
+                transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill} />}
               <span className="nav-tab-inner">
                 <Swords size={17} />
                 <span className="nav-tab-label">Đấu trường</span>
-                <span className="nav-tab-lock" aria-label="Đang khóa">
+                {isLockedForDemo(user, 'arena') && <span className="nav-tab-lock" aria-label="Bị khoá với tài khoản Demo">
                   <Lock size={13} />
-                </span>
+                </span>}
               </span>
             </button>
           </motion.nav>

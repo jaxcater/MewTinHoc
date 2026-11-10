@@ -21,6 +21,8 @@ dist-ssr
 # (đặt ngoài repo trên production, nhưng chặn luôn cho an toàn)
 dethicosan/
 sourcedethi/
+# Chỉ dữ liệu runtime, không bỏ qua source server/battle và component battle.
+/battle/
 server/exam/.key-secret
 
 # Editor directories and files

@@ -546,10 +546,10 @@ function loadSourceMcq(stats) {
 }
 
 /** Nạp đúng/sai từ sourcedethi */
-function loadSourceTf(stats) {
+function loadSourceTf(stats, buckets = ['chung', 'cs', 'ict']) {
   const result = { chung: [], cs: [], ict: [] };
 
-  for (const bucket of ['chung', 'cs', 'ict']) {
+  for (const bucket of buckets) {
     const filePath = resolveSourceFile(SOURCE_BASENAMES[bucket]);
     if (!filePath) {
       stats.missing.push(`sourcedethi/${SOURCE_BASENAMES[bucket]}.txt`);
@@ -651,6 +651,17 @@ function dedupe(items, keyFn) {
  *  - Đúng/Sai: theo nội dung tình huống
  *  Câu trùng giữa sourcedethi và ngân hàng web cũng bị loại.
  */
+/** Đấu trường chỉ dùng nguồn C1–C7 và đúng/sai chung, không trộn ngân hàng web. */
+export function loadBattleQuestionPool() {
+  const stats = { files: [], missing: [] };
+  const mcq = dedupe(loadSourceMcq(stats), item => normalizeKey(item.stem)).list;
+  const tf = dedupe(loadSourceTf(stats, ['chung']).chung, item => normalizeKey(item.scenario)).list;
+  if (stats.missing.length || mcq.length < 18 || tf.length < 2) {
+    throw new Error('Battle source requires C1-C7, 18 unique MCQs and 2 common true/false questions');
+  }
+  return { mcq, tf, stats };
+}
+
 export async function loadQuestionPool() {
   const stats = { files: [], missing: [] };
 
