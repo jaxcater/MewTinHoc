@@ -131,7 +131,8 @@ Frontend   src/components/RoadmapTab.jsx          ← màn hình chính (file l�
            src/components/StationQuizView.jsx     ← quiz tại chặng
            src/components/AdminTheoryEditor.jsx   ← soạn lý thuyết (Admin)
            src/components/PdfDocumentViewer.jsx   ← xem PDF tài liệu
-           src/components/landing/LandingRoute.jsx← minh hoạ lộ trình ở trang giới thiệu
+           src/components/landing/LandingExperience.jsx ← gallery giao diện và mô phỏng xếp hạng ở landing
+           src/components/landing/LandingInteractive.jsx ← hai định hướng mở 5 chặng mẫu, Home tách chỉ số và kiến thức
 API        không có API riêng — đọc/ghi Supabase Storage trực tiếp từ client
 Service    src/lib/roadmapStorage.js              ← fetchRemoteRoadmap / fetchRemoteRoadmapRaw
                                                  / saveRoadmapToSupabase / resolveStorageUrl
@@ -381,3 +382,10 @@ GenExamTab.claimExam('ict')
 ```
 
 Khi nộp bài: `ExamRoom` → `submitExam` → `POST /api/exams/submit` → `storage.gradeSubmission` → `grading.gradeExam` → trả điểm + đáp án + giải thích → `ExamRoom` gọi `buildAiPrompt` → `POST /api/ai/review` (Gemini) → `AiReviewPanel`.
+
+### Landing trực quan
+
+- `src/components/landing/LandingPage.jsx`: giữ hero, điều hướng và luồng đăng nhập; phần dưới hero dùng `LandingExperience.jsx` + `landing-experience.css`.
+- `LandingInteractive.jsx` + `landing-interactive.css`: hai định hướng ICT xanh và CS cam mở 5 chặng mẫu khi nhấn; chọn chặng và thử hoàn thành, ẩn tên nội dung thật. Home tách nhóm streak/đề/điểm/độ chính xác và nhóm kiến thức; số và thanh tiến độ tăng một lần khi cuộn tới.
+- Kho đề/Thi thử/Battle dùng ảnh có tilt và mở lớn; bảng xếp hạng mô phỏng tương tác hạng 3 lên hạng 1. Banner dùng Aurora Gradient tĩnh và neumorphism. `LandingClosing.jsx` giữ CTA và footer với nội dung ngắn.
+- `src/assets/landing/screens/{home,bank,exam,battle}.webp`: ảnh chụp component thật với dữ liệu minh hoạ, không phải ảnh tài khoản học viên. Trình diễn chỉ chạy local trong landing, không gọi API thi hoặc cộng EXP.

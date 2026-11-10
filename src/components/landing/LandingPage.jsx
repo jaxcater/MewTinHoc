@@ -3,11 +3,7 @@ import LandingHero from './LandingHero';
 import { useRef, useState } from 'react';
 import { ArrowRight, BookOpen, Route, Sparkles } from 'lucide-react';
 import useLandingMotion from './useLandingMotion';
-import LandingRoute from './LandingRoute';
-import LandingDemo from './LandingDemo';
-import LandingBank from './LandingBank';
-import LandingExam from './LandingExam';
-import LandingTracks from './LandingTracks';
+import LandingExperience from './LandingExperience';
 import { LandingClosing, LandingFooter } from './LandingClosing';
 import './landing.css';
 // Mobile typesetting pass: loaded second so it wins on equal specificity.
@@ -22,8 +18,8 @@ import brandMark from '../../assets/landing/mew-mark.webp';
  * `onStart` do LoginPage truyền vào; landing không tự quản lý trạng thái đăng
  * nhập để giữ một nguồn sự thật duy nhất.
  *
- * Landing chỉ để gây ấn tượng: mọi hành động thật (mở kho đề, tạo đề) đều phải
- * qua đăng nhập, nên trong các mục không còn nút "Mở..." hay "Tạo...".
+ * Các khối trình diễn tương tác không gọi API học tập. Hành động vào học vẫn
+ * đi qua onStart của LoginPage; ảnh giao diện dùng dữ liệu minh hoạ.
  */
 export default function LandingPage({ onStart }) {
   const rootRef = useRef(null);
@@ -122,8 +118,8 @@ export default function LandingPage({ onStart }) {
               <a className="mtl-nav__link" href="#de-ai">
                 Đề AI
               </a>
-              <a className="mtl-nav__link" href="#dinh-huong">
-                Định hướng
+              <a className="mtl-nav__link" href="#dau-truong">
+                Đấu trường
               </a>
               <button type="button" className="mtl-btn mtl-nav__cta" onClick={handleStart}>
                 Đăng nhập
@@ -133,7 +129,7 @@ export default function LandingPage({ onStart }) {
         </div>
           <nav className="mtl-mobile-nav" aria-label="Khám phá MewTinHoc">
             <a href="#lo-trinh"><Route size={14} aria-hidden="true" />Lộ trình</a>
-            <a href="#thu-suc"><BookOpen size={14} aria-hidden="true" />Thử một câu</a>
+            <a href="#giao-dien-home"><BookOpen size={14} aria-hidden="true" />Khám phá</a>
             <a href="#de-ai"><Sparkles size={14} aria-hidden="true" />Thi thử &amp; AI</a>
           </nav>
       </header>
@@ -145,24 +141,7 @@ export default function LandingPage({ onStart }) {
           </div>
         </div>
 
-        <div id="lo-trinh">
-          <LandingRoute />
-        </div>
-
-        {/* Trình diễn câu hỏi thật, ngay sau lộ trình, không có tiêu đề riêng. */}
-        <LandingDemo />
-
-        <div id="kho-de">
-          <LandingBank />
-        </div>
-
-        <div id="de-ai">
-          <LandingExam />
-        </div>
-
-        <div id="dinh-huong">
-          <LandingTracks />
-        </div>
+        <LandingExperience onStart={handleStart} />
 
         <LandingClosing onStart={handleStart} />
       </main>

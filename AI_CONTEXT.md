@@ -246,3 +246,7 @@ Tối ưu context **không được** làm giảm:
 - **Không commit `.env.local`, `r2-backup-credentials.local`, `dethicosan/`, `sourcedethi/`.** Chúng đã nằm trong `.gitignore`.
 - **Không ghi thông tin chưa kiểm chứng** vào bất kỳ file context nào.
 - Đọc `docs/architecture.md` để biết **vì sao** hệ thống được dựng như hiện tại trước khi sửa nó.
+
+### Landing page trực quan
+
+Phần dưới hero của `LandingPage.jsx` dùng `LandingExperience.jsx` và `landing-experience.css` cho gallery ảnh Kho đề/Thi thử/Battle, tilt/mở ảnh lớn và mô phỏng xếp hạng tương tác. `LandingInteractive.jsx` + `landing-interactive.css` chứa hai định hướng ICT xanh/CS cam mở 5 chặng mẫu (ẩn tên nội dung thật), cùng Home tách nhóm chỉ số và kiến thức; số và thanh tiến độ tăng một lần khi cuộn tới. Banner dùng Aurora Gradient tĩnh và neumorphism. Ảnh tại `src/assets/landing/screens/` và chỉ số đều dùng dữ liệu minh hoạ, không chứa thông tin học viên thật. CTA vẫn gọi `onStart` của LoginPage; mô phỏng không gọi API hoặc cộng EXP. Tôn trọng reduced motion và tắt tilt trên thiết bị chạm.

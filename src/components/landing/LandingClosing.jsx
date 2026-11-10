@@ -28,11 +28,10 @@ export function LandingClosing({ onStart }) {
         <div className="mtl-cta" data-reveal>
           <div className="mtl-cta__copy">
             <h2 className="mtl-cta__title" id="closing-heading">
-              Sẵn sàng bắt đầu tuần đầu tiên?
+              Vào học cùng Mew.
             </h2>
             <p className="mtl-cta__text">
-              Đăng nhập bằng Google để lộ trình, chuỗi ngày học và kết quả thi thử được lưu lại trên
-              đám mây.
+              Bắt đầu hôm nay. Tiến bộ từng ngày.
             </p>
             <div className="mtl-cta__actions">
               <button type="button" className="mtl-btn" onClick={onStart}>
@@ -40,7 +39,7 @@ export function LandingClosing({ onStart }) {
                 <ArrowRight size={19} className="mtl-btn__arrow" aria-hidden="true" />
               </button>
               <button type="button" className="mtl-link mtl-cta__link" onClick={onStart}>
-                Tôi đã có tài khoản
+                  Đăng nhập với Google
               </button>
             </div>
           </div>
@@ -90,9 +89,7 @@ export function LandingFooter() {
         </div>
 
         <p className="site-footer-desc">
-          Nền tảng luyện thi Tin học tốt nghiệp THPT chuẩn cấu trúc mới của Bộ Giáo dục &amp; Đào
-          tạo. Lộ trình trực quan, kho đề thi chuyên sâu và đánh giá phân hóa bằng trí tuệ nhân tạo
-          (AI).
+          Luyện thi Tin học THPT cùng Mew: học theo lộ trình, luyện đề và thử sức mỗi ngày.
         </p>
 
         <div className="site-footer-highlight">
