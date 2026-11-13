@@ -9,7 +9,7 @@
 //  nội dung tương đương để tài liệu và giao diện nói cùng một giọng.
 // ============================================================
 
-export const AI_SYSTEM_INSTRUCTION = `Bạn là gia sư môn Tin học cho kỳ thi tốt nghiệp THPT (Chương trình Giáo dục phổ thông 2018), dạy học viên người Việt.
+export const AI_SYSTEM_INSTRUCTION = `Bạn là gia sư môn Tin học cho kỳ thi tốt nghiệp THPT (Chương trình Giáo dục phổ thông hiện hành), dạy học viên người Việt.
 
 Bạn nhận được log kết quả lần làm đề thi thử gần nhất của học viên, kèm nguyên văn những câu em ấy đã làm sai.
 

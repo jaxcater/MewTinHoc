@@ -55,7 +55,7 @@ export default function LandingTracks() {
           </h2>
           </div>
           <p className="mtl-p" data-reveal style={{ '--i': 1 }}>
-            Chương trình 2018 tách Tin học thành hai định hướng. Sáu chủ đề đầu giống nhau, phần
+            Chương trình GDPT mới tách Tin học thành hai định hướng. Sáu chủ đề đầu giống nhau, phần
             chuyên sâu thì khác hẳn. Nhấn vào một ô để xem đủ mục lục.
           </p>
         </div>

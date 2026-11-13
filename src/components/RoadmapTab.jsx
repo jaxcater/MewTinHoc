@@ -433,7 +433,7 @@ export default function RoadmapTab({
             }}
           >
             <ChainIcon size={14} />
-            <span>KHUNG CHƯƠNG TRÌNH GDPT 2018 — ÔN THI THPTQG 2025 - 2026</span>
+            <span>KHUNG CHƯƠNG TRÌNH GDPT — ÔN THI THPTQG 2025 - 2026</span>
           </div>
           <h2>Lộ Trình Học — 2 Định Hướng Chuyên Biệt</h2>
           <p>

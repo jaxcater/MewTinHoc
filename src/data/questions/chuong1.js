@@ -45,7 +45,7 @@ export const CHUONG_1_QUIZ = {
         "AI Tổng quát (AGI) và AI Siêu thông minh (ASI)."
       ],
       ans: 1,
-      exp: "Theo chuẩn kiến thức GDPT 2018, AI được phân thành 2 loại chính theo phạm vi năng lực: AI Hẹp (ANI - Artificial Narrow Intelligence) và AI Tổng quát (AGI - Artificial General Intelligence)."
+      exp: "Theo chuẩn kiến thức GDPT hiện hành, AI được phân thành 2 loại chính theo phạm vi năng lực: AI Hẹp (ANI - Artificial Narrow Intelligence) và AI Tổng quát (AGI - Artificial General Intelligence)."
     },
     {
       id: "c1_mcq_4",

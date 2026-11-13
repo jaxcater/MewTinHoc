@@ -60,7 +60,7 @@ export const PHASES = [
   },
 ];
 
-// ── Hai định hướng của chương trình 2018 ────────────────────────────────────
+// ── Hai định hướng của chương trình GDPT ────────────────────────────────────
 // `stages` lấy nguyên văn từ src/data/roadmap/csRoadmap.js và ictRoadmap.js
 // (csRoadmapStations, ictRoadmapStations) để mục lục hiện ra ở landing khớp với
 // lộ trình thật bên trong sản phẩm. Chỉ tên chủ đề, không kèm PDF hay bài kiểm tra.
