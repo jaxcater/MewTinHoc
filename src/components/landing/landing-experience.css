@@ -1,5 +1,5 @@
 /* Học bằng mắt: gallery ảnh thật, lộ trình mở quạt và cuộc đua EXP tương tác. */
-.mtl-experience { --lx-ink:#4b210e; --lx-muted:#7b5b43; --lx-orange:#bd460b; --lx-paper:#fff7e9; --lx-line:#f0d6b7; --lx-shadow:8px 10px 24px #9754201c,-6px -6px 18px #ffffffd9; position:relative; z-index:1; color:var(--lx-ink); background:linear-gradient(180deg,#fffaf0,#fff0d8 22%,#fffbf3 48%,#ffeac7 76%,#fff5e3); }
+.mtl-experience { --lx-ink:#4b210e; --lx-muted:#7b5b43; --lx-orange:#bd460b; --lx-paper:#fff7e9; --lx-line:#f0d6b7; --lx-shadow:0 10px 26px rgba(124,45,18,.08),0 2px 6px rgba(124,45,18,.04); position:relative; z-index:1; color:var(--lx-ink); background:linear-gradient(180deg,#fffaf0,#fff0d8 22%,#fffbf3 48%,#ffeac7 76%,#fff5e3); }
 .mtl-experience button { font:inherit; }
 .mtl-experience button:focus-visible { outline:3px solid var(--lx-orange); outline-offset:5px; }
 .lx-section { position:relative; padding-block:clamp(64px,8vw,112px); scroll-margin-top:110px; }

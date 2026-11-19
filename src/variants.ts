@@ -53,11 +53,11 @@ export const SPRINGS = {
 
 // 3. THỜI LƯỢNG (Durations)
 export const DURATIONS = {
-  micro: 0.2,       // 200ms cho hover, tap, focus
-  pageExit: 0.15,   // 150ms cho fade-out trang cũ
-  tabSwitch: 0.28,  // 280ms cho chuyển tab
-  pageEnter: 0.55,  // 550ms cho load nội dung
-  countUp: 0.9,     // 900ms cho đếm số
+  micro: 0.16,      // 160ms cho hover, tap, focus
+  pageExit: 0.12,   // 120ms cho fade-out trang cũ
+  tabSwitch: 0.22,  // 220ms cho chuyển tab
+  pageEnter: 0.36,  // 360ms cho load nội dung
+  countUp: 0.75,    // 750ms cho đếm số
   ambientSlow: 12   // 12s chu kỳ nền trôi nhẹ
 };
 
@@ -78,36 +78,36 @@ export const studyRewardVariants = {
   exit: (reduced: boolean) => ({ opacity: 0, transform: reduced ? 'translateX(-50%)' : 'translateX(-50%) translateY(12px) scale(0.98)', transition: { duration: DURATIONS.pageExit, ease: EASINGS.emilOut } })
 };
 
-// 4. VARIANTS: HEADER (Fade-in + trượt xuống 12px)
+// 4. VARIANTS: HEADER (Fade-in + trượt xuống 8px)
 export const headerMotionVariants = {
   hidden: {
     opacity: 0,
-    y: -12
+    y: -8
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5,
-      ease: EASINGS.naturalOut
+      duration: 0.3,
+      ease: EASINGS.emilOut
     }
   }
 };
 
-// 5. VARIANTS: BANNER CHÀO MỪNG (Fade-in + trượt lên 20px, stagger con 80ms)
+// 5. VARIANTS: BANNER CHÀO MỪNG (Nhanh gọn, tự nhiên, stagger con 45ms)
 export const bannerContainerVariants = {
   hidden: {
     opacity: 0,
-    y: 20
+    y: 12
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.6,
-      ease: EASINGS.naturalOut,
-      staggerChildren: 0.08,
-      delayChildren: 0.1
+      duration: 0.36,
+      ease: EASINGS.emilOut,
+      staggerChildren: 0.045,
+      delayChildren: 0.02
     }
   }
 };
@@ -116,26 +116,26 @@ export const bannerContainerVariants = {
 export const bannerItemVariants = {
   hidden: {
     opacity: 0,
-    y: 14
+    y: 10
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.45,
-      ease: EASINGS.naturalOut
+      duration: 0.28,
+      ease: EASINGS.emilOut
     }
   }
 };
 
-// 6. VARIANTS: 4 THẺ THỐNG KÊ (Stagger từ trái sang phải, delay 90ms mỗi thẻ)
+// 6. VARIANTS: 4 THẺ THỐNG KÊ (Stagger 50ms)
 export const statsRowVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.09,
-      delayChildren: 0.15
+      staggerChildren: 0.05,
+      delayChildren: 0.04
     }
   }
 };
@@ -143,31 +143,31 @@ export const statsRowVariants = {
 export const statCardVariants = {
   hidden: {
     opacity: 0,
-    y: 18
+    y: 12
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5,
-      ease: EASINGS.naturalOut
+      duration: 0.32,
+      ease: EASINGS.emilOut
     }
   },
-  // Nâng thẻ 4px khi rê chuột (framer ghi transform inline nên CSS :hover transform không có tác dụng)
+  // Nâng thẻ 3px khi rê chuột (framer ghi transform inline nên CSS :hover transform không có tác dụng)
   hover: {
-    y: -4,
-    transition: { type: 'spring', duration: 0.35, bounce: 0.15 }
+    y: -3,
+    transition: { duration: 0.18, ease: EASINGS.emilOut }
   }
 };
 
-// 6b. VARIANTS: LƯỚI 4 KHỐI KIẾN THỨC (stagger 60ms, nâng 3px khi rê chuột)
+// 6b. VARIANTS: LƯỚI 4 KHỐI KIẾN THỨC (stagger 45ms, nâng 3px khi rê chuột)
 export const matrixGridVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.05
+      staggerChildren: 0.045,
+      delayChildren: 0.03
     }
   }
 };
@@ -175,19 +175,19 @@ export const matrixGridVariants = {
 export const matrixCardVariants = {
   hidden: {
     opacity: 0,
-    y: 16
+    y: 10
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.45,
+      duration: 0.32,
       ease: EASINGS.emilOut
     }
   },
   hover: {
     y: -3,
-    transition: { type: 'spring', duration: 0.35, bounce: 0.15 }
+    transition: { duration: 0.18, ease: EASINGS.emilOut }
   }
 };
 
@@ -253,28 +253,47 @@ export const iconHoverVariants = {
 };
 
 // 9. CHUYỂN TRANG / CHUYỂN TAB (AnimatePresence)
-// Trang cũ fade-out 150ms, trang mới fade-in + trượt lên 12px trong 300ms
+// Trang cũ fade-out 120ms, trang mới fade-in + trượt lên 8px trong 220ms
 export const pageTransitionVariants = {
   initial: {
     opacity: 0,
-    y: 12
+    y: 8
   },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.3,
-      ease: EASINGS.naturalOut
+      duration: 0.22,
+      ease: EASINGS.emilOut
     }
   },
   exit: {
     opacity: 0,
-    y: -8,
+    y: -4,
     transition: {
-      duration: 0.15,
-      ease: 'easeOut'
+      duration: 0.12,
+      ease: EASINGS.emilOut
     }
   }
+};
+
+// 9b. MODAL BACKDROP / PANEL & TOAST (Emil Kowalski: nhanh, scale từ 0.97, không pop thô)
+export const modalBackdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.18, ease: EASINGS.emilOut } },
+  exit: { opacity: 0, transition: { duration: 0.14, ease: EASINGS.emilOut } }
+};
+
+export const modalPanelVariants = {
+  hidden: { opacity: 0, scale: 0.97, y: 10 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.22, ease: EASINGS.emilOut } },
+  exit: { opacity: 0, scale: 0.98, y: 6, transition: { duration: 0.14, ease: EASINGS.emilOut } }
+};
+
+export const toastVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.22, ease: EASINGS.emilOut } },
+  exit: { opacity: 0, y: 8, scale: 0.97, transition: { duration: 0.14, ease: EASINGS.emilOut } }
 };
 
 // 10. PREFERS-REDUCED-MOTION: Phiên bản tối giản cho người dùng nhạy cảm chuyển động

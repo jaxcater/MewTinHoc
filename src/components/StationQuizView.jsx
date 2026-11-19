@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   CheckCircle,
   XCircle,
@@ -7,72 +8,23 @@ import {
   Lightbulb
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { EASINGS } from '../variants';
+import './station-quiz.css';
 
 // Hiển thị đoạn mã theo từng dòng (có số dòng); blocks: [{ lang, lines: [] }]
 function CodeBlocks({ blocks }) {
   if (!Array.isArray(blocks) || blocks.length === 0) return null;
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '0.75rem',
-        margin: '0.75rem 0'
-      }}
-    >
+    <div className="sq-code-grid">
       {blocks.map((block, blockIdx) => (
-        <div
-          key={blockIdx}
-          style={{
-            background: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            minWidth: 0
-          }}
-        >
-          <div
-            style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.72rem',
-              fontWeight: 800,
-              color: '#93C5FD',
-              background: '#1E293B',
-              borderBottom: '1px solid #334155',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}
-          >
-            {block.lang}
-          </div>
-          <pre
-            style={{
-              margin: 0,
-              padding: '0.6rem 0',
-              overflowX: 'auto',
-              fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace",
-              fontSize: '0.82rem',
-              fontWeight: 500,
-              lineHeight: 1.6,
-              color: '#E2E8F0'
-            }}
-          >
+        <div key={blockIdx} className="sq-code-box">
+          <div className="sq-code-lang">{block.lang}</div>
+          <pre className="sq-code-pre">
             {(block.lines || []).map((line, lineIdx) => (
-              <div key={lineIdx} style={{ display: 'flex' }}>
-                <span
-                  style={{
-                    flex: '0 0 auto',
-                    width: '2.25rem',
-                    paddingRight: '0.75rem',
-                    textAlign: 'right',
-                    color: '#64748B',
-                    userSelect: 'none'
-                  }}
-                >
-                  {lineIdx + 1}
-                </span>
-                <span style={{ whiteSpace: 'pre', paddingRight: '0.75rem' }}>{line || ' '}</span>
+              <div key={lineIdx} className="sq-code-line">
+                <span className="sq-code-ln">{lineIdx + 1}</span>
+                <span className="sq-code-txt">{line || ' '}</span>
               </div>
             ))}
           </pre>
@@ -89,6 +41,7 @@ export default function StationQuizView({
   onComplete,
   onSubmitResult,
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const [quizVersion, setQuizVersion] = useState(0);
   const shuffle = (items, version = 0) => {
     const copied = [...items];
@@ -128,10 +81,12 @@ export default function StationQuizView({
   const totalTfItems = tfList.reduce((acc, q) => acc + (q.items?.length || 0), 0);
   const totalItems = mcqList.length + totalTfItems;
   const totalAnswered = answeredMcqCount + answeredTfCount;
+  const progressRatio = totalItems > 0 ? Math.min(1, totalAnswered / totalItems) : 0;
 
   // Handle MCQ selection
   const handleSelectMcq = (qIdx, optIdx) => {
     if (isSubmitted) return;
+    setCurrentMcqIndex(qIdx);
     setMcqAnswers((prev) => ({
       ...prev,
       [qIdx]: optIdx
@@ -141,6 +96,7 @@ export default function StationQuizView({
   // Handle TF selection
   const handleSelectTf = (qIdx, itemIdx, val) => {
     if (isSubmitted) return;
+    setCurrentTfIndex(qIdx);
     setTfAnswers((prev) => ({
       ...prev,
       [qIdx]: {
@@ -188,13 +144,13 @@ export default function StationQuizView({
       });
     });
 
-    const score10 = Math.round((correctCount / totalItems) * 100) / 10;
+    const score10 = totalItems > 0 ? Math.round((correctCount / totalItems) * 100) / 10 : 0;
 
     const res = {
       correctCount,
       totalItems,
       score10,
-      accuracy: Math.round((correctCount / totalItems) * 100),
+      accuracy: totalItems > 0 ? Math.round((correctCount / totalItems) * 100) : 0,
       wrongMcq,
       wrongTf
     };
@@ -203,12 +159,13 @@ export default function StationQuizView({
     setIsSubmitted(true);
     onSubmitResult?.(res);
 
-    if (res.accuracy >= 80) {
+    if (res.accuracy >= 80 && !prefersReducedMotion) {
       confetti({
         particleCount: 90,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#22C55E', '#EAB308', '#F97316', '#3B82F6']
+        colors: ['#22C55E', '#EAB308', '#F97316', '#3B82F6'],
+        disableForReducedMotion: true
       });
     }
 
@@ -229,117 +186,51 @@ export default function StationQuizView({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-        background: '#0B0F19',
-        color: '#F8FAFC',
-        overflow: 'hidden',
-        fontFamily: 'inherit'
-      }}
-      className="station-quiz-view"
-    >
+    <div className="station-quiz-view">
       {/* 1. Header Toolbar */}
-      <div
-        className="station-quiz-header"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0.75rem 1.25rem',
-          background: '#111827',
-          borderBottom: '1px solid #1F2937',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          flexShrink: 0
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div
-            style={{
-              padding: '0.2rem 0.6rem',
-              borderRadius: '6px',
-              background: '#EA580C',
-              color: '#FFFFFF',
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              textTransform: 'uppercase'
-            }}
-          >
-            {stationCode}
-          </div>
+      <div className="station-quiz-header">
+        <span
+          className="station-quiz-progress-bar"
+          style={{ transform: `scaleX(${progressRatio})` }}
+          aria-hidden="true"
+        />
+        <div className="station-quiz-title-wrap">
+          <div className="station-quiz-code">{stationCode}</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#F1F5F9' }}>
-              {stationTitle}
-            </div>
-            <div style={{ fontSize: '0.74rem', color: '#94A3B8' }}>
-              Phần I: {mcqList.length} câu trắc nghiệm{tfList.length > 0 ? ` • Phần II: ${tfList.length} câu Đúng/Sai (${totalTfItems} ý)` : ''} • Tổng {totalItems} ý chấm điểm
+            <div className="station-quiz-title">{stationTitle}</div>
+            <div className="station-quiz-subtitle">
+              Phần I: {mcqList.length} câu trắc nghiệm
+              {tfList.length > 0 ? ` • Phần II: ${tfList.length} câu Đúng/Sai (${totalTfItems} ý)` : ''}
+              {` • Tổng ${totalItems} ý chấm điểm`}
             </div>
           </div>
         </div>
 
         {/* Tab switch Part I vs Part II */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div className="station-quiz-tabs" role="tablist" aria-label="Phần câu hỏi">
           <button
+            type="button"
+            role="tab"
+            aria-selected={activePart === 'mcq'}
             onClick={() => setActivePart('mcq')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.4rem 0.85rem',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: activePart === 'mcq' ? '1.5px solid #EA580C' : '1px solid #374151',
-              background: activePart === 'mcq' ? 'rgba(234, 88, 12, 0.2)' : '#1F2937',
-              color: activePart === 'mcq' ? '#FDBA74' : '#94A3B8',
-              transition: 'all 0.15s ease'
-            }}
+            className={`station-quiz-tab-btn${activePart === 'mcq' ? ' is-active' : ''}`}
           >
-            <span>Phần I: Trắc nghiệm ({mcqList.length} câu)</span>
-            <span
-              style={{
-                background: '#374151',
-                padding: '0.1rem 0.4rem',
-                borderRadius: '999px',
-                fontSize: '0.7rem'
-              }}
-            >
+            <span>Phần I: Trắc nghiệm ({mcqList.length})</span>
+            <span className="station-quiz-tab-count">
               {answeredMcqCount}/{mcqList.length}
             </span>
           </button>
 
           {tfList.length > 0 && (
             <button
+              type="button"
+              role="tab"
+              aria-selected={activePart === 'tf'}
               onClick={() => setActivePart('tf')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.4rem 0.85rem',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: activePart === 'tf' ? '1.5px solid #3B82F6' : '1px solid #374151',
-                background: activePart === 'tf' ? 'rgba(59, 130, 246, 0.2)' : '#1F2937',
-                color: activePart === 'tf' ? '#93C5FD' : '#94A3B8',
-                transition: 'all 0.15s ease'
-              }}
+              className={`station-quiz-tab-btn is-tf${activePart === 'tf' ? ' is-active' : ''}`}
             >
-              <span>Phần II: Đúng / Sai ({tfList.length} câu)</span>
-              <span
-                style={{
-                  background: '#374151',
-                  padding: '0.1rem 0.4rem',
-                  borderRadius: '999px',
-                  fontSize: '0.7rem'
-                }}
-              >
+              <span>Phần II: Đúng / Sai ({tfList.length})</span>
+              <span className="station-quiz-tab-count">
                 {answeredTfCount}/{totalTfItems}
               </span>
             </button>
@@ -349,142 +240,74 @@ export default function StationQuizView({
 
       {/* 2. Score Banner (When Submitted) */}
       {isSubmitted && scoreResult && (
-        <div
-          className="station-quiz-score"
-          style={{
-            padding: '1rem 1.25rem',
-            background: scoreResult.score10 >= 8.0 ? 'linear-gradient(90deg, #064E3B 0%, #0F172A 100%)' : '#1E293B',
-            borderBottom: '2px solid #334155',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            flexShrink: 0
-          }}
+        <motion.div
+          className={`station-quiz-score${scoreResult.accuracy >= 80 ? ' is-pass' : ''}`}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.24, ease: EASINGS.emilOut }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="station-quiz-score-main">
             <div
-              style={{
-                width: '52px',
-                height: '52px',
-                borderRadius: '50%',
-                background: scoreResult.score10 >= 8 ? '#10B981' : scoreResult.score10 >= 5 ? '#F59E0B' : '#EF4444',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 900,
-                fontSize: '1.25rem',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-              }}
+              className={`station-quiz-score-badge ${
+                scoreResult.score10 >= 8 ? 'is-high' : scoreResult.score10 >= 5 ? 'is-mid' : 'is-low'
+              }`}
             >
               {scoreResult.score10.toFixed(1)}
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {scoreResult.accuracy >= 80 ? '🎉 Hoàn thành chủ đề! Bạn đã đạt từ 80%' : '⚠️ Chưa đạt 80% — hãy ôn lại và thử lại nhé!'}
+              <div className="station-quiz-score-heading">
+                {scoreResult.accuracy >= 80
+                  ? 'Hoàn thành chủ đề! Bạn đã đạt từ 80%'
+                  : 'Chưa đạt 80% — hãy xem lại lời giải và thử lại nhé'}
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
-                Đúng: <strong style={{ color: '#10B981' }}>{scoreResult.correctCount}/{scoreResult.totalItems} ý</strong> (Độ chính xác {scoreResult.accuracy}%) • {scoreResult.wrongMcq.length + scoreResult.wrongTf.length === 0 ? 'Hoàn hảo không sai câu nào!' : `Còn sai ${scoreResult.wrongMcq.length + scoreResult.wrongTf.length} câu/ý`}
+              <div className="station-quiz-score-meta">
+                Đúng: <strong>{scoreResult.correctCount}/{scoreResult.totalItems} ý</strong> (Độ chính xác {scoreResult.accuracy}%)
+                {' • '}
+                {scoreResult.wrongMcq.length + scoreResult.wrongTf.length === 0
+                  ? 'Không sai câu nào'
+                  : `Còn sai ${scoreResult.wrongMcq.length + scoreResult.wrongTf.length} câu/ý`}
               </div>
             </div>
           </div>
 
-          <button
-            onClick={handleReset}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              background: '#374151',
-              color: '#F9FAFB',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-          >
+          <button type="button" onClick={handleReset} className="station-quiz-reset-btn">
             <RotateCcw size={15} />
             <span>Làm lại từ đầu</span>
           </button>
-        </div>
+        </motion.div>
       )}
 
       {/* 3. Main Question Container & Sidebar Navigator */}
-      <div className="station-quiz-body" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="station-quiz-body">
         {/* Left: Questions Scroll Area */}
-        <div
-          className="station-quiz-questions"
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem'
-          }}
-        >
+        <div className="station-quiz-questions">
           {activePart === 'mcq' || tfList.length === 0 ? (
             /* =================== PHẦN I: TRẮC NGHIỆM =================== */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="station-quiz-list">
               {mcqList.map((q, idx) => {
                 const userChoice = mcqAnswers[idx];
                 const isCorrect = userChoice === q.ans;
                 const isAnswered = userChoice !== undefined;
 
+                const cardStateClass = isSubmitted
+                  ? isCorrect
+                    ? 'is-correct'
+                    : 'is-wrong'
+                  : isAnswered
+                  ? 'is-answered'
+                  : '';
+
                 return (
-                  <div
-                    key={q.id || idx}
-                    id={`mcq_card_${idx}`}
-                    style={{
-                      background: '#131B2E',
-                      borderRadius: '12px',
-                      padding: '1.25rem',
-                      border: isSubmitted
-                        ? isCorrect
-                          ? '1.5px solid #10B981'
-                          : '1.5px solid #EF4444'
-                        : isAnswered
-                        ? '1px solid #EA580C'
-                        : '1px solid #1E293B',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
+                  <article key={q.id || idx} id={`mcq_card_${idx}`} className={`sq-card ${cardStateClass}`}>
                     {/* Header câu hỏi */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span
-                          style={{
-                            background: '#EA580C',
-                            color: '#FFFFFF',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '6px'
-                          }}
-                        >
-                          Câu {idx + 1}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>
-                          Trắc nghiệm 4 lựa chọn (0.25đ)
-                        </span>
+                    <div className="sq-card-head">
+                      <div className="sq-card-head-left">
+                        <span className="sq-no-badge">Câu {idx + 1}</span>
+                        <span className="sq-type-label">Trắc nghiệm 4 lựa chọn (0.25đ)</span>
                       </div>
 
                       {isSubmitted && (
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.3rem',
-                            fontSize: '0.78rem',
-                            fontWeight: 800,
-                            color: isCorrect ? '#34D399' : '#F87171'
-                          }}
-                        >
+                        <div className={`sq-result-tag ${isCorrect ? 'is-correct' : 'is-wrong'}`}>
                           {isCorrect ? (
                             <>
                               <CheckCircle size={15} />
@@ -501,238 +324,120 @@ export default function StationQuizView({
                     </div>
 
                     {/* Nội dung câu hỏi */}
-                    <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem', lineHeight: 1.5 }}>
+                    <div className="sq-stem">
                       {q.q}
                       <CodeBlocks blocks={q.code} />
                       {q.qAfter && <div>{q.qAfter}</div>}
                     </div>
 
                     {/* 4 phương án A, B, C, D */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                    <div className="sq-options" role="group" aria-label={`Các phương án câu ${idx + 1}`}>
                       {q.opts.map((opt, optIdx) => {
                         const letter = 'ABCD'[optIdx];
                         const isSelected = userChoice === optIdx;
                         const isThisCorrect = q.ans === optIdx;
 
-                        let optBg = '#1E293B';
-                        let optBorder = '1px solid #334155';
-                        let optColor = '#E2E8F0';
-
+                        let optClass = '';
                         if (isSubmitted) {
-                          if (isThisCorrect) {
-                            optBg = 'rgba(16, 185, 129, 0.18)';
-                            optBorder = '2px solid #10B981';
-                            optColor = '#34D399';
-                          } else if (isSelected && !isThisCorrect) {
-                            optBg = 'rgba(239, 68, 68, 0.18)';
-                            optBorder = '2px solid #EF4444';
-                            optColor = '#F87171';
-                          }
+                          if (isThisCorrect) optClass = 'is-correct';
+                          else if (isSelected && !isThisCorrect) optClass = 'is-wrong';
                         } else if (isSelected) {
-                          optBg = 'rgba(234, 88, 12, 0.18)';
-                          optBorder = '2px solid #EA580C';
-                          optColor = '#FED7AA';
+                          optClass = 'is-selected';
                         }
 
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={optIdx}
+                            disabled={isSubmitted}
+                            aria-pressed={isSelected}
                             onClick={() => handleSelectMcq(idx, optIdx)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.75rem',
-                              padding: '0.75rem 1rem',
-                              borderRadius: '8px',
-                              background: optBg,
-                              border: optBorder,
-                              color: optColor,
-                              cursor: isSubmitted ? 'default' : 'pointer',
-                              transition: 'all 0.15s ease'
-                            }}
+                            className={`sq-option ${optClass}`}
                           >
-                            <span
-                              style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 800,
-                                fontSize: '0.82rem',
-                                background: isSubmitted
-                                  ? isThisCorrect
-                                    ? '#10B981'
-                                    : isSelected
-                                    ? '#EF4444'
-                                    : '#334155'
-                                  : isSelected
-                                  ? '#EA580C'
-                                  : '#334155',
-                                color: '#FFFFFF',
-                                flexShrink: 0
-                              }}
-                            >
-                              {letter}
-                            </span>
-                            <span style={{ fontSize: '0.88rem', lineHeight: 1.4 }}>
-                              {opt}
-                            </span>
-                          </div>
+                            <span className="sq-option-letter">{letter}</span>
+                            <span className="sq-option-text">{opt}</span>
+                          </button>
                         );
                       })}
                     </div>
 
                     {/* Giải thích sau khi nộp bài */}
                     {isSubmitted && (
-                      <div
-                        style={{
-                          marginTop: '1rem',
-                          padding: '0.85rem 1rem',
-                          borderRadius: '8px',
-                          background: 'rgba(30, 41, 59, 0.8)',
-                          border: '1px solid #334155',
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '0.65rem'
-                        }}
-                      >
-                        <Lightbulb size={18} color="#FBBF24" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <div style={{ fontSize: '0.82rem', lineHeight: 1.5, color: '#CBD5E1' }}>
-                          <strong style={{ color: '#FBBF24' }}>Đáp án đúng: {'ABCD'[q.ans]}.</strong> {q.exp}
+                      <div className="sq-explain">
+                        <Lightbulb size={18} className="sq-explain-icon" />
+                        <div>
+                          <strong>Đáp án đúng: {'ABCD'[q.ans]}.</strong> {q.exp}
                         </div>
                       </div>
                     )}
-                  </div>
+                  </article>
                 );
               })}
             </div>
           ) : (
             /* =================== PHẦN II: ĐÚNG / SAI =================== */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="station-quiz-list">
               {tfList.map((q, qIdx) => {
                 const currentAnswers = tfAnswers[qIdx] || {};
 
                 return (
-                  <div
-                    key={q.id || qIdx}
-                    id={`tf_card_${qIdx}`}
-                    style={{
-                      background: '#131B2E',
-                      borderRadius: '12px',
-                      padding: '1.25rem',
-                      border: '1px solid #1E293B',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)'
-                    }}
-                  >
+                  <article key={q.id || qIdx} id={`tf_card_${qIdx}`} className="sq-card">
                     {/* Header câu hỏi Đúng/Sai */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <span
-                        style={{
-                          background: '#3B82F6',
-                          color: '#FFFFFF',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                          padding: '0.2rem 0.55rem',
-                          borderRadius: '6px'
-                        }}
-                      >
-                        Câu {qIdx + 1} (Phần II)
-                      </span>
-                      <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>
-                        Trắc nghiệm Đúng/Sai (Mỗi ý 0.25đ • Đúng cả 4 ý đạt 1.0đ)
-                      </span>
+                    <div className="sq-card-head">
+                      <div className="sq-card-head-left">
+                        <span className="sq-no-badge is-tf">Câu {qIdx + 1} (Phần II)</span>
+                        <span className="sq-type-label">Đúng/Sai (Mỗi ý 0.25đ • Đúng cả 4 ý đạt 1.0đ)</span>
+                      </div>
                     </div>
 
                     {/* Ngữ cảnh */}
-                    <div
-                      style={{
-                        padding: '0.85rem 1rem',
-                        borderRadius: '8px',
-                        background: '#1E293B',
-                        fontSize: '0.88rem',
-                        fontWeight: 600,
-                        color: '#E2E8F0',
-                        marginBottom: '1rem',
-                        lineHeight: 1.5,
-                        borderLeft: '4px solid #3B82F6'
-                      }}
-                    >
+                    <div className="sq-tf-ctx">
                       {q.ctx}
-
-                      {/* Đoạn mã hiển thị theo từng dòng (có số dòng) */}
                       <CodeBlocks blocks={q.code} />
-
                       {q.ctxAfter && <div>{q.ctxAfter}</div>}
                     </div>
 
                     {/* Danh sách 4 mệnh đề a, b, c, d */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="sq-tf-items">
                       {q.items.map((item, itemIdx) => {
                         const letter = 'abcd'[itemIdx];
                         const userVal = currentAnswers[itemIdx];
                         const isCorrect = userVal === item.ans;
 
+                        const itemState = isSubmitted
+                          ? isCorrect
+                            ? 'is-correct'
+                            : 'is-wrong'
+                          : userVal !== undefined
+                          ? 'is-answered'
+                          : '';
+
                         return (
-                          <div
-                            key={itemIdx}
-                            style={{
-                              background: '#111827',
-                              padding: '0.85rem 1rem',
-                              borderRadius: '8px',
-                              border: isSubmitted
-                                ? isCorrect
-                                  ? '1px solid #10B981'
-                                  : '1px solid #EF4444'
-                                : userVal !== undefined
-                                ? '1px solid #374151'
-                                : '1px solid #1F2937',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.65rem'
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-                              <div style={{ fontSize: '0.88rem', color: '#F1F5F9', lineHeight: 1.4 }}>
-                                <strong style={{ color: '#60A5FA', marginRight: '0.4rem' }}>{letter})</strong>
+                          <div key={itemIdx} className={`sq-tf-item ${itemState}`}>
+                            <div className="sq-tf-row">
+                              <div className="sq-tf-text">
+                                <span className="sq-tf-letter">{letter})</span>
                                 {item.s}
                               </div>
 
                               {/* Nút bấm chọn Đúng / Sai */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                              <div className="sq-tf-actions" role="group" aria-label={`Mệnh đề ${letter}`}>
                                 <button
                                   type="button"
+                                  disabled={isSubmitted}
+                                  aria-pressed={userVal === true}
                                   onClick={() => handleSelectTf(qIdx, itemIdx, true)}
-                                  style={{
-                                    padding: '0.35rem 0.75rem',
-                                    borderRadius: '6px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 800,
-                                    cursor: isSubmitted ? 'default' : 'pointer',
-                                    border: userVal === true ? '1.5px solid #10B981' : '1px solid #374151',
-                                    background: userVal === true ? '#10B981' : '#1F2937',
-                                    color: userVal === true ? '#FFFFFF' : '#94A3B8',
-                                    transition: 'all 0.15s ease'
-                                  }}
+                                  className={`sq-tf-btn${userVal === true ? ' is-true-active' : ''}`}
                                 >
                                   ĐÚNG
                                 </button>
 
                                 <button
                                   type="button"
+                                  disabled={isSubmitted}
+                                  aria-pressed={userVal === false}
                                   onClick={() => handleSelectTf(qIdx, itemIdx, false)}
-                                  style={{
-                                    padding: '0.35rem 0.75rem',
-                                    borderRadius: '6px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 800,
-                                    cursor: isSubmitted ? 'default' : 'pointer',
-                                    border: userVal === false ? '1.5px solid #EF4444' : '1px solid #374151',
-                                    background: userVal === false ? '#EF4444' : '#1F2937',
-                                    color: userVal === false ? '#FFFFFF' : '#94A3B8',
-                                    transition: 'all 0.15s ease'
-                                  }}
+                                  className={`sq-tf-btn${userVal === false ? ' is-false-active' : ''}`}
                                 >
                                   SAI
                                 </button>
@@ -741,17 +446,7 @@ export default function StationQuizView({
 
                             {/* Lời giải thích khi nộp bài */}
                             {isSubmitted && (
-                              <div
-                                style={{
-                                  fontSize: '0.78rem',
-                                  color: isCorrect ? '#34D399' : '#FCA5A5',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.4rem',
-                                  paddingTop: '0.4rem',
-                                  borderTop: '1px dashed #374151'
-                                }}
-                              >
+                              <div className={`sq-tf-explain ${isCorrect ? 'is-correct' : 'is-wrong'}`}>
                                 {isCorrect ? <CheckCircle size={14} /> : <XCircle size={14} />}
                                 <span>
                                   Đáp án chuẩn: <strong>{item.ans ? 'ĐÚNG' : 'SAI'}</strong>. {item.exp}
@@ -762,7 +457,7 @@ export default function StationQuizView({
                         );
                       })}
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
@@ -770,55 +465,33 @@ export default function StationQuizView({
         </div>
 
         {/* Right: Quick Palette Navigator & Submit Action */}
-        <div
-          className="station-quiz-navigator"
-          style={{
-            width: '260px',
-            background: '#111827',
-            borderLeft: '1px solid #1F2937',
-            padding: '1.25rem 1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-            overflowY: 'auto'
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#F1F5F9', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-              Danh sách câu hỏi
-            </div>
+        <aside className="station-quiz-navigator" aria-label="Điều hướng câu hỏi">
+          <div className="sq-nav-palettes">
+            <div className="sq-nav-heading">Danh sách câu hỏi</div>
 
-            {/* MCQ Palette (theo số câu thực tế) */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginBottom: '0.4rem', fontWeight: 700 }}>
+            {/* MCQ Palette */}
+            <div className="sq-nav-group">
+              <div className="sq-nav-label">
                 Phần I: Trắc nghiệm ({answeredMcqCount}/{mcqList.length})
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
+              <div className="sq-nav-grid-mcq">
                 {mcqList.map((_, idx) => {
                   const isDone = mcqAnswers[idx] !== undefined;
                   const isCur = activePart === 'mcq' && currentMcqIndex === idx;
 
                   return (
                     <button
+                      type="button"
                       key={idx}
+                      aria-current={isCur ? 'step' : undefined}
                       onClick={() => {
                         setActivePart('mcq');
                         setCurrentMcqIndex(idx);
-                        document.getElementById(`mcq_card_${idx}`)?.scrollIntoView({ behavior: 'smooth' });
+                        requestAnimationFrame(() => {
+                          document.getElementById(`mcq_card_${idx}`)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'nearest' });
+                        });
                       }}
-                      style={{
-                        padding: '0.45rem 0',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        border: isCur ? '1.5px solid #EA580C' : '1px solid #374151',
-                        background: isDone ? '#EA580C' : '#1F2937',
-                        color: isDone ? '#FFFFFF' : '#94A3B8',
-                        transition: 'all 0.15s ease'
-                      }}
+                      className={`sq-nav-num${isDone ? ' is-done' : ''}${isCur ? ' is-current' : ''}`}
                     >
                       {idx + 1}
                     </button>
@@ -827,101 +500,60 @@ export default function StationQuizView({
               </div>
             </div>
 
-            {/* TF Palette (II.1 -> II.4) */}
-            <div>
-              <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginBottom: '0.4rem', fontWeight: 700 }}>
-                Phần II: Đúng / Sai ({answeredTfCount}/{totalTfItems} ý)
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.35rem' }}>
-                {tfList.map((q, idx) => {
-                  const qAns = tfAnswers[idx] || {};
-                  const isFull = Object.keys(qAns).length === (q.items?.length || 4);
+            {/* TF Palette */}
+            {tfList.length > 0 && (
+              <div className="sq-nav-group">
+                <div className="sq-nav-label">
+                  Phần II: Đúng / Sai ({answeredTfCount}/{totalTfItems} ý)
+                </div>
+                <div className="sq-nav-grid-tf">
+                  {tfList.map((q, idx) => {
+                    const qAns = tfAnswers[idx] || {};
+                    const isFull = Object.keys(qAns).length === (q.items?.length || 4);
+                    const isCur = activePart === 'tf' && currentTfIndex === idx;
 
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setActivePart('tf');
-                        setCurrentTfIndex(idx);
-                        document.getElementById(`tf_card_${idx}`)?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      style={{
-                        padding: '0.45rem 0',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        border: activePart === 'tf' && currentTfIndex === idx ? '1.5px solid #3B82F6' : '1px solid #374151',
-                        background: isFull ? '#3B82F6' : '#1F2937',
-                        color: isFull ? '#FFFFFF' : '#94A3B8',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      C{idx + 1}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        type="button"
+                        key={idx}
+                        aria-current={isCur ? 'step' : undefined}
+                        onClick={() => {
+                          setActivePart('tf');
+                          setCurrentTfIndex(idx);
+                          requestAnimationFrame(() => {
+                            document.getElementById(`tf_card_${idx}`)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'nearest' });
+                          });
+                        }}
+                        className={`sq-nav-num is-tf${isFull ? ' is-done' : ''}${isCur ? ' is-current' : ''}`}
+                      >
+                        C{idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Bottom Action Submit Button */}
-          <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #1F2937' }}>
-            <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginBottom: '0.65rem', textAlign: 'center' }}>
+          <div className="sq-nav-footer">
+            <div className="sq-nav-status">
               Đã làm: <strong>{totalAnswered}/{totalItems} ý</strong>
             </div>
 
             {!isSubmitted ? (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)',
-                  color: '#FFFFFF',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem'
-                }}
-              >
+              <button type="button" onClick={handleSubmit} className="sq-submit-btn">
                 <Check size={16} />
-                <span>Nộp bài & Chấm điểm</span>
+                <span>Nộp bài &amp; Chấm điểm</span>
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleReset}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  background: '#374151',
-                  color: '#FFFFFF',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem'
-                }}
-              >
+              <button type="button" onClick={handleReset} className="sq-submit-btn is-secondary">
                 <RotateCcw size={16} />
                 <span>Làm lại từ đầu</span>
               </button>
             )}
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

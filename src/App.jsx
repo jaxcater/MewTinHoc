@@ -1,11 +1,12 @@
-import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Navbar, { TABS } from './components/Navbar';
 import StudyStreakReward from './components/StudyStreakReward';
 import LoginPage from './components/LoginPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageTransition from './components/motion/PageTransition';
+import { toastVariants, reducedMotionVariants } from './variants';
 import { DEFAULT_USER } from './mockData';
 import { Flame, Loader2 } from 'lucide-react';
 import { supabase } from './supabase';
@@ -56,22 +57,38 @@ function DeferredView({ children }) {
   return <ContentLoadBoundary><Suspense fallback={<div className="pdfx-message route-loading" role="status"><Loader2 size={22} className="pdfx-spin" /><span>Đang tải nội dung...</span></div>}>{children}</Suspense></ContentLoadBoundary>;
 }
 
+function ToastNotice({ message, tone, reducedMotion }) {
+  return (
+    <AnimatePresence>
+      {message && (
+        <motion.div
+          key={message}
+          role="status"
+          aria-live="polite"
+          className={`toast-notice${tone === 'demo' ? ' toast-notice--demo' : ''}`}
+          variants={reducedMotion ? reducedMotionVariants : toastVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <Flame size={18} color="var(--color-amber)" />
+          <span>{message}</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
+  const prefersReducedMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState(TABS.HOME);
   const [toastMessage, setToastMessage] = useState(null);
   const [toastTone, setToastTone] = useState('default');
+  const toastTimerRef = useRef(null);
 
   // Khi tài khoản Demo bấm "mở khoá", đưa thẳng tới form đăng nhập Google
   // thay vì bắt học viên đọc lại trang giới thiệu.
   const [loginStage, setLoginStage] = useState('landing');
-
-  // Màn hình Loading lúc khởi động app (lần đầu mở web / refresh)
-  // Hiển thị tối thiểu ~700ms để tránh "flash" gây khó chịu, đồng thời mask quá trình rehydrate state.
-  const [appBooting, setAppBooting] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setAppBooting(false), 800);
-    return () => clearTimeout(t);
-  }, []);
 
   // User state: null = not logged in, object = logged in
   const [user, setUser] = useState(() => {
@@ -96,6 +113,10 @@ export default function App() {
     return null; // Start as guest → shows Login page
   });
 
+  // Đợi xác minh phiên Supabase xong mới quyết định hiển thị Landing hay App,
+  // tránh lóe Landing Page rồi mới nhảy sang LoadingScreen khi F5.
+  const [authResolved, setAuthResolved] = useState(() => !supabase || Boolean(user));
+
   // Tích hợp dữ liệu Realtime Database (Streak, Mastery 4 khối, Lộ trình, Lịch sử điểm danh)
   const {
     progress,
@@ -110,15 +131,21 @@ export default function App() {
     resetSimulation
   } = useUserProgress(user);
 
-  // Helper to show toasts
-  const showToast = (msg, tone = 'default') => {
+  // Helper to show toasts (clear timer cũ để không tắt nhầm thông báo mới)
+  const showToast = useCallback((msg, tone = 'default') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
     setToastTone(tone);
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToastMessage(null);
       setToastTone('default');
+      toastTimerRef.current = null;
     }, 4000);
-  };
+  }, []);
+
+  useEffect(() => () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+  }, []);
 
   // Tài khoản demo chỉ tồn tại trong tab hiện tại; tài khoản thật dùng cache UI riêng.
   useEffect(() => {
@@ -169,30 +196,47 @@ export default function App() {
 
   // Lắng nghe đăng nhập Google OAuth qua Supabase
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) return undefined;
 
-    // 1. Kiểm tra session hiện có
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        syncSupabaseAuthUser(session.user);
-      }
-    });
+    let cancelled = false;
+    const safetyTimer = setTimeout(() => {
+      if (!cancelled) setAuthResolved(true);
+    }, 2500);
+
+    // 1. Kiểm tra session hiện có trước khi quyết định mở Landing hay App
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+        if (cancelled) return;
+        if (session?.user) {
+          await syncSupabaseAuthUser(session.user);
+        }
+      })
+      .catch(() => { /* fallback sang trạng thái chưa đăng nhập */ })
+      .finally(() => {
+        clearTimeout(safetyTimer);
+        if (!cancelled) setAuthResolved(true);
+      });
 
     // 2. Lắng nghe thay đổi auth (khi redirect từ Google OAuth về, đăng nhập, đăng xuất)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        syncSupabaseAuthUser(session.user);
+        syncSupabaseAuthUser(session.user).finally(() => {
+          if (!cancelled) setAuthResolved(true);
+        });
         showToast(`🎉 Đăng nhập thành công! Chào mừng ${session.user.user_metadata?.full_name || session.user.email}!`);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         localStorage.removeItem('tinhoc_user');
+        setAuthResolved(true);
       }
     });
 
     return () => {
+      cancelled = true;
+      clearTimeout(safetyTimer);
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [showToast]);
 
   // Handle login from LoginPage
   const handleLogin = async (googleAccount) => {
@@ -281,15 +325,13 @@ export default function App() {
     SCREEN_LOADERS[tab]?.().catch(() => { /* Khi mở trang vẫn có nút thử lại. */ });
   }, [user]);
   useEffect(() => {
-    if (!user || !appBooting) return;
-    const tab = location.pathname.startsWith('/roadmap') ? TABS.ROADMAP
-      : location.pathname.startsWith('/ai-exam') ? TABS.AI_EXAM
-      : location.pathname.startsWith('/exams') ? TABS.EXAMS
-      : location.pathname.startsWith('/leaderboard') ? TABS.LEADERBOARD
-      : location.pathname.startsWith('/arena') ? TABS.ARENA
-      : TABS.HOME;
-    handlePrefetchTab(tab);
-  }, [user, appBooting, location.pathname, handlePrefetchTab]);
+    if (!user || !authResolved) return;
+    // Nạp trước nhẹ nhàng các tab chính khi trình duyệt rảnh để mobile bấm chuyển tab mượt
+    const timer = setTimeout(() => {
+      [TABS.ROADMAP, TABS.AI_EXAM, TABS.EXAMS, TABS.LEADERBOARD, TABS.ARENA].forEach(handlePrefetchTab);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [user, authResolved, handlePrefetchTab]);
 
   // Simulation: Tua nhanh 1 ngày (Hôm sau - cho phép điểm danh tiếp)
   const handleSimulateNextDay = () => {
@@ -338,23 +380,19 @@ export default function App() {
     return <DeferredView><AdminPage currentUser={user} /></DeferredView>;
   }
 
+  // Chờ xác minh phiên Supabase trước khi rẽ nhánh Landing/Home để không nháy giao diện
+  if (!authResolved) {
+    return <LoadingScreen text="Đang khởi động MewTinHoc" fullScreen />;
+  }
+
   // Show Login page if not logged in (and not on admin)
   if (!user) {
     return (
       <>
         <LoginPage onLogin={handleLogin} initialStage={loginStage} />
-        {toastMessage && (
-          <div className="toast-notice">
-            <Flame size={18} color="var(--color-amber)" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
+        <ToastNotice message={toastMessage} tone={toastTone} reducedMotion={prefersReducedMotion} />
       </>
     );
-  }
-
-  if (appBooting) {
-    return <LoadingScreen text="Đang khởi động MewTinHoc" fullScreen />;
   }
 
   return (
@@ -548,12 +586,7 @@ export default function App() {
       <StudyStreakReward reward={studyReward} />
 
       {/* Toast Notification */}
-      {toastMessage && (
-        <div role="status" aria-live="polite" className={`toast-notice${toastTone === 'demo' ? ' toast-notice--demo' : ''}`}>
-          <Flame size={18} color="var(--color-amber)" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <ToastNotice message={toastMessage} tone={toastTone} reducedMotion={prefersReducedMotion} />
     </div>
   );
 }

@@ -193,22 +193,10 @@ export default function Navbar({
               {/* Nút Admin chỉ hiển thị riêng cho người công ty (isAdmin === true) */}
               {user?.isAdmin && (
                 <button
+                  type="button"
                   onClick={() => navigate('/admin')}
                   title="Trang Quản Trị Hệ Thống (Dành riêng cho người công ty)"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    padding: '0.35rem 0.65rem',
-                    borderRadius: '8px',
-                    background: '#FEF2F2',
-                    color: '#DC2626',
-                    border: '1px solid #FECACA',
-                    fontSize: '0.74rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 1px 2px rgba(220, 38, 38, 0.08)'
-                  }}
+                  className="nav-admin-btn"
                 >
                   <ShieldCheck size={14} />
                   <span>Admin</span>
@@ -281,7 +269,7 @@ export default function Navbar({
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
                   style={{ borderRadius: 14 }}
-                  transition={SPRINGS.pill}
+                  transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -305,7 +293,7 @@ export default function Navbar({
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
                   style={{ borderRadius: 14 }}
-                  transition={SPRINGS.pill}
+                  transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -333,7 +321,7 @@ export default function Navbar({
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
                   style={{ borderRadius: 14 }}
-                  transition={SPRINGS.pill}
+                  transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -364,7 +352,7 @@ export default function Navbar({
                   layoutId="active-tab-highlight"
                   className="nav-tab-active-pill"
                   style={{ borderRadius: 14 }}
-                  transition={SPRINGS.pill}
+                  transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill}
                 />
               )}
               <span className="nav-tab-inner">
@@ -382,12 +370,11 @@ export default function Navbar({
             </button>
             <button type="button" role="tab" aria-selected={isLeaderboardActive}
               className={`nav-tab-btn ${isLeaderboardActive ? 'active' : ''}`}
-              style={isLeaderboardActive ? { background: 'var(--color-primary-hover)', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' } : undefined}
               onClick={() => go(TABS.LEADERBOARD)}
               onPointerEnter={() => onPrefetchTab?.(TABS.LEADERBOARD)}
               onFocus={() => onPrefetchTab?.(TABS.LEADERBOARD)} id="tab-leaderboard">
               {isLeaderboardActive && <motion.div layoutId="active-tab-highlight" className="nav-tab-active-pill"
-                style={{ borderRadius: 14, background: 'var(--color-primary-hover)', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }} transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill} />}
+                style={{ borderRadius: 14 }} transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill} />}
               <span className="nav-tab-inner"><Trophy size={17} /><span className="nav-tab-label">Bảng thành tích</span></span>
             </button>
             <button
@@ -402,7 +389,7 @@ export default function Navbar({
               title="Đấu trường"
             >
               {isArenaActive && <motion.div layoutId="active-tab-highlight" className="nav-tab-active-pill"
-                style={{ borderRadius: 14, background: 'var(--color-primary-hover)', boxShadow: 'none' }}
+                style={{ borderRadius: 14 }}
                 transition={prefersReducedMotion ? { duration: 0 } : SPRINGS.pill} />}
               <span className="nav-tab-inner">
                 <Swords size={17} />

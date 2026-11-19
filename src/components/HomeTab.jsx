@@ -33,7 +33,7 @@ import {
 } from '../lib/streakEvolutions';
 import StreakEvolutionArt from './StreakEvolutionArt';
 import StudyStreakReward from './StudyStreakReward';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion';
 import {
   DURATIONS,
   EASINGS,
@@ -182,12 +182,13 @@ export default function HomeTab({
 
   const trackData = TRACK_INFO[activeTrack] || TRACK_INFO[TRACK_TYPES.ICT];
   const quizScoresKey = `tinhoc_roadmap_quiz_scores_${suppliedUserId || user?.id || 'guest'}`;
-  let savedQuizScores = {};
-  try {
-    savedQuizScores = JSON.parse(localStorage.getItem(quizScoresKey) || '{}');
-  } catch {
-    savedQuizScores = {};
-  }
+  const savedQuizScores = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem(quizScoresKey) || '{}');
+    } catch {
+      return {};
+    }
+  }, [quizScoresKey]);
   const masteryByBlock = MASTERY_BLOCKS.map((block) => {
     const stations = trackData.stations.filter((station) => getStationMasteryBlockKeys(station).includes(block.key));
     const completedCount = stations.filter((station) => {
@@ -238,8 +239,8 @@ export default function HomeTab({
               </motion.p>
               <motion.div variants={bannerItemVariants} className="hero-actions">
                 <motion.button
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
                   className="btn-primary-glow"
                   onClick={() => onNavigateTab(TABS.ROADMAP)}
                 >
@@ -247,8 +248,8 @@ export default function HomeTab({
                   <ArrowRight size={18} />
                 </motion.button>
                 <motion.button
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
                   className="btn-outline-white"
                   onClick={() => onNavigateTab(TABS.AI_EXAM)}
                 >
@@ -259,15 +260,14 @@ export default function HomeTab({
             </div>
           </motion.div>
 
-          {/* Quick Metrics: Stagger trái sang phải 90ms + CountUp 900ms + Hover lift 4px */}
+          {/* Quick Metrics: Hiện ngay đồng nhịp với banner, CountUp 750ms */}
           <motion.div
-            variants={statsRowVariants}
+            variants={prefersReducedMotion ? reducedMotionVariants : statsRowVariants}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            animate="visible"
             className="metrics-row"
           >
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#EA580C' }}>
+            <motion.div variants={prefersReducedMotion ? reducedMotionVariants : statCardVariants} whileHover={prefersReducedMotion ? undefined : 'hover'} className="metric-card" style={{ '--metric-accent': '#EA580C' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FFF1D6', color: '#EA580C' }}>
                 <Flame size={20} />
               </motion.div>
@@ -277,33 +277,33 @@ export default function HomeTab({
               <div className="metric-label">Chuỗi Streak liên tục</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#D97706' }}>
+            <motion.div variants={prefersReducedMotion ? reducedMotionVariants : statCardVariants} whileHover={prefersReducedMotion ? undefined : 'hover'} className="metric-card" style={{ '--metric-accent': '#D97706' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FEF3C7', color: '#D97706' }}>
                 <BookOpen size={20} />
               </motion.div>
               <div className="metric-val">
-                <CountUpNumber end={progress?.total_exams ?? user?.totalExamsTaken ?? 14} suffix=" Đề" />
+                <CountUpNumber end={Number(progress?.total_exams) || 0} suffix=" Đề" />
               </div>
               <div className="metric-label">Đề thi đã hoàn thành</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#16A34A' }}>
+            <motion.div variants={prefersReducedMotion ? reducedMotionVariants : statCardVariants} whileHover={prefersReducedMotion ? undefined : 'hover'} className="metric-card" style={{ '--metric-accent': '#16A34A' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#DCFCE7', color: '#16A34A' }}>
                 <Award size={20} />
               </motion.div>
               <div className="metric-val">
-                <CountUpNumber end={progress?.avg_score ?? user?.avgScore ?? 8.9} decimals={1} suffix="/10" />
+                <CountUpNumber end={Number(progress?.avg_score) || 0} decimals={1} suffix="/10" />
               </div>
               <div className="metric-label">Điểm trung bình</div>
             </motion.div>
 
-            <motion.div variants={statCardVariants} whileHover="hover" className="metric-card" style={{ '--metric-accent': '#DC2626' }}>
+            <motion.div variants={prefersReducedMotion ? reducedMotionVariants : statCardVariants} whileHover={prefersReducedMotion ? undefined : 'hover'} className="metric-card" style={{ '--metric-accent': '#DC2626' }}>
               <motion.div variants={iconHoverVariants} className="metric-icon-wrap" style={{ background: '#FEE2E2', color: '#DC2626' }}>
                 <TrendingUp size={20} />
               </motion.div>
               <div className="metric-val">
                 <CountUpNumber
-                  end={progress?.accuracy != null ? progress.accuracy : (user?.accuracy ? parseFloat(user.accuracy) : 91.4)}
+                  end={Number(progress?.accuracy) || 0}
                   decimals={1}
                   suffix="%"
                 />
@@ -476,47 +476,31 @@ export default function HomeTab({
             )}
 
             {/* Streak Evolution Collection - Expandable Panel */}
-            <div style={{ 
-              borderTop: '1px solid var(--color-border)', 
-              paddingTop: '0.75rem',
-              marginTop: '0.5rem'
-            }}>
+            <div className="streak-evo-section">
               <button
+                type="button"
+                className="streak-evo-toggle"
+                aria-expanded={showAllEvolutions}
                 onClick={() => setShowAllEvolutions(!showAllEvolutions)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.6rem 0.75rem',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  color: 'var(--color-deep)',
-                  borderRadius: 'var(--radius-sm)',
-                  transition: 'background 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'var(--color-cream)'}
-                onMouseLeave={(e) => e.target.style.background = 'transparent'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Trophy size={16} color="var(--color-primary)" />
                   <span>Bộ sưu tập ({unlockedCount}/{STREAK_EVOLUTIONS.length})</span>
                 </div>
-                <span style={{ 
-                  transform: showAllEvolutions ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.3s',
-                  display: 'inline-block',
-                  fontSize: '0.7rem'
-                }}>
+                <span className={`streak-evo-chevron${showAllEvolutions ? ' is-open' : ''}`}>
                   ▼
                 </span>
               </button>
 
+              <AnimatePresence initial={false}>
               {showAllEvolutions && (
-                <div style={{ marginTop: '0.5rem' }}>
+                <motion.div
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: EASINGS.emilOut }}
+                  style={{ marginTop: '0.5rem' }}
+                >
                   {/* Admin Preview Mode Toggle */}
                   {isCompanyAdmin(user) && (
                     <div style={{
@@ -696,8 +680,9 @@ export default function HomeTab({
                       );
                     })}
                   </div>
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
 
             {/* Streak Simulation Testing Panel (Chỉ hiển thị cho Admin để tiết kiệm diện tích mobile cho học sinh) */}

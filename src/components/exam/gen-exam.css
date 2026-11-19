@@ -172,10 +172,11 @@
 
 .gx-hero h1 {
   margin: 0 0 0.55rem;
-  font-size: clamp(1.5rem, 1.15rem + 1.15vw, 1.95rem);
+  font-family: var(--font-display, var(--font-main));
+  font-size: clamp(1.55rem, 1.2rem + 1.15vw, 2.05rem);
   font-weight: 800;
-  line-height: 1.22;
-  letter-spacing: -0.015em;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
   color: #fff;
 }
 

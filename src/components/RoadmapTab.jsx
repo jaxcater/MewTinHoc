@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   Link as ChainIcon,
   CheckCircle,
@@ -47,6 +48,7 @@ import {
 import AdminTheoryEditor from './AdminTheoryEditor';
 import StationQuizView from './StationQuizView';
 import { lockBodyScroll } from '../lib/scrollLock';
+import { modalBackdropVariants, modalPanelVariants, reducedMotionVariants } from '../variants';
 
 // PDF.js chỉ cần khi học viên thực sự mở tài liệu PDF.
 const PdfDocumentViewer = lazy(() => import('./PdfDocumentViewer'));
@@ -57,6 +59,7 @@ export default function RoadmapTab({
   onStudySubmission,
   user
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const { track } = useParams();
   const navigate = useNavigate();
 
@@ -854,48 +857,17 @@ export default function RoadmapTab({
                     if (!stQuiz) return null;
                     const isCs = activeTrack === TRACK_TYPES.CS;
                     const accentColor = isCs ? '#EA580C' : '#0284C7';
-                    const bgLight = isCs ? '#FFF7ED' : '#F0F9FF';
                     const textColor = isCs ? '#C2410C' : '#0369A1';
-                    const borderColor = isCs ? '#FED7AA' : '#BAE6FD';
                     const badgeBg = isCs ? 'rgba(234, 88, 12, 0.14)' : 'rgba(2, 132, 199, 0.14)';
                     const count = stQuiz.totalItems || (stQuiz.questions ? stQuiz.questions.length : 24);
 
                     return (
                       <button
-                        className="btn-quiz-station"
+                        type="button"
+                        className={`btn-quiz-station ${isCs ? 'btn-quiz-station--cs' : 'btn-quiz-station--ict'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenStationModal(station, 0, false, 'quiz');
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.45rem',
-                          width: '100%',
-                          padding: '0.55rem 0.85rem',
-                          borderRadius: 'var(--radius-md)',
-                          background: bgLight,
-                          color: textColor,
-                          border: `1.5px solid ${borderColor}`,
-                          fontWeight: 800,
-                          fontSize: '0.82rem',
-                          cursor: 'pointer',
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                          transition: 'all 0.18s ease',
-                          marginBottom: '0.45rem'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = isCs ? '#FFEDD5' : '#E0F2FE';
-                          e.currentTarget.style.borderColor = accentColor;
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                          e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = bgLight;
-                          e.currentTarget.style.borderColor = borderColor;
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
                         }}
                         title={`Luyện tập câu hỏi ôn tập: ${station.title}`}
                       >
@@ -978,18 +950,32 @@ export default function RoadmapTab({
 
       {/* 5. MODAL HỌC LÝ THUYẾT CHI TIẾT TỪNG BÀI (THEORY VIEWER DRAWER/MODAL) */}
       {/* Render qua portal ra document.body để modal không bị kẹt trong stacking context của .roadmap-container (isolation: isolate) và bị footer đè lên */}
-      {selectedStation && (currentLesson || selectedStation.pdfUrl || selectedStation.quiz || getStationQuiz(selectedStation.id)) && createPortal(
-        <div className="modal-backdrop roadmap-modal-backdrop" onClick={handleCloseModal}>
-          <div
-            className={`exam-taker-window ${isStudyMode || modalTab === 'pdf' || modalTab === 'quiz' ? 'study-focus-mode' : ''} ${modalTab === 'pdf' ? 'pdf-mode' : ''} ${isFullScreen ? 'full-screen-mode' : ''}`}
-            style={{
-              maxWidth: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '1400px' : '1050px',
-              width: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '96vw' : '92vw',
-              height: isFullScreen ? '100vh' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '94vh' : '88vh',
-              padding: 0
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {selectedStation && (currentLesson || selectedStation.pdfUrl || selectedStation.quiz || getStationQuiz(selectedStation.id)) && (
+            <motion.div
+              key={selectedStation.id}
+              className="modal-backdrop roadmap-modal-backdrop"
+              onClick={handleCloseModal}
+              variants={prefersReducedMotion ? reducedMotionVariants : modalBackdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className={`exam-taker-window ${isStudyMode || modalTab === 'pdf' || modalTab === 'quiz' ? 'study-focus-mode' : ''} ${modalTab === 'pdf' ? 'pdf-mode' : ''} ${isFullScreen ? 'full-screen-mode' : ''}`}
+                style={{
+                  maxWidth: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '1400px' : '1050px',
+                  width: isFullScreen ? '100vw' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '96vw' : '92vw',
+                  height: isFullScreen ? '100vh' : (isStudyMode || modalTab === 'pdf' || modalTab === 'quiz') ? '94vh' : '88vh',
+                  padding: 0
+                }}
+                onClick={(e) => e.stopPropagation()}
+                variants={prefersReducedMotion ? reducedMotionVariants : modalPanelVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
             {/* Modal Container: 2 Cột (Sidebar bài học + Nội dung lý thuyết) */}
             <div className={`theory-modal-container ${(isSidebarCollapsed || !selectedStation?.lessons || selectedStation.lessons.length === 0) ? 'sidebar-collapsed' : ''}`}>
               {/* Sidebar: Danh sách các bài học trong chặng */}
@@ -1910,10 +1896,12 @@ export default function RoadmapTab({
             )}
           </div>
         </div>
-      </div>
-    </div>,
-    document.body
-  )}
+      </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

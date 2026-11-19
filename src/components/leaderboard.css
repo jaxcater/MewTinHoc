@@ -8,8 +8,8 @@
   --lb-rule: #ead9c7;
   --lb-gold: #ffcf7d;
   --lb-brown: #48281c;
-  --lb-shadow: 12px 12px 30px #b98c6326, -8px -8px 24px #fffdf8;
-  --lb-inset: inset 4px 4px 9px #b58c6929, inset -4px -4px 8px #ffffffd9;
+  --lb-shadow: var(--shadow-md);
+  --lb-inset: inset 0 1px 3px rgba(124, 45, 18, .08);
   width: 100%; max-width: 1100px; margin: 0 auto; padding: 28px 0 16px;
   color: var(--lb-ink); font-family: var(--font-main); font-variant-numeric: tabular-nums;
 }

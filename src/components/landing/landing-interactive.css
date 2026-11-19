@@ -1,5 +1,5 @@
 ﻿/* Chất liệu Aurora tĩnh; chuyển động chỉ dùng transform/opacity và giá trị tiến độ. */
-.li-aurora-heading { position:relative; isolation:isolate; overflow:hidden; padding:24px; border:1px solid #fff8e9; border-radius:24px; background:#fff0d2; box-shadow:6px 8px 20px #a45c1e18,-4px -4px 14px #ffffffc9,inset 1px 1px 1px #fff; }
+.li-aurora-heading { position:relative; isolation:isolate; overflow:hidden; padding:24px; border:1px solid #f2dac0; border-radius:24px; background:#fff0d2; box-shadow:var(--lx-shadow),inset 0 1px 0 #fff; }
 .li-aurora-heading::before { content:''; position:absolute; z-index:-1; inset:-35%; pointer-events:none; background:radial-gradient(ellipse at 18% 25%,#ffcf58b3,transparent 43%),radial-gradient(ellipse at 78% 72%,#ff974c8c,transparent 47%),radial-gradient(ellipse at 70% 15%,#ffeeb4,transparent 48%),linear-gradient(125deg,#fff8df,#ffe4b9); transform:rotate(-9deg); }
 .mtl-experience .li-aurora-heading h2 { font-size:clamp(32px,3.2vw,44px); line-height:1.08; font-weight:750; color:#4e210c; }
 .mtl-experience .li-aurora-heading h2 em { font-style:normal; color:#ad4008; }

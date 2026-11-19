@@ -8,10 +8,9 @@
   --battle-orange: var(--color-primary);
   --battle-gold: var(--color-amber);
   --battle-line: #ead9c4;
-  --battle-shadow: 9px 9px 24px #e9d8c45c, -9px -9px 24px #ffffff;
-  --battle-mode-shadow: 7px 8px 18px rgba(145, 81, 29, .13), -6px -6px 16px rgba(255, 255, 255, .95),
-    inset 1px 1px 1px rgba(255, 255, 255, .95), inset -1px -1px 1px rgba(164, 87, 26, .08);
-  --battle-control-inset: inset 3px 3px 7px rgba(144, 82, 31, .12), inset -3px -3px 7px rgba(255, 255, 255, .95);
+  --battle-shadow: var(--shadow-md);
+  --battle-mode-shadow: 0 6px 18px rgba(124, 45, 18, .09), inset 0 1px 0 rgba(255, 255, 255, .9);
+  --battle-control-inset: inset 0 1px 3px rgba(124, 45, 18, .08);
   max-width: 1120px;
   margin: 0 auto;
   padding: 36px 24px 64px;

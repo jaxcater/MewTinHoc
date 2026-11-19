@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ShieldCheck, BookOpen, Brain, ArrowRight, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 import logoMeoCam from '../../img/logomeocam.png';
 import LandingPage from './landing/LandingPage';
+import {
+  EASINGS,
+  modalBackdropVariants,
+  modalPanelVariants,
+  reducedMotionVariants
+} from '../variants';
 
 const FEATURES = [
   { icon: BookOpen, label: 'Kho đề thi chuẩn cấu trúc mới của Bộ GD&ĐT', color: '#EA580C' },
@@ -40,20 +47,21 @@ function GoogleGLogo({ size = 22 }) {
 }
 
 /* ─── Terms & Privacy Modal ─── */
-function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) {
+function TermsPrivacyModalBody({ onClose, onAccept, initialTab = 'terms' }) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab(initialTab);
-      document.body.style.overflow = 'hidden';
-    } else {
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
       document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen, initialTab]);
-
-  if (!isOpen) return null;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
@@ -68,8 +76,24 @@ function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) 
   };
 
   return (
-    <div className="terms-modal-overlay" onClick={handleBackdropClick}>
-      <div className="terms-modal-container">
+    <motion.div
+      className="terms-modal-overlay"
+      onClick={handleBackdropClick}
+      variants={prefersReducedMotion ? reducedMotionVariants : modalBackdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Điều khoản sử dụng và Chính sách bảo mật"
+    >
+      <motion.div
+        className="terms-modal-container"
+        variants={prefersReducedMotion ? reducedMotionVariants : modalPanelVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
         {/* Header */}
         <div className="terms-modal-header">
           <div className="terms-modal-header-left">
@@ -81,7 +105,7 @@ function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) 
               <div className="terms-modal-date">Có hiệu lực từ 30/10/2026</div>
             </div>
           </div>
-          <button className="terms-modal-close" onClick={onClose} aria-label="Đóng">
+          <button type="button" className="terms-modal-close" onClick={onClose} aria-label="Đóng">
             <X size={20} />
           </button>
         </div>
@@ -89,6 +113,7 @@ function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) 
         {/* Tabs */}
         <div className="terms-modal-tabs">
           <button
+            type="button"
             className={`terms-modal-tab ${activeTab === 'terms' ? 'active' : ''}`}
             onClick={() => setActiveTab('terms')}
           >
@@ -96,6 +121,7 @@ function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) 
             <span>Điều khoản sử dụng</span>
           </button>
           <button
+            type="button"
             className={`terms-modal-tab ${activeTab === 'privacy' ? 'active' : ''}`}
             onClick={() => setActiveTab('privacy')}
           >
@@ -111,12 +137,27 @@ function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) 
 
         {/* Footer */}
         <div className="terms-modal-footer">
-          <button className="terms-modal-accept-btn" onClick={handleAcceptClick}>
+          <button type="button" className="terms-modal-accept-btn" onClick={handleAcceptClick}>
             Tôi đã đọc và hiểu
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function TermsPrivacyModal({ isOpen, onClose, onAccept, initialTab = 'terms' }) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <TermsPrivacyModalBody
+          key={initialTab}
+          onClose={onClose}
+          onAccept={onAccept}
+          initialTab={initialTab}
+        />
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -305,10 +346,10 @@ function PrivacyContent() {
 }
 
 export default function LoginPage({ onLogin, initialStage = 'landing' }) {
+  const prefersReducedMotion = useReducedMotion();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [floatAnim, setFloatAnim] = useState(false);
   const [termsModal, setTermsModal] = useState({ open: false, tab: 'terms', pendingAction: null });
   const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -319,16 +360,6 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
    * Giữ trong cùng component để không mất state lỗi OAuth khi quay lại.
    */
   const [stage, setStage] = useState(initialStage);
-
-  // Ao vào màn hình đăng nhập: reset rồi bật lại để hiệu ứng chạy mỗi lần mở.
-  useEffect(() => {
-    if (stage !== 'auth') {
-      setFloatAnim(false);
-      return;
-    }
-    const t = setTimeout(() => setFloatAnim(true), 80);
-    return () => clearTimeout(t);
-  }, [stage]);
 
   // Đưa tiêu điểm bàn phím vào màn hình đăng nhập ngay khi nó xuất hiện, để
   // người dùng bàn phím không bị mắc kẹt ở landing đã bị gỡ khỏi DOM.
@@ -436,9 +467,9 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
     }
   };
 
-  const handleCloseTerms = () => {
+  const handleCloseTerms = useCallback(() => {
     setTermsModal({ open: false, tab: 'terms', pendingAction: null });
-  };
+  }, []);
 
   const handleGoogleBtnClick = () => {
     if (agreedTerms) {
@@ -449,27 +480,50 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
     }
   };
 
-  // Chặng 1 — trang giới thiệu. Chỉ render khi chưa bấm bắt đầu.
-  if (stage === 'landing') {
-    return <LandingPage onStart={openAuth} />;
-  }
+  // Chỉ animate opacity (không transform) để giữ nguyên containing block cho position: fixed trên Landing & Login
+  const stageTransition = {
+    duration: prefersReducedMotion ? 0.1 : 0.18,
+    ease: EASINGS.emilOut
+  };
 
   return (
-    <div className="login-page-root" ref={authRootRef} tabIndex={-1}>
-      <div className="login-blob login-blob-1" />
-      <div className="login-blob login-blob-2" />
-      <div className="login-blob login-blob-3" />
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        {stage === 'landing' ? (
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={stageTransition}
+          >
+            <LandingPage onStart={openAuth} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="auth"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={stageTransition}
+            className="login-page-root"
+            ref={authRootRef}
+            tabIndex={-1}
+          >
+          <div className="login-blob login-blob-1" />
+          <div className="login-blob login-blob-2" />
+          <div className="login-blob login-blob-3" />
 
-      {/* Quay lại landing — ghim ở góc trên bên trái của cả trang, không nằm
-          trong panel thương hiệu (panel này bị ẩn dưới 768px). */}
-      <button type="button" className="login-back-btn" onClick={backToLanding}>
-        <span className="login-back-btn__icon" aria-hidden="true">
-          <ArrowLeft size={16} />
-        </span>
-        <span className="login-back-btn__label">Về trang giới thiệu</span>
-      </button>
+          {/* Quay lại landing — ghim ở góc trên bên trái của cả trang, không nằm
+              trong panel thương hiệu (panel này bị ẩn dưới 768px). */}
+          <button type="button" className="login-back-btn" onClick={backToLanding}>
+            <span className="login-back-btn__icon" aria-hidden="true">
+              <ArrowLeft size={16} />
+            </span>
+            <span className="login-back-btn__label">Về trang giới thiệu</span>
+          </button>
 
-      <div className={`login-split-layout ${floatAnim ? 'login-float-in' : ''}`}>
+          <div className="login-split-layout login-float-in">
         {/* LEFT — Branding */}
         <div className="login-brand-panel">
           <div className="login-brand-inner">
@@ -572,23 +626,6 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
                 onClick={handleGoogleBtnClick}
                 disabled={isGoogleLoading}
                 aria-busy={isGoogleLoading}
-                style={{
-                  padding: '0.85rem 1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.75rem',
-                  background: '#FFFFFF',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '10px',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  color: '#1F2937',
-                  cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
               >
                 {isGoogleLoading ? (
                   <>
@@ -640,74 +677,44 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
               </div>
 
               {/* Nút đăng nhập Học viên mẫu */}
-              {(
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '0.1rem 0' }}>
-                  <button
-                    type="button"
-                    onClick={() => onLogin({
-                      id: 'demo-student-id',
-                      isDemo: true,
-                      name: 'Nguyễn Văn An',
-                      email: 'an.nguyen@hocvien.edu.vn',
-                      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-                      grade: 'Lớp 12 — Ôn thi THPTQG'
-                    })}
-                    style={{
-                      padding: '0.75rem 1rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      background: '#FFF9F2',
-                      border: '1.5px dashed var(--color-primary)',
-                      borderRadius: '10px',
-                      fontSize: '0.86rem',
-                      fontWeight: 700,
-                      color: 'var(--color-primary)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    id="btn-demo-login"
-                  >
-                    <span>Học viên mẫu</span>
-                  </button>
+              <div className="login-demo-group">
+                <button
+                  type="button"
+                  className="login-custom-btn"
+                  onClick={() => onLogin({
+                    id: 'demo-student-id',
+                    isDemo: true,
+                    name: 'Nguyễn Văn An',
+                    email: 'an.nguyen@hocvien.edu.vn',
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+                    grade: 'Lớp 12 — Ôn thi THPTQG'
+                  })}
+                  id="btn-demo-login"
+                >
+                  <span>Trải nghiệm thử với Học viên mẫu</span>
+                </button>
 
-                  <div style={{
-
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem',
-                    fontSize: '0.75rem',
-                    color: '#15803D',
-                    background: '#F0FDF4',
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid #DCFCE7'
-                  }}>
-                    <ShieldCheck size={14} color="#16A34A" />
-                    <span>Xác thực qua Google an toàn</span>
-                  </div>
-
-                  <div className="login-security-note">
-                    <ShieldCheck size={14} color="#16A34A" />
-                    <span>Không lưu mật khẩu · Dữ liệu được mã hóa an toàn</span>
-                  </div>
+                <div className="login-security-note">
+                  <ShieldCheck size={14} color="#16A34A" />
+                  <span>Xác thực Google an toàn · Không lưu mật khẩu</span>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
         </div>
       </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
 
-      {/* Terms & Privacy Modal */}
+      {/* Terms & Privacy Modal đặt ngoài motion.div để fixed positioning luôn chuẩn theo viewport */}
       <TermsPrivacyModal
         isOpen={termsModal.open}
         onClose={handleCloseTerms}
         onAccept={handleAcceptTerms}
         initialTab={termsModal.tab}
       />
-    </div>
+    </>
   );
 }
