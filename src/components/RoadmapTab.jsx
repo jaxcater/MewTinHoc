@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -103,6 +103,14 @@ export default function RoadmapTab({
 
   // Chế độ hiển thị trong modal: 'pdf' (Stream tài liệu PDF) hoặc 'theory' (Học từng bài)
   const [modalTab, setModalTab] = useState('pdf');
+  const theoryModalMainRef = useRef(null);
+
+  // Đưa vùng cuộn modal về đầu khi chuyển sang bài tập kiểm tra hoặc đổi chặng
+  useEffect(() => {
+    if (theoryModalMainRef.current) {
+      theoryModalMainRef.current.scrollTop = 0;
+    }
+  }, [modalTab, selectedStation?.id]);
 
   // Chế độ học tập trung (Study Focus Mode)
   const [isStudyMode, setIsStudyMode] = useState(false);
@@ -977,7 +985,7 @@ export default function RoadmapTab({
                 exit="exit"
               >
             {/* Modal Container: 2 Cột (Sidebar bài học + Nội dung lý thuyết) */}
-            <div className={`theory-modal-container ${(isSidebarCollapsed || !selectedStation?.lessons || selectedStation.lessons.length === 0) ? 'sidebar-collapsed' : ''}`}>
+            <div className={`theory-modal-container ${(isSidebarCollapsed || !selectedStation?.lessons || selectedStation.lessons.length === 0) ? 'sidebar-collapsed' : ''}${modalTab === 'quiz' ? ' is-quiz-mode' : ''}`}>
               {/* Sidebar: Danh sách các bài học trong chặng */}
               {selectedStation?.lessons && selectedStation.lessons.length > 0 && (
                 <div className={`theory-modal-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -1099,7 +1107,10 @@ export default function RoadmapTab({
               )}
 
               {/* Main: Nội dung lý thuyết chi tiết của bài */}
-                <div className="theory-modal-main">
+                <div
+                  ref={theoryModalMainRef}
+                  className={`theory-modal-main${modalTab === 'quiz' ? ' is-quiz-mode' : ''}`}
+                >
                 {/* Header thanh trên của modal */}
                 <div
                   className="theory-modal-header"

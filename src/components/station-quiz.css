@@ -6,6 +6,7 @@
 .station-quiz-view {
   display: flex;
   flex-direction: column;
+  flex: 1 1 0%;
   height: 100%;
   min-height: 0;
   width: 100%;
@@ -229,7 +230,10 @@
 
 .station-quiz-questions {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -355,6 +359,7 @@
   margin: 0;
   padding: 0.6rem 0;
   overflow-x: auto;
+  touch-action: pan-x pan-y;
   font-family: var(--font-code);
   font-size: 0.82rem;
   font-weight: 500;
@@ -745,15 +750,17 @@
 
   .station-quiz-navigator {
     width: 100%;
-    max-height: 210px;
+    max-height: min(210px, 34vh);
     border-left: 0;
     border-top: 1.5px solid var(--color-border);
     padding: 0.85rem;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 900px) and (max-height: 540px) {
+  /* Giữ kích thước tự nhiên theo nội dung để .theory-modal-main cuộn liền mạch trên điện thoại */
   .station-quiz-view {
+    flex: 0 0 auto;
     height: auto;
     min-height: 100%;
     overflow: visible;
@@ -773,6 +780,7 @@
   }
 
   .station-quiz-tab-btn {
+    min-width: 0;
     justify-content: space-between;
     padding: 0.55rem 0.6rem;
     font-size: 0.76rem;
@@ -780,6 +788,7 @@
 
   .station-quiz-body {
     display: block;
+    flex: none;
     overflow: visible;
   }
 
@@ -800,7 +809,8 @@
   }
 
   .station-quiz-navigator {
-    width: auto;
+    width: 100%;
+    box-sizing: border-box;
     max-height: none;
     overflow: visible;
     padding: 0.9rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
@@ -829,6 +839,12 @@
     margin: 0.9rem -0.75rem 0;
     padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 380px) {
+  .station-quiz-tabs {
+    grid-template-columns: 1fr;
   }
 }
 
