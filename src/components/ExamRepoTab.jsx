@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { isCompanyAdmin } from '../lib/roleService';
 import LoadingScreen from './LoadingScreen.jsx';
+import ExamPagination from './ExamPagination';
 import './loading-screen.css';
 import './exam-repo.css';
 import {
@@ -47,10 +48,8 @@ const MAX_MB = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
 
 // Loại file có thể xem trực tiếp trên trình duyệt
 const PREVIEWABLE = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
-const MOBILE_DOC_INITIAL_LIMIT = 6;
-const MOBILE_DOC_PAGE_SIZE = 4;
+const MOBILE_DOC_PAGE_SIZE = 6;
 const DESKTOP_DOC_PAGE_SIZE = 15;
-const INITIAL_VISIBLE_COUNTS = { mobile: MOBILE_DOC_INITIAL_LIMIT, desktop: DESKTOP_DOC_PAGE_SIZE };
 
 // Icon + màu nhận diện cho từng "loại tài liệu"
 const TYPE_VISUALS = {
@@ -103,7 +102,8 @@ export default function ExamRepoTab({ user }) {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [visibleCounts, setVisibleCounts] = useState(INITIAL_VISIBLE_COUNTS);
+  const [currentPage, setCurrentPage] = useState(1);
+  const docGridRef = useRef(null);
 
   // ── Trạng thái dành riêng cho Admin ──
   const isAdmin = isCompanyAdmin(user);
@@ -228,7 +228,7 @@ export default function ExamRepoTab({ user }) {
     if (type.id === activeType?.id) return;
     setActiveTypeId(type.id);
     setSearchQuery('');
-    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
+    setCurrentPage(1);
     setEditingId(null);
     setConfirmDeleteId(null);
     await fetchDocs(type);
@@ -275,7 +275,7 @@ export default function ExamRepoTab({ user }) {
       showNotice(failures.length > 0 ? 'error' : 'success', parts.join(' '));
     }
     if (okCount > 0) {
-      setVisibleCounts(INITIAL_VISIBLE_COUNTS);
+      setCurrentPage(1);
       await loadTypes();
       await fetchDocs(activeType);
     }
@@ -325,7 +325,7 @@ export default function ExamRepoTab({ user }) {
     }
 
     cancelRename();
-    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
+    setCurrentPage(1);
     showNotice(
       'success',
       `Đã đổi tên thành "${next}${doc.loai_file ? `.${doc.loai_file}` : ''}" và đồng bộ lên Supabase.`
@@ -357,7 +357,7 @@ export default function ExamRepoTab({ user }) {
     const res = await deleteExamDocument(doc);
     setBusyId(null);
     setConfirmDeleteId(null);
-    setVisibleCounts(INITIAL_VISIBLE_COUNTS);
+    setCurrentPage(1);
 
     if (!res.success) {
       showNotice('error', `Xoá thất bại: ${res.error}`);
@@ -393,10 +393,24 @@ export default function ExamRepoTab({ user }) {
   const filtered = docs.filter((d) =>
     (d.ten_file || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const viewportKey = isMobileViewport ? 'mobile' : 'desktop';
-  const visibleCount = visibleCounts[viewportKey];
-  const visibleDocs = filtered.slice(0, visibleCount);
-  const hasMoreDocs = visibleCount < filtered.length;
+  const pageSize = isMobileViewport ? MOBILE_DOC_PAGE_SIZE : DESKTOP_DOC_PAGE_SIZE;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const visibleDocs = filtered.slice(startIndex, startIndex + pageSize);
+
+  const handlePageChange = (nextPage) => {
+    setCurrentPage(nextPage);
+    const el = docGridRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < 80) {
+      const reduced =
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }
+  };
 
   const errorHint = (() => {
     if (!error) return null;
@@ -447,7 +461,7 @@ export default function ExamRepoTab({ user }) {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setVisibleCounts(INITIAL_VISIBLE_COUNTS);
+                setCurrentPage(1);
               }}
             />
           </div>
@@ -596,7 +610,7 @@ export default function ExamRepoTab({ user }) {
 
       {/* ── Documents list ── */}
       {!isLoading && filtered.length > 0 && (
-        <div className="doc-library-grid">
+        <div ref={docGridRef} className="doc-library-grid">
           {visibleDocs.map((doc) => {
             const fi = getFileIcon(doc.loai_file);
             const IconComp = fi.icon;
@@ -778,18 +792,13 @@ export default function ExamRepoTab({ user }) {
         </div>
       )}
 
-      {!isLoading && hasMoreDocs && (
-        <button
-          type="button"
-          className="doc-load-more"
-          onClick={() => setVisibleCounts((counts) => ({
-            ...counts,
-            [viewportKey]: counts[viewportKey] + (isMobileViewport ? MOBILE_DOC_PAGE_SIZE : DESKTOP_DOC_PAGE_SIZE)
-          }))}
-        >
-          <span>Xem thêm</span>
-          <span className="doc-load-more-count">Còn {filtered.length - visibleCount} tài liệu</span>
-        </button>
+      {!isLoading && totalPages > 1 && (
+        <ExamPagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          lightShell
+        />
       )}
 
       {/* ── Empty state ── */}

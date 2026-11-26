@@ -56,7 +56,7 @@
 }
 
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
 }
@@ -74,7 +74,7 @@ button, a, [role="button"], input, textarea, select { touch-action: manipulation
 }
 
 #root, .app-container {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
 }
@@ -148,7 +148,20 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.top-nav-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.top-nav-track-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .brand-section {
@@ -228,6 +241,8 @@ a {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .streak-pill {
@@ -6405,20 +6420,40 @@ a {
 
   /* 2. Top Header & Navigation Bar on Mobile */
   .top-nav-row {
-    padding: 0.45rem 0.65rem;
-    gap: 0.5rem;
+    padding: 0.5rem 0.75rem 0.55rem;
+    gap: 0.45rem 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
-    /* Không bao giờ để hàng này tràn ngang: phần thương hiệu co lại được,
-       phần học viên giữ nguyên. `min-width: 0` trên brand cho phép nó co
-       lại thay vì đẩy phần bên phải ra ngoài mép màn hình.
-       `overflow-x: clip` chặn tràn ngang mà không cắt bóng đổ/ánh sáng
-       loé của logo (nếu dùng `hidden` thì chiều dọc cũng bị cắt). */
     min-width: 0;
-    overflow-x: clip;
+    overflow: visible;
+  }
+
+  .top-nav-brand-group {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.45rem;
+  }
+
+  .student-bar-widget {
+    order: 2;
+    margin-left: auto;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .top-nav-track-wrap {
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(234, 88, 12, 0.12);
   }
 
   .brand-section {
-    gap: 0.5rem;
+    gap: 0.45rem;
     min-width: 0;
     flex: 0 1 auto;
   }
@@ -6430,7 +6465,7 @@ a {
   /* Chữ "MewTinHoc" là một từ không ngắt được: nếu không co, nó ép hàng
      rộng ra và đẩy widget học viên ra khỏi màn hình. */
   .brand-title {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     line-height: 1.15;
     white-space: nowrap;
   }
@@ -6439,6 +6474,7 @@ a {
     width: 34px;
     height: 34px;
     border-radius: 9px;
+    flex-shrink: 0;
   }
 
   .brand-tag {
@@ -6447,11 +6483,6 @@ a {
 
   .brand-slogan {
     display: none !important; /* Ẩn slogan dài trên mobile để navbar không bị tràn mép */
-  }
-
-  .student-bar-widget {
-    gap: 0.35rem;
-    align-items: center;
   }
 
   .streak-pill {
@@ -7098,6 +7129,119 @@ a {
    MOBILE FINAL OVERRIDES — Exam library + navigation stability
    These rules come after legacy mobile rules so the compact layout wins.
    ============================================================ */
+@media (max-width: 768px) {
+  .horizontal-sidebar {
+    overflow: visible;
+  }
+
+  .top-nav-row {
+    padding: 0.5rem 0.75rem 0.55rem;
+    gap: 0.45rem 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .top-nav-brand-group {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.45rem;
+  }
+
+  .student-bar-widget {
+    order: 2;
+    margin-left: auto;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .top-nav-track-wrap {
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(234, 88, 12, 0.12);
+  }
+
+  .brand-section {
+    gap: 0.45rem;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .brand-section > div:last-child {
+    min-width: 0;
+  }
+
+  .brand-title {
+    font-size: 1.02rem;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .brand-logo-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    flex-shrink: 0;
+  }
+
+  .brand-tag,
+  .brand-slogan,
+  .streak-label,
+  .student-name,
+  .student-demo-tag {
+    display: none !important;
+  }
+
+  .streak-pill {
+    padding: 0.22rem 0.45rem;
+    gap: 0.25rem;
+  }
+
+  .streak-number {
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .student-profile-chip {
+    padding: 2px;
+    max-width: 32px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .student-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .student-logout-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-title {
+    font-size: 0.96rem;
+  }
+  .brand-logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .u417-mobile-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
 @media (max-width: 640px) {
   .doc-preview-overlay {
     align-items: end;
@@ -7125,27 +7269,6 @@ a {
   }
 
   .doc-preview-download {
-    flex: 0 0 auto;
-  }
-
-  .horizontal-sidebar {
-    overflow: visible;
-  }
-
-  .top-nav-row {
-    min-width: 0;
-  }
-
-  .brand-section {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .brand-section > div:last-child {
-    min-width: 0;
-  }
-
-  .student-bar-widget {
     flex: 0 0 auto;
   }
 

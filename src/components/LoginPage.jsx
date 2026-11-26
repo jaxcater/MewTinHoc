@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ShieldCheck, BookOpen, Brain, ArrowRight, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail, Check } from 'lucide-react';
+import { ShieldCheck, BookOpen, Brain, ArrowLeft, X, FileText, Lock, Users, Bot, Scale, AlertTriangle, Mail, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 import logoMeoCam from '../../img/logomeocam.png';
-import LandingPage from './landing/LandingPage';
+import LandingPage from './LandingPage';
+import GoogleSignInButton from './GoogleSignInButton';
 import {
   EASINGS,
   modalBackdropVariants,
@@ -497,7 +498,7 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
             exit={{ opacity: 0 }}
             transition={stageTransition}
           >
-            <LandingPage onStart={openAuth} />
+            <LandingPage onStart={openAuth} onOpenLogin={openAuth} onLogin={onLogin} />
           </motion.div>
         ) : (
           <motion.div
@@ -620,26 +621,12 @@ export default function LoginPage({ onLogin, initialStage = 'landing' }) {
               )}
 
               {/* NÚT CHÍNH: ĐĂNG NHẬP GOOGLE OAUTH */}
-              <button
-                type="button"
-                className="login-google-btn"
+              <GoogleSignInButton
+                loading={isGoogleLoading}
+                done={Boolean(success)}
+                lightShell
                 onClick={handleGoogleBtnClick}
-                disabled={isGoogleLoading}
-                aria-busy={isGoogleLoading}
-              >
-                {isGoogleLoading ? (
-                  <>
-                    <div className="login-spinner" />
-                    <span>Đang kết nối Google...</span>
-                  </>
-                ) : (
-                  <>
-                    <GoogleGLogo size={22} />
-                    <span>Tiếp tục với Google</span>
-                    <ArrowRight size={18} className="login-btn-arrow" />
-                  </>
-                )}
-              </button>
+              />
 
               {/* DÒNG ĐỒNG Ý ĐIỀU KHOẢN VÀ TICK BOX */}
               <div className="login-terms-agreement">

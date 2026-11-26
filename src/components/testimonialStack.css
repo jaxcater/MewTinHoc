@@ -1,0 +1,358 @@
+/* Lucian UX/UI Prompt #422 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#422 */
+
+.u422 {
+  color-scheme: light;
+  --ux-page: var(--prep-bg, var(--color-bg, #FFFBF4));
+  --ux-surface: linear-gradient(165deg, #FFFFFF 0%, #FFF7ED 100%);
+  --ux-surface-2: var(--prep-warm, #FFF3E0);
+  --ux-surface-3: #FDE4C8;
+  --ux-ink: var(--prep-ink, var(--color-text-main, #2B1A11));
+  --ux-ink-2: var(--prep-muted, var(--color-text-muted, #664937));
+  --ux-ink-3: var(--prep-soft, #9A6342);
+  --ux-line: rgba(234, 88, 12, 0.24);
+  --ux-line-2: rgba(234, 88, 12, 0.40);
+  --ux-accent: var(--prep-orange-deep, var(--color-primary, #EA580C));
+  --ux-accent-2: var(--prep-orange, #FF6B00);
+  --ux-accent-soft: rgba(234, 88, 12, 0.14);
+  --ux-accent-ink: #FFFFFF;
+  --ux-mint: #16A34A;
+  --ux-warn: #F59E0B;
+  --ux-danger: #DC2626;
+  --ux-star: #F97316;
+  --ux-quote-tint: rgba(234, 88, 12, 0.085);
+  --ux-glass: rgba(255, 255, 255, 0.58);
+  --ux-glass-line: rgba(255, 255, 255, 0.85);
+  --ux-shadow: rgba(234, 88, 12, 0.16);
+  --ux-shadow-strong: rgba(154, 52, 18, 0.30);
+  --ux-grad: linear-gradient(120deg, #EA580C, #FF6B00 55%, #F59E0B);
+  --ux-ease: cubic-bezier(.2, .8, .2, 1);
+  --ux-spring: cubic-bezier(.34, 1.45, .64, 1);
+
+  position: relative;
+  width: min(560px, 100%);
+  max-width: 100%;
+  height: 400px;
+  display: grid;
+  place-items: center;
+  color: var(--ux-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.landing-route) .u422 {
+    color-scheme: dark;
+    --ux-page: #1A0F0A;
+    --ux-surface: linear-gradient(165deg, #2E1910 0%, #23120B 100%);
+    --ux-surface-2: #3A2014;
+    --ux-surface-3: #52301F;
+    --ux-ink: #FFF7ED;
+    --ux-ink-2: rgba(255, 247, 237, 0.76);
+    --ux-ink-3: rgba(254, 215, 170, 0.68);
+    --ux-line: rgba(251, 146, 60, 0.28);
+    --ux-line-2: rgba(251, 146, 60, 0.44);
+    --ux-accent: #FB923C;
+    --ux-accent-2: #FBBF24;
+    --ux-accent-soft: rgba(251, 146, 60, 0.20);
+    --ux-accent-ink: #1A0F0A;
+    --ux-mint: #7EE8C0;
+    --ux-warn: #FBBF24;
+    --ux-danger: #FF7D8C;
+    --ux-star: #FBBF24;
+    --ux-quote-tint: rgba(251, 146, 60, 0.11);
+    --ux-glass: rgba(255, 255, 255, 0.07);
+    --ux-glass-line: rgba(255, 255, 255, 0.18);
+    --ux-shadow: rgba(0, 0, 0, 0.48);
+    --ux-shadow-strong: rgba(0, 0, 0, 0.74);
+    --ux-grad: linear-gradient(120deg, #FB923C, #F97316 55%, #FBBF24);
+  }
+}
+
+:root[data-theme="dark"] .u422 {
+  color-scheme: dark;
+  --ux-page: #1A0F0A;
+  --ux-surface: linear-gradient(165deg, #2E1910 0%, #23120B 100%);
+  --ux-surface-2: #3A2014;
+  --ux-surface-3: #52301F;
+  --ux-ink: #FFF7ED;
+  --ux-ink-2: rgba(255, 247, 237, 0.76);
+  --ux-ink-3: rgba(254, 215, 170, 0.68);
+  --ux-line: rgba(251, 146, 60, 0.28);
+  --ux-line-2: rgba(251, 146, 60, 0.44);
+  --ux-accent: #FB923C;
+  --ux-accent-2: #FBBF24;
+  --ux-accent-soft: rgba(251, 146, 60, 0.20);
+  --ux-accent-ink: #1A0F0A;
+  --ux-mint: #7EE8C0;
+  --ux-warn: #FBBF24;
+  --ux-danger: #FF7D8C;
+  --ux-star: #FBBF24;
+  --ux-quote-tint: rgba(251, 146, 60, 0.11);
+  --ux-glass: rgba(255, 255, 255, 0.07);
+  --ux-glass-line: rgba(255, 255, 255, 0.18);
+  --ux-shadow: rgba(0, 0, 0, 0.48);
+  --ux-shadow-strong: rgba(0, 0, 0, 0.74);
+  --ux-grad: linear-gradient(120deg, #FB923C, #F97316 55%, #FBBF24);
+}
+
+.u422.ux,
+.u422.ux *,
+.u422.ux *::before,
+.u422.ux *::after {
+  box-sizing: border-box;
+}
+
+.u422.ux {
+  font-family: inherit;
+  color: var(--ux-ink);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -.01em;
+  -webkit-tap-highlight-color: transparent;
+  overflow-wrap: break-word;
+}
+
+:where(.u422.ux) :is(button, input, textarea, select) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(.u422.ux) button {
+  cursor: pointer;
+}
+
+.u422.ux :focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 3px;
+}
+
+.u422.ux [hidden] {
+  display: none !important;
+}
+
+.u422-st {
+  position: relative;
+  width: min(470px, 100%);
+  height: 282px;
+  margin-top: -28px;
+  outline: none;
+  touch-action: pan-y;
+}
+
+.u422-st:focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 10px;
+  border-radius: 30px;
+}
+
+.u422-cd {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 32px 26px;
+  border-radius: 28px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1.5px var(--ux-line), 0 10px 24px -6px var(--ux-shadow), 0 34px 68px -24px var(--ux-shadow-strong);
+  transform-origin: 50% 100%;
+  transform: translate(var(--x, 0px), calc(var(--dy, 0px) + var(--y, 0px))) rotate(var(--r, 0deg)) scale(var(--s, 1));
+  opacity: var(--o, 1);
+  transition: transform .6s cubic-bezier(.3, 1.35, .5, 1), opacity .4s var(--ux-ease);
+  will-change: transform;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.u422-cd::after {
+  content: '“';
+  position: absolute;
+  top: 14px;
+  right: 24px;
+  font-family: Georgia, serif;
+  font-size: 92px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ux-quote-tint);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.u422-cd.is-top {
+  cursor: grab;
+}
+
+.u422-cd.is-drag {
+  cursor: grabbing;
+  transition: none;
+}
+
+.u422-cd.is-fly {
+  transition: transform .5s cubic-bezier(.4, .1, .6, 1), opacity .4s ease-in .1s;
+}
+
+.u422-cd > * {
+  transition: opacity .35s var(--ux-ease);
+}
+
+.u422-cd:not(.is-top) > * {
+  opacity: .35;
+}
+
+.u422-sr {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+}
+
+.u422-sr i {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.u422-sr svg {
+  position: absolute;
+  inset: 0;
+  width: 22px;
+  height: 22px;
+}
+
+.u422-sr svg.bg {
+  fill: var(--ux-surface-3);
+}
+
+.u422-sr svg.fg {
+  fill: var(--ux-star, #F97316);
+  transform: scale(0) rotate(-40deg);
+  opacity: 0;
+}
+
+.u422-cd.is-on .u422-sr svg.fg {
+  animation: u422-star .5s cubic-bezier(.3, 1.7, .5, 1) both;
+  animation-delay: calc(180ms + var(--i) * 80ms);
+}
+
+@keyframes u422-star {
+  from {
+    transform: scale(0) rotate(-40deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.u422-q {
+  position: relative;
+  z-index: 1;
+  margin: 20px 0 0;
+  font-size: clamp(18.5px, 1.7vw, 22px);
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -.024em;
+  text-wrap: pretty;
+}
+
+.u422-by {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: auto;
+}
+
+.u422-av {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 10px 20px -8px rgba(234, 88, 12, 0.45), inset 0 0 0 2px rgba(255, 255, 255, .35);
+}
+
+.u422-by b {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.u422-by small {
+  display: block;
+  margin-left: 0;
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ux-ink-3);
+}
+
+@media (max-width: 640px) {
+  .u422 {
+    height: 330px;
+  }
+  .u422-st {
+    width: 100%;
+    max-width: 316px;
+    height: 236px;
+    margin-top: -20px;
+  }
+  .u422-st:focus-visible {
+    border-radius: 24px;
+  }
+  .u422-cd {
+    padding: 22px 20px 20px;
+    border-radius: 22px;
+  }
+  .u422-cd::after {
+    font-size: 68px;
+    top: 10px;
+    right: 16px;
+  }
+  .u422-sr i,
+  .u422-sr svg {
+    width: 18px;
+    height: 18px;
+  }
+  .u422-q {
+    margin-top: 14px;
+    font-size: 16.5px;
+    line-height: 1.48;
+  }
+  .u422-av {
+    width: 40px;
+    height: 40px;
+    font-size: 13px;
+  }
+  .u422-by b {
+    font-size: 14.5px;
+  }
+  .u422-by small {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u422.ux,
+  .u422.ux *,
+  .u422.ux *::before,
+  .u422.ux *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .u422-cd,
+  .u422-cd.is-fly,
+  .u422-cd > * {
+    transition: none !important;
+  }
+  .u422-cd.is-on .u422-sr svg.fg {
+    animation: none !important;
+    transform: none;
+    opacity: 1;
+  }
+}

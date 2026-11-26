@@ -228,6 +228,7 @@ export default function RoadmapTab({
   const handleSwitchTrack = (trackId) => {
     setActiveTrack(trackId);
     localStorage.setItem('tinhoc_selected_track', trackId);
+    window.dispatchEvent(new CustomEvent('tinhoc-track-change', { detail: trackId }));
     setSelectedStation(null);
     navigate(`/roadmap/${trackId}`);
   };
